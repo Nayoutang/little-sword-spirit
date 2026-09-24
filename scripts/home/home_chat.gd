@@ -19,6 +19,10 @@ var greeting_in_flight := false
 
 
 func _ready() -> void:
+	# 新存档第一次进家前，先播初遇剧情。
+	if RunState.needs_intro():
+		get_tree().change_scene_to_file("res://scenes/intro.tscn")
+		return
 	# 防止玩家在结算后退出游戏，从而绕过已经触发的关系突破。
 	if RunState.has_pending_bond_milestone():
 		get_tree().change_scene_to_file("res://scenes/relationship_milestone.tscn")

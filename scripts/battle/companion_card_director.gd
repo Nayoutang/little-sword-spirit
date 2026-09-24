@@ -128,7 +128,7 @@ static func get_fact_check_error(reason: String, context: Dictionary) -> String:
 		if marker in reason and not has_promise_fact:
 			return "提到了约定，但档案里没有任何约定记录"
 
-	var has_past := history.contains("\n- 第") or journal.contains("战") or journal.contains("奇遇")
+	var has_past := history.contains("\n- ") or journal.contains("战") or journal.contains("奇遇")
 	for marker in ["上次", "上回", "上一场", "上一趟", "上趟", "之前", "曾经", "那次", "那回", "以前"]:
 		if marker in reason and not has_past:
 			return "提到了过去，但还没有任何共同经历或本趟记录"

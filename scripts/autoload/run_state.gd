@@ -54,6 +54,9 @@ var homecoming_pending := false
 var pending_concern: Dictionary = {}
 var promise_sincere := true
 var run_min_hp := 0
+# 初遇剧情：玩家名字与是否已经播过。
+var player_name := ""
+var intro_done := false
 
 
 func _ready() -> void:
@@ -211,6 +214,26 @@ func _stage_index_for_value(value: int) -> int:
 
 
 func get_relationship_prompt() -> String:
+	var stage_text := _stage_prompt()
+	if not player_name.is_empty():
+		stage_text += "持剑人的名字：%s。" % player_name
+	return stage_text
+
+
+func needs_intro() -> bool:
+	return not intro_done and expedition_count == 0 and bond_value == 0 and shared_history.is_empty()
+
+
+func complete_intro(name: String, summary: String) -> void:
+	player_name = name.strip_edges()
+	intro_done = true
+	var clean := summary.replace("\n", " ").strip_edges().left(200)
+	if not clean.is_empty():
+		shared_history.push_front({"expedition": 0, "summary": clean})
+	_save_relationship()
+
+
+func _stage_prompt() -> String:
 	match get_bond_stage_index():
 		0:
 			return "当前关系阶段：初遇。她认生、设防、嘴硬，不轻易承认关心玩家。"
@@ -335,7 +358,10 @@ func _commit_run_moments() -> void:
 	for moment in ranked:
 		shared_history.append({"expedition": expedition_count, "summary": str(moment["summary"])})
 	while shared_history.size() > SHARED_HISTORY_LIMIT:
-		shared_history.pop_front()
+		if int(shared_history[0].get("expedition", -1)) == 0 and shared_history.size() > 1:
+			shared_history.remove_at(1)
+		else:
+			shared_history.pop_front()
 	run_moments.clear()
 
 
@@ -343,9 +369,15 @@ func get_shared_history_prompt(limit: int = 9) -> String:
 	if shared_history.is_empty():
 		return "【你们的共同经历】\n还没有。你们才刚认识，不要编造任何过去。"
 	var lines: Array[String] = ["【你们的共同经历】（跨远征保留的真实往事，越往下越近。可以自然提起，但不得添油加醋，不得编造清单以外的往事）"]
+	var indices: Array[int] = []
 	for index in range(maxi(shared_history.size() - limit, 0), shared_history.size()):
+		indices.append(index)
+	if not indices.has(0) and int(shared_history[0].get("expedition", -1)) == 0:
+		indices.push_front(0)
+	for index in indices:
 		var fact: Dictionary = shared_history[index]
-		lines.append("- 第%d趟：%s" % [int(fact.get("expedition", 0)), str(fact.get("summary", ""))])
+		var label := "初遇" if int(fact.get("expedition", 0)) == 0 else "第%d趟" % int(fact.get("expedition", 0))
+		lines.append("- %s：%s" % [label, str(fact.get("summary", ""))])
 	return "\n".join(lines)
 
 
@@ -516,6 +548,8 @@ func _save_relationship() -> void:
 	config.set_value("progress", "consecutive_run_failures", consecutive_run_failures)
 	config.set_value("progress", "expedition_count", expedition_count)
 	config.set_value("progress", "pending_concern", pending_concern)
+	config.set_value("progress", "intro_done", intro_done)
+	config.set_value("profile", "player_name", player_name)
 	config.set_value("memory", "shared_history", shared_history)
 	config.set_value("memory", "battles_won", int(relationship_facts.get("battles_won", 0)))
 	config.set_value("memory", "battles_lost", int(relationship_facts.get("battles_lost", 0)))
@@ -567,6 +601,8 @@ func _load_relationship() -> void:
 	)
 	consecutive_run_failures = maxi(int(config.get_value("progress", "consecutive_run_failures", 0)), 0)
 	expedition_count = maxi(int(config.get_value("progress", "expedition_count", 0)), 0)
+	intro_done = bool(config.get_value("progress", "intro_done", false))
+	player_name = str(config.get_value("profile", "player_name", ""))
 	var saved_concern: Variant = config.get_value("progress", "pending_concern", {})
 	if saved_concern is Dictionary:
 		pending_concern = saved_concern.duplicate(true)
@@ -608,6 +644,8 @@ func _reset_relationship_facts() -> void:
 	shared_history.clear()
 	expedition_count = 0
 	pending_concern = {}
+	player_name = ""
+	intro_done = false
 	run_moments.clear()
 	relationship_facts = {
 		"battles_won": 0,

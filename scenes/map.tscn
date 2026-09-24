@@ -1,0 +1,47 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/map/map.gd" id="1_map"]
+
+[node name="Map" type="Node2D"]
+script = ExtResource("1_map")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.09, 0.105, 0.13, 1)
+mouse_filter = 2
+
+[node name="MapContent" type="Node2D" parent="."]
+
+[node name="MapUI" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="MapUI"]
+offset_left = 32.0
+offset_top = 24.0
+offset_right = 300.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 28
+text = "路线选择"
+
+[node name="Hint" type="Label" parent="MapUI"]
+offset_left = 32.0
+offset_top = 70.0
+offset_right = 500.0
+offset_bottom = 104.0
+text = "青色描边的节点可以选择"
+
+[node name="Bond" type="Label" parent="MapUI"]
+offset_left = 1370.0
+offset_top = 31.0
+offset_right = 1715.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 23
+text = "羁绊: 0/100　初遇"
+horizontal_alignment = 2
+
+[node name="ReturnButton" type="Button" parent="MapUI"]
+offset_left = 1744.0
+offset_top = 24.0
+offset_right = 1888.0
+offset_bottom = 72.0
+text = "返回 home"

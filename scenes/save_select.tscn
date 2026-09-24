@@ -1,0 +1,81 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/save_select.gd" id="1_save"]
+
+[node name="SaveSelect" type="Node2D"]
+script = ExtResource("1_save")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.07, 0.08, 0.11, 1)
+mouse_filter = 2
+
+[node name="SaveUI" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="SaveUI"]
+offset_left = 610.0
+offset_top = 130.0
+offset_right = 1310.0
+offset_bottom = 205.0
+theme_override_font_sizes/font_size = 42
+text = "选择存档"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="SaveUI"]
+offset_left = 510.0
+offset_top = 220.0
+offset_right = 1410.0
+offset_bottom = 270.0
+theme_override_font_sizes/font_size = 22
+text = "羁绊与关系进度仅在各自存档内保留"
+horizontal_alignment = 1
+
+[node name="Slots" type="VBoxContainer" parent="SaveUI"]
+offset_left = 550.0
+offset_top = 335.0
+offset_right = 1370.0
+offset_bottom = 825.0
+theme_override_constants/separation = 28
+
+[node name="Slot1" type="HBoxContainer" parent="SaveUI/Slots"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Open" type="Button" parent="SaveUI/Slots/Slot1"]
+custom_minimum_size = Vector2(620, 120)
+layout_mode = 2
+text = "存档 1\n新游戏"
+
+[node name="Delete" type="Button" parent="SaveUI/Slots/Slot1"]
+custom_minimum_size = Vector2(180, 120)
+layout_mode = 2
+text = "删除存档"
+
+[node name="Slot2" type="HBoxContainer" parent="SaveUI/Slots"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Open" type="Button" parent="SaveUI/Slots/Slot2"]
+custom_minimum_size = Vector2(620, 120)
+layout_mode = 2
+text = "存档 2\n新游戏"
+
+[node name="Delete" type="Button" parent="SaveUI/Slots/Slot2"]
+custom_minimum_size = Vector2(180, 120)
+layout_mode = 2
+text = "删除存档"
+
+[node name="Slot3" type="HBoxContainer" parent="SaveUI/Slots"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Open" type="Button" parent="SaveUI/Slots/Slot3"]
+custom_minimum_size = Vector2(620, 120)
+layout_mode = 2
+text = "存档 3\n新游戏"
+
+[node name="Delete" type="Button" parent="SaveUI/Slots/Slot3"]
+custom_minimum_size = Vector2(180, 120)
+layout_mode = 2
+text = "删除存档"

@@ -1,0 +1,41 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="LittleSwordSpirit"
+run/main_scene="res://scenes/save_select.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+config/icon="res://art/app_icon.png"
+
+[autoload]
+
+BalanceConfig="*res://scripts/data/balance_config.gd"
+EnemyDatabase="*res://scripts/data/enemy_database.gd"
+CardDatabase="*res://scripts/data/card_database.gd"
+AbilityManager="*res://scripts/autoload/ability_manager.gd"
+SpecialEventManager="*res://scripts/autoload/special_event_manager.gd"
+RunState="*res://scripts/autoload/run_state.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+common/physics_interpolation=true
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"

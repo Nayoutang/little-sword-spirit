@@ -1,0 +1,83 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/map/event.gd" id="1_event"]
+
+[node name="Event" type="Node2D"]
+script = ExtResource("1_event")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.09, 0.1, 0.13, 1)
+mouse_filter = 2
+
+[node name="EventUI" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="EventUI"]
+offset_left = 610.0
+offset_top = 150.0
+offset_right = 1310.0
+offset_bottom = 220.0
+theme_override_font_sizes/font_size = 42
+text = "选择一项奖励"
+horizontal_alignment = 1
+
+[node name="HPLabel" type="Label" parent="EventUI"]
+offset_left = 760.0
+offset_top = 235.0
+offset_right = 1160.0
+offset_bottom = 285.0
+theme_override_font_sizes/font_size = 28
+text = "HP: 90/90"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="EventUI"]
+offset_left = 460.0
+offset_top = 305.0
+offset_right = 1460.0
+offset_bottom = 360.0
+theme_override_font_sizes/font_size = 25
+text = "宝箱与问号节点暂时共用这组奖励"
+horizontal_alignment = 1
+
+[node name="MainChoices" type="VBoxContainer" parent="EventUI"]
+offset_left = 660.0
+offset_top = 410.0
+offset_right = 1260.0
+offset_bottom = 750.0
+theme_override_constants/separation = 24
+
+[node name="Heal" type="Button" parent="EventUI/MainChoices"]
+custom_minimum_size = Vector2(600, 90)
+layout_mode = 2
+text = "回血 30"
+
+[node name="MaxHP" type="Button" parent="EventUI/MainChoices"]
+custom_minimum_size = Vector2(600, 90)
+layout_mode = 2
+text = "最大 HP +10（当前 HP 同步 +10）"
+
+[node name="Card" type="Button" parent="EventUI/MainChoices"]
+custom_minimum_size = Vector2(600, 90)
+layout_mode = 2
+text = "选择一张卡牌"
+
+[node name="CardChoices" type="HBoxContainer" parent="EventUI"]
+offset_left = 390.0
+offset_top = 450.0
+offset_right = 1530.0
+offset_bottom = 620.0
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="Choice1" type="Button" parent="EventUI/CardChoices"]
+custom_minimum_size = Vector2(340, 160)
+layout_mode = 2
+
+[node name="Choice2" type="Button" parent="EventUI/CardChoices"]
+custom_minimum_size = Vector2(340, 160)
+layout_mode = 2
+
+[node name="Choice3" type="Button" parent="EventUI/CardChoices"]
+custom_minimum_size = Vector2(340, 160)
+layout_mode = 2

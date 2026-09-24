@@ -1,0 +1,138 @@
+[gd_scene format=3 uid="uid://250kjmp02ff5"]
+
+[ext_resource type="Texture2D" uid="uid://bg24lv3kq0w8a" path="res://art/home.png" id="1_krot7"]
+[ext_resource type="Script" path="res://scripts/home/home_chat.gd" id="2_chat"]
+
+[node name="Home" type="Node2D" unique_id=2008978820]
+script = ExtResource("2_chat")
+
+[node name="home" type="Sprite2D" parent="." unique_id=1098647254]
+position = Vector2(958.5, 538.25)
+scale = Vector2(1.1477273, 1.142933)
+texture = ExtResource("1_krot7")
+
+[node name="ChatUI" type="CanvasLayer" parent="." unique_id=25022776]
+
+[node name="ChatPanel" type="Control" parent="ChatUI" unique_id=2068899749]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ChatLog" type="RichTextLabel" parent="ChatUI/ChatPanel" unique_id=299886385]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = 78.0
+offset_right = -32.0
+offset_bottom = -154.0
+grow_horizontal = 2
+grow_vertical = 2
+scroll_following = true
+
+[node name="Input" type="LineEdit" parent="ChatUI/ChatPanel" unique_id=192792830]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -80.0
+offset_right = -152.0
+offset_bottom = -32.0
+grow_horizontal = 2
+grow_vertical = 0
+placeholder_text = "输入消息，按回车发送…"
+
+[node name="SendButton" type="Button" parent="ChatUI/ChatPanel" unique_id=392117866]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -136.0
+offset_top = -80.0
+offset_right = -32.0
+offset_bottom = -32.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "发送"
+
+[node name="DepartButton" type="Button" parent="ChatUI/ChatPanel"]
+layout_mode = 0
+offset_left = 1776.0
+offset_top = 24.0
+offset_right = 1888.0
+offset_bottom = 72.0
+text = "出发"
+
+[node name="BondLabel" type="Label" parent="ChatUI/ChatPanel"]
+layout_mode = 0
+offset_left = 1450.0
+offset_top = 30.0
+offset_right = 1755.0
+offset_bottom = 68.0
+theme_override_font_sizes/font_size = 22
+text = "羁绊：0/100　初遇"
+horizontal_alignment = 2
+
+[node name="SaveSlotsButton" type="Button" parent="ChatUI/ChatPanel"]
+layout_mode = 0
+offset_left = 1776.0
+offset_top = 84.0
+offset_right = 1888.0
+offset_bottom = 126.0
+text = "存档选择"
+
+[node name="FeihualingButton" type="Button" parent="ChatUI/ChatPanel"]
+layout_mode = 0
+offset_left = 1776.0
+offset_top = 138.0
+offset_right = 1888.0
+offset_bottom = 180.0
+text = "飞花令"
+
+[node name="FeihualingStatus" type="Label" parent="ChatUI/ChatPanel"]
+visible = false
+layout_mode = 0
+offset_left = 32.0
+offset_top = 30.0
+offset_right = 452.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+text = "令·山 ｜ 第1轮"
+
+[node name="FeihualingAgainButton" type="Button" parent="ChatUI/ChatPanel"]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -144.0
+offset_right = 160.0
+offset_bottom = -96.0
+grow_vertical = 0
+text = "再来一局"
+
+[node name="FeihualingLeaveButton" type="Button" parent="ChatUI/ChatPanel"]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 172.0
+offset_top = -144.0
+offset_right = 300.0
+offset_bottom = -96.0
+grow_vertical = 0
+text = "不玩了"
+
+[node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1567165051]
+timeout = 60.0

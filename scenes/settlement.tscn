@@ -1,0 +1,67 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/settlement.gd" id="1_settlement"]
+
+[node name="Settlement" type="Node2D"]
+script = ExtResource("1_settlement")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.08, 0.09, 0.12, 1)
+mouse_filter = 2
+
+[node name="SettlementUI" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="SettlementUI"]
+offset_left = 610.0
+offset_top = 170.0
+offset_right = 1310.0
+offset_bottom = 235.0
+theme_override_font_sizes/font_size = 40
+text = "战后结算"
+horizontal_alignment = 1
+
+[node name="RunResult" type="Label" parent="SettlementUI"]
+offset_left = 660.0
+offset_top = 270.0
+offset_right = 1260.0
+offset_bottom = 325.0
+theme_override_font_sizes/font_size = 30
+text = "远征结束"
+horizontal_alignment = 1
+
+[node name="Result" type="Label" parent="SettlementUI"]
+offset_left = 560.0
+offset_top = 370.0
+offset_right = 1360.0
+offset_bottom = 430.0
+theme_override_font_sizes/font_size = 32
+text = "约定结算"
+horizontal_alignment = 1
+
+[node name="Reaction" type="Label" parent="SettlementUI"]
+offset_left = 410.0
+offset_top = 465.0
+offset_right = 1510.0
+offset_bottom = 600.0
+theme_override_font_sizes/font_size = 25
+text = "羁绊变化"
+horizontal_alignment = 1
+
+[node name="Bond" type="Label" parent="SettlementUI"]
+offset_left = 610.0
+offset_top = 615.0
+offset_right = 1310.0
+offset_bottom = 670.0
+theme_override_font_sizes/font_size = 26
+text = "当前羁绊：0/100　初遇"
+horizontal_alignment = 1
+
+[node name="HomeButton" type="Button" parent="SettlementUI"]
+offset_left = 760.0
+offset_top = 750.0
+offset_right = 1160.0
+offset_bottom = 830.0
+theme_override_font_sizes/font_size = 24
+text = "返回 Home"

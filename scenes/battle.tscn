@@ -1,0 +1,205 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle.gd" id="1_battle"]
+
+[node name="Battle" type="Node2D"]
+script = ExtResource("1_battle")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.075, 0.085, 0.11, 1)
+mouse_filter = 2
+
+[node name="BattleUI" type="CanvasLayer" parent="."]
+
+[node name="EnemyArea" type="Control" parent="BattleUI"]
+offset_right = 1920.0
+offset_bottom = 360.0
+
+[node name="EnemyRow" type="HBoxContainer" parent="BattleUI/EnemyArea"]
+offset_left = 420.0
+offset_top = 45.0
+offset_right = 1500.0
+offset_bottom = 345.0
+theme_override_constants/separation = 45
+alignment = 1
+
+[node name="InfoArea" type="Control" parent="BattleUI"]
+offset_top = 360.0
+offset_right = 1920.0
+offset_bottom = 650.0
+
+[node name="ComboLabel" type="Label" parent="BattleUI/InfoArea"]
+offset_left = 710.0
+offset_top = 25.0
+offset_right = 1210.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 46
+text = "连击数: 0"
+horizontal_alignment = 1
+
+[node name="PlayerHP" type="Label" parent="BattleUI/InfoArea"]
+offset_left = 620.0
+offset_top = 115.0
+offset_right = 820.0
+offset_bottom = 160.0
+theme_override_font_sizes/font_size = 26
+text = "HP: 50"
+horizontal_alignment = 1
+
+[node name="Energy" type="Label" parent="BattleUI/InfoArea"]
+offset_left = 860.0
+offset_top = 115.0
+offset_right = 1060.0
+offset_bottom = 160.0
+theme_override_font_sizes/font_size = 26
+text = "精力: 3/3"
+horizontal_alignment = 1
+
+[node name="Block" type="Label" parent="BattleUI/InfoArea"]
+offset_left = 1100.0
+offset_top = 115.0
+offset_right = 1300.0
+offset_bottom = 160.0
+theme_override_font_sizes/font_size = 26
+text = "格挡: 0"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="BattleUI/InfoArea"]
+offset_left = 460.0
+offset_top = 185.0
+offset_right = 1460.0
+offset_bottom = 235.0
+theme_override_font_sizes/font_size = 24
+text = "战斗开始"
+horizontal_alignment = 1
+
+[node name="CompanionPanel" type="ColorRect" parent="BattleUI"]
+offset_left = 42.0
+offset_top = 382.0
+offset_right = 442.0
+offset_bottom = 638.0
+color = Color(0.16, 0.13, 0.24, 0.96)
+
+[node name="Title" type="Label" parent="BattleUI/CompanionPanel"]
+offset_left = 22.0
+offset_top = 18.0
+offset_right = 378.0
+offset_bottom = 56.0
+theme_override_font_sizes/font_size = 27
+text = "小墨 · 第二牌手"
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="BattleUI/CompanionPanel"]
+offset_left = 22.0
+offset_top = 74.0
+offset_right = 378.0
+offset_bottom = 112.0
+theme_override_colors/font_color = Color(0.95, 0.78, 0.42, 1)
+theme_override_font_sizes/font_size = 21
+text = "小墨在观察战局"
+horizontal_alignment = 1
+
+[node name="Reason" type="Label" parent="BattleUI/CompanionPanel"]
+offset_left = 24.0
+offset_top = 128.0
+offset_right = 376.0
+offset_bottom = 232.0
+theme_override_font_sizes/font_size = 19
+text = "回合结束时，她会从自己的牌池中选择一张牌。"
+autowrap_mode = 2
+vertical_alignment = 1
+
+[node name="HandArea" type="HBoxContainer" parent="BattleUI"]
+offset_left = 72.0
+offset_top = 690.0
+offset_right = 1848.0
+offset_bottom = 835.0
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="DrawPile" type="ColorRect" parent="BattleUI"]
+offset_left = 72.0
+offset_top = 700.0
+offset_right = 282.0
+offset_bottom = 825.0
+color = Color(0.16, 0.25, 0.42, 1)
+mouse_default_cursor_shape = 2
+
+[node name="Count" type="Label" parent="BattleUI/DrawPile"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "牌堆\n9"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DiscardPile" type="ColorRect" parent="BattleUI"]
+offset_left = 1638.0
+offset_top = 700.0
+offset_right = 1848.0
+offset_bottom = 825.0
+color = Color(0.32, 0.2, 0.2, 1)
+mouse_default_cursor_shape = 2
+
+[node name="Count" type="Label" parent="BattleUI/DiscardPile"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "弃牌堆\n0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Card1" type="Button" parent="BattleUI/HandArea"]
+custom_minimum_size = Vector2(250, 130)
+layout_mode = 2
+text = "[攻击]\n费1 伤害6\n连击+1"
+
+[node name="Card2" type="Button" parent="BattleUI/HandArea"]
+custom_minimum_size = Vector2(250, 130)
+layout_mode = 2
+text = "[攻击]\n费1 伤害6\n连击+1"
+
+[node name="Card3" type="Button" parent="BattleUI/HandArea"]
+custom_minimum_size = Vector2(250, 130)
+layout_mode = 2
+text = "[攻击]\n费1 伤害6\n连击+1"
+
+[node name="Card4" type="Button" parent="BattleUI/HandArea"]
+custom_minimum_size = Vector2(250, 130)
+layout_mode = 2
+text = "[防御]\n费1 格挡5\n清空连击"
+
+[node name="ActionArea" type="HBoxContainer" parent="BattleUI"]
+offset_left = 390.0
+offset_top = 875.0
+offset_right = 1530.0
+offset_bottom = 955.0
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Special" type="Button" parent="BattleUI/ActionArea"]
+custom_minimum_size = Vector2(300, 70)
+layout_mode = 2
+disabled = true
+text = "特殊技·流光\n费1 / 伤15 / 耗2连击 / 相识解锁"
+
+[node name="Ultimate" type="Button" parent="BattleUI/ActionArea"]
+custom_minimum_size = Vector2(320, 70)
+layout_mode = 2
+disabled = true
+text = "终极技·华彩\n费0 / 伤害35 / 交心解锁"
+
+[node name="EndTurn" type="Button" parent="BattleUI/ActionArea"]
+custom_minimum_size = Vector2(260, 70)
+layout_mode = 2
+text = "结束回合"

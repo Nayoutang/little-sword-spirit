@@ -1,0 +1,12 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# 本地 LLM 密钥，绝不提交（导出时仍会随包带上）
+/secrets/
+# 导出模板与构建产物
+*.tpz
+*.exe
+*.pck
+# 改动前的本地备份
+/_backup_*/

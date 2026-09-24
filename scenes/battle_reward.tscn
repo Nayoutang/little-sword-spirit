@@ -1,0 +1,78 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_reward.gd" id="1_reward"]
+
+[node name="BattleReward" type="Node2D"]
+script = ExtResource("1_reward")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.075, 0.09, 0.12, 1)
+mouse_filter = 2
+
+[node name="RewardUI" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="RewardUI"]
+offset_left = 610.0
+offset_top = 140.0
+offset_right = 1310.0
+offset_bottom = 210.0
+theme_override_font_sizes/font_size = 42
+text = "战斗胜利"
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="RewardUI"]
+offset_left = 510.0
+offset_top = 230.0
+offset_right = 1410.0
+offset_bottom = 280.0
+theme_override_font_sizes/font_size = 25
+text = "HP: 90/90　羁绊: 0/100（初遇）"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="RewardUI"]
+offset_left = 360.0
+offset_top = 310.0
+offset_right = 1560.0
+offset_bottom = 370.0
+theme_override_font_sizes/font_size = 24
+text = "选择一项战后奖励"
+horizontal_alignment = 1
+
+[node name="MainChoices" type="VBoxContainer" parent="RewardUI"]
+offset_left = 610.0
+offset_top = 415.0
+offset_right = 1310.0
+offset_bottom = 760.0
+theme_override_constants/separation = 24
+
+[node name="Heal" type="Button" parent="RewardUI/MainChoices"]
+custom_minimum_size = Vector2(700, 90)
+layout_mode = 2
+text = "休整：恢复 10 HP"
+
+[node name="Card" type="Button" parent="RewardUI/MainChoices"]
+custom_minimum_size = Vector2(700, 90)
+layout_mode = 2
+text = "整备：选择一张卡牌"
+
+[node name="CardChoices" type="HBoxContainer" parent="RewardUI"]
+offset_left = 390.0
+offset_top = 440.0
+offset_right = 1530.0
+offset_bottom = 620.0
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="Choice1" type="Button" parent="RewardUI/CardChoices"]
+custom_minimum_size = Vector2(340, 170)
+layout_mode = 2
+
+[node name="Choice2" type="Button" parent="RewardUI/CardChoices"]
+custom_minimum_size = Vector2(340, 170)
+layout_mode = 2
+
+[node name="Choice3" type="Button" parent="RewardUI/CardChoices"]
+custom_minimum_size = Vector2(340, 170)
+layout_mode = 2

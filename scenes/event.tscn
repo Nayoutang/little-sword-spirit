@@ -1,17 +1,30 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/event.gd" id="1_event"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/adventure_path.png" id="2_path"]
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="3_skin"]
 
 [node name="Event" type="Node2D"]
 script = ExtResource("1_event")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 offset_right = 1920.0
 offset_bottom = 1080.0
-color = Color(0.09, 0.1, 0.13, 1)
+texture = ExtResource("2_path")
+expand_mode = 1
+stretch_mode = 6
 mouse_filter = 2
 
 [node name="EventUI" type="CanvasLayer" parent="."]
+script = ExtResource("3_skin")
+
+[node name="TextBackdrop" type="ColorRect" parent="EventUI"]
+offset_left = 345.0
+offset_top = 105.0
+offset_right = 1575.0
+offset_bottom = 835.0
+color = Color(0.025, 0.045, 0.055, 0.86)
+mouse_filter = 2
 
 [node name="Title" type="Label" parent="EventUI"]
 offset_left = 610.0

@@ -39,6 +39,23 @@ func start() -> void:
 	_send_round("opening", "")
 
 
+func cancel() -> void:
+	if request != null:
+		request.cancel_request()
+	game = null
+	action = ""
+	player_text = ""
+	intent_hint = ""
+	local_result = ""
+	retry_suffix = ""
+	json_retries = 0
+	line_retries = 0
+	closure_retries = 0
+	if busy:
+		_set_busy(false)
+	hud_changed.emit("", false)
+
+
 func submit(text: String) -> void:
 	if busy or game == null:
 		return
@@ -86,6 +103,8 @@ func _send_round(next_action: String, next_player_text: String, retry: bool = fa
 
 
 func _on_request_completed(result: int, status: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if game == null:
+		return
 	_set_busy(false)
 	var body_text := body.get_string_from_utf8()
 	if result != HTTPRequest.RESULT_SUCCESS or status < 200 or status >= 300:

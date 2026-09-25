@@ -5,9 +5,13 @@ extends Node2D
 @onready var send_button: Button = $ChatUI/ChatPanel/SendButton
 @onready var depart_button: Button = $ChatUI/ChatPanel/DepartButton
 @onready var feihualing_button: Button = $ChatUI/ChatPanel/FeihualingButton
-@onready var feihualing_status: Label = $ChatUI/ChatPanel/FeihualingStatus
-@onready var feihualing_again_button: Button = $ChatUI/ChatPanel/FeihualingAgainButton
-@onready var feihualing_leave_button: Button = $ChatUI/ChatPanel/FeihualingLeaveButton
+@onready var game_screen: Control = $FeihualingLayer/GameScreen
+@onready var game_status: Label = $FeihualingLayer/GameScreen/Status
+@onready var game_log: RichTextLabel = $FeihualingLayer/GameScreen/GameLog
+@onready var game_input: LineEdit = $FeihualingLayer/GameScreen/GameInput
+@onready var game_send_button: Button = $FeihualingLayer/GameScreen/GameSendButton
+@onready var game_again_button: Button = $FeihualingLayer/GameScreen/AgainButton
+@onready var game_exit_button: Button = $FeihualingLayer/GameScreen/ExitButton
 @onready var bond_label: Label = $ChatUI/ChatPanel/BondLabel
 @onready var http_request: HTTPRequest = $HTTPRequest
 
@@ -41,8 +45,10 @@ func _ready() -> void:
 	send_button.pressed.connect(_send_message)
 	depart_button.pressed.connect(_go_to_map)
 	feihualing_button.pressed.connect(_start_feihualing)
-	feihualing_again_button.pressed.connect(_on_game_again)
-	feihualing_leave_button.pressed.connect(_on_game_leave)
+	game_again_button.pressed.connect(_on_game_again)
+	game_exit_button.pressed.connect(_on_game_leave)
+	game_send_button.pressed.connect(_send_game_message)
+	game_input.text_submitted.connect(_on_game_text_submitted)
 	$ChatUI/ChatPanel/SaveSlotsButton.pressed.connect(_return_to_save_slots)
 	input.text_submitted.connect(_on_text_submitted)
 	http_request.request_completed.connect(_on_request_completed)
@@ -146,8 +152,16 @@ func _start_feihualing() -> void:
 	if LLMConfig.API_URL.is_empty() or LLMConfig.get_api_key().is_empty() or LLMConfig.MODEL_NAME.is_empty():
 		_show_error("未配置 LLM API Key。请设置环境变量 %s。" % LLMConfig.API_KEY_ENV)
 		return
-	_hide_game_choices()
+	game_choice_pending = false
+	game_again_button.hide()
+	game_log.clear()
+	game_status.text = "令字待揭晓"
+	game_input.clear()
+	game_screen.show()
+	input.release_focus()
+	game_input.grab_focus()
 	game_controller.start()
+	_refresh_game_controls()
 
 
 func _on_game_again() -> void:
@@ -155,55 +169,68 @@ func _on_game_again() -> void:
 
 
 func _on_game_leave() -> void:
-	_hide_game_choices()
+	game_controller.cancel()
+	game_choice_pending = false
+	game_again_button.hide()
+	game_screen.hide()
+	_set_request_in_flight(request_in_flight)
 	input.grab_focus()
 
 
-func _hide_game_choices() -> void:
-	game_choice_pending = false
-	feihualing_again_button.hide()
-	feihualing_leave_button.hide()
+func _on_game_text_submitted(_submitted_text: String) -> void:
+	_send_game_message()
+
+
+func _send_game_message() -> void:
+	if not game_screen.visible or game_controller.busy or game_controller.game == null:
+		return
+	var player_text := game_input.text.strip_edges()
+	if player_text.is_empty():
+		return
+	game_input.clear()
+	game_log.append_text("你：%s\n\n" % player_text)
+	game_controller.submit(player_text)
 
 
 func _on_game_spoken(text: String) -> void:
-	chat_log.append_text("小墨：%s\n\n" % text)
+	game_log.append_text("小墨：%s\n\n" % text)
 
 
 func _on_game_hud_changed(label: String, visible: bool) -> void:
-	feihualing_status.text = label
-	feihualing_status.visible = visible
+	game_status.text = label if visible else "令字待揭晓"
 
 
 func _on_game_busy_changed(_busy: bool) -> void:
 	_set_request_in_flight(request_in_flight)
+	_refresh_game_controls()
+
+
+func _refresh_game_controls() -> void:
+	var can_answer := game_controller.game != null and not game_controller.busy and not game_choice_pending
+	game_input.editable = can_answer
+	game_send_button.disabled = not can_answer
+	if can_answer and game_screen.visible:
+		game_input.grab_focus()
 
 
 func _on_game_finished(summary: String) -> void:
 	messages.append({"role": "system", "content": "刚结束的小游戏结果（可信事实）：%s" % summary})
+	game_log.append_text("[对局结束] %s\n" % summary)
 	game_choice_pending = true
-	feihualing_again_button.show()
-	feihualing_leave_button.show()
+	game_again_button.show()
 	_set_request_in_flight(request_in_flight)
+	_refresh_game_controls()
 
 
 func _send_message() -> void:
-	if request_in_flight or game_controller.busy:
+	if game_screen.visible or request_in_flight or game_controller.busy:
 		return
 
 	var player_text := input.text.strip_edges()
 	if player_text.is_empty():
 		return
-	var leaving_finished_game := game_choice_pending
-	if leaving_finished_game:
-		_hide_game_choices()
-	if game_controller.game != null:
+	if _is_feihualing_invitation(player_text):
 		input.clear()
-		chat_log.append_text("玩家：%s\n\n" % player_text)
-		game_controller.submit(player_text)
-		return
-	if not leaving_finished_game and _is_feihualing_invitation(player_text):
-		input.clear()
-		chat_log.append_text("玩家：%s\n\n" % player_text)
 		_start_feihualing()
 		return
 

@@ -1,17 +1,30 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/settlement.gd" id="1_settlement"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/battle_arena.png" id="2_arena"]
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="3_skin"]
 
 [node name="Settlement" type="Node2D"]
 script = ExtResource("1_settlement")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 offset_right = 1920.0
 offset_bottom = 1080.0
-color = Color(0.08, 0.09, 0.12, 1)
+texture = ExtResource("2_arena")
+expand_mode = 1
+stretch_mode = 6
 mouse_filter = 2
 
 [node name="SettlementUI" type="CanvasLayer" parent="."]
+script = ExtResource("3_skin")
+
+[node name="TextBackdrop" type="ColorRect" parent="SettlementUI"]
+offset_left = 350.0
+offset_top = 125.0
+offset_right = 1570.0
+offset_bottom = 880.0
+color = Color(0.025, 0.045, 0.055, 0.86)
+mouse_filter = 2
 
 [node name="Title" type="Label" parent="SettlementUI"]
 offset_left = 610.0

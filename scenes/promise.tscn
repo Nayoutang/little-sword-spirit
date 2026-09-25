@@ -1,17 +1,39 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/promise.gd" id="1_promise"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/home_room.png" id="2_room"]
+[ext_resource type="Texture2D" path="res://art/character/sword_spirit_dialogue_portrait.png" id="3_portrait"]
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="4_skin"]
 
 [node name="Promise" type="Node2D"]
 script = ExtResource("1_promise")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 offset_right = 1920.0
 offset_bottom = 1080.0
-color = Color(0.09, 0.1, 0.13, 1)
+texture = ExtResource("2_room")
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 2
+
+[node name="Portrait" type="TextureRect" parent="."]
+offset_right = 350.0
+offset_bottom = 1080.0
+texture = ExtResource("3_portrait")
+expand_mode = 1
+stretch_mode = 6
 mouse_filter = 2
 
 [node name="PromiseUI" type="CanvasLayer" parent="."]
+script = ExtResource("4_skin")
+
+[node name="TextBackdrop" type="ColorRect" parent="PromiseUI"]
+offset_left = 360.0
+offset_top = 130.0
+offset_right = 1560.0
+offset_bottom = 870.0
+color = Color(0.025, 0.045, 0.055, 0.86)
+mouse_filter = 2
 
 [node name="Title" type="Label" parent="PromiseUI"]
 offset_left = 560.0

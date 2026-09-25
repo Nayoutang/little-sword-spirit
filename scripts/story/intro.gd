@@ -1,5 +1,7 @@
 extends Node2D
 
+const UI_SKIN := preload("res://scripts/ui/ink_ui_skin.gd")
+
 # 初遇：新存档第一次进入时播放的一段简短文字剧情。
 # 锚句写死；她对玩家反应和名字的回应由 LLM 现场生成，失败时用手写台词顶上。
 # 结束时写入玩家名字与第一条共同经历，不加羁绊。
@@ -32,6 +34,7 @@ var pending_callback: Callable
 var pending_fallback := ""
 
 var background: ColorRect
+var forest_image: TextureRect
 var home_image: TextureRect
 var story_label: RichTextLabel
 var choices_box: VBoxContainer
@@ -53,23 +56,37 @@ func _build_ui() -> void:
 	add_child(background)
 	var layer := CanvasLayer.new()
 	add_child(layer)
+	forest_image = TextureRect.new()
+	forest_image.size = Vector2(1920, 1080)
+	forest_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	forest_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	forest_image.texture = preload("res://art/backgrounds/intro_forest.png")
+	forest_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(forest_image)
 
 	home_image = TextureRect.new()
 	home_image.position = Vector2(0, 0)
 	home_image.size = Vector2(1920, 1080)
 	home_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	home_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	home_image.modulate = Color(1, 1, 1, 0.35)
+	home_image.modulate = Color(1, 1, 1, 0.72)
+	home_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	home_image.visible = false
 	if ResourceLoader.exists("res://art/home.png"):
 		home_image.texture = load("res://art/home.png")
 	layer.add_child(home_image)
+	var story_backdrop := ColorRect.new()
+	story_backdrop.position = Vector2(315, 190)
+	story_backdrop.size = Vector2(1290, 365)
+	story_backdrop.color = Color(0.025, 0.045, 0.055, 0.79)
+	story_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(story_backdrop)
 
 	story_label = RichTextLabel.new()
-	story_label.position = Vector2(360, 220)
-	story_label.size = Vector2(1200, 360)
+	story_label.position = Vector2(360, 225)
+	story_label.size = Vector2(1200, 300)
 	story_label.bbcode_enabled = true
-	story_label.add_theme_font_size_override("normal_font_size", 30)
+	story_label.add_theme_font_size_override("normal_font_size", 36)
 	layer.add_child(story_label)
 
 	choices_box = VBoxContainer.new()
@@ -87,11 +104,13 @@ func _build_ui() -> void:
 	name_input.max_length = 12
 	name_input.placeholder_text = "输入你的名字（留空则为「持剑人」）"
 	name_input.add_theme_font_size_override("font_size", 26)
+	UI_SKIN.style_line_edit(name_input)
 	name_input.text_submitted.connect(func(_text): _submit_name())
 	name_row.add_child(name_input)
 	var name_button := Button.new()
 	name_button.text = "告诉她"
 	name_button.custom_minimum_size = Vector2(200, 64)
+	UI_SKIN.style_button(name_button)
 	name_button.pressed.connect(_submit_name)
 	name_row.add_child(name_button)
 	name_row.visible = false
@@ -101,6 +120,7 @@ func _build_ui() -> void:
 	continue_button.position = Vector2(810, 660)
 	continue_button.size = Vector2(300, 70)
 	continue_button.text = "继续"
+	UI_SKIN.style_button(continue_button)
 	continue_button.visible = false
 	layer.add_child(continue_button)
 
@@ -108,6 +128,7 @@ func _build_ui() -> void:
 	skip_button.position = Vector2(1720, 40)
 	skip_button.size = Vector2(160, 56)
 	skip_button.text = "跳过"
+	UI_SKIN.style_button(skip_button)
 	skip_button.pressed.connect(_skip)
 	layer.add_child(skip_button)
 
@@ -167,6 +188,7 @@ func _submit_name() -> void:
 func _show_ending() -> void:
 	_set_story("小墨：%s" % ENDING_LINE)
 	_show_continue(func():
+		forest_image.hide()
 		home_image.visible = true
 		_set_story("[i]%s[/i]" % ENDING_TEXT)
 		_show_continue(_finish, "回家"))
@@ -211,6 +233,7 @@ func _show_choices(options: Array[String], callback: Callable) -> void:
 		button.text = options[index]
 		button.custom_minimum_size = Vector2(800, 72)
 		button.add_theme_font_size_override("font_size", 26)
+		UI_SKIN.style_button(button)
 		button.pressed.connect(func():
 			_clear_choices()
 			callback.call(index))

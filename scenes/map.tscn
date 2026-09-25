@@ -1,19 +1,30 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/map.gd" id="1_map"]
+[ext_resource type="Texture2D" path="res://art/route_map_background.png" id="2_map_art"]
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="3_skin"]
 
 [node name="Map" type="Node2D"]
 script = ExtResource("1_map")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 offset_right = 1920.0
 offset_bottom = 1080.0
-color = Color(0.09, 0.105, 0.13, 1)
+texture = ExtResource("2_map_art")
+expand_mode = 1
+stretch_mode = 6
 mouse_filter = 2
 
 [node name="MapContent" type="Node2D" parent="."]
 
 [node name="MapUI" type="CanvasLayer" parent="."]
+script = ExtResource("3_skin")
+
+[node name="Header" type="ColorRect" parent="MapUI"]
+offset_right = 1920.0
+offset_bottom = 108.0
+color = Color(0.075, 0.105, 0.12, 0.88)
+mouse_filter = 2
 
 [node name="Title" type="Label" parent="MapUI"]
 offset_left = 32.0
@@ -45,3 +56,11 @@ offset_top = 24.0
 offset_right = 1888.0
 offset_bottom = 72.0
 text = "返回 home"
+
+[node name="LegendBar" type="ColorRect" parent="MapUI"]
+offset_left = 260.0
+offset_top = 1020.0
+offset_right = 1660.0
+offset_bottom = 1076.0
+color = Color(0.075, 0.105, 0.12, 0.84)
+mouse_filter = 2

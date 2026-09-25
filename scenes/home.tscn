@@ -1,17 +1,40 @@
-[gd_scene format=3 uid="uid://250kjmp02ff5"]
+[gd_scene load_steps=7 format=3 uid="uid://250kjmp02ff5"]
 
-[ext_resource type="Texture2D" uid="uid://bg24lv3kq0w8a" path="res://art/home.png" id="1_krot7"]
+[ext_resource type="Texture2D" path="res://art/character/sword_spirit_dialogue_portrait.png" id="1_portrait"]
 [ext_resource type="Script" path="res://scripts/home/home_chat.gd" id="2_chat"]
+[ext_resource type="Texture2D" path="res://art/character/sword_spirit_chibi_cutout.png" id="3_chibi"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/home_room.png" id="4_room"]
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="5_skin"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/feihualing_pavilion.png" id="6_feihua"]
 
 [node name="Home" type="Node2D" unique_id=2008978820]
 script = ExtResource("2_chat")
 
-[node name="home" type="Sprite2D" parent="." unique_id=1098647254]
-position = Vector2(958.5, 538.25)
-scale = Vector2(1.1477273, 1.142933)
-texture = ExtResource("1_krot7")
+[node name="Background" type="TextureRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("4_room")
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 2
+
+[node name="Portrait" type="TextureRect" parent="."]
+offset_right = 720.0
+offset_bottom = 1080.0
+texture = ExtResource("1_portrait")
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 2
+
+[node name="PortraitDivider" type="ColorRect" parent="."]
+offset_left = 716.0
+offset_right = 722.0
+offset_bottom = 1080.0
+color = Color(0.64, 0.52, 0.31, 1)
+mouse_filter = 2
 
 [node name="ChatUI" type="CanvasLayer" parent="." unique_id=25022776]
+script = ExtResource("5_skin")
 
 [node name="ChatPanel" type="Control" parent="ChatUI" unique_id=2068899749]
 layout_mode = 3
@@ -21,14 +44,59 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="TopBackdrop" type="ColorRect" parent="ChatUI/ChatPanel"]
+layout_mode = 0
+offset_left = 722.0
+offset_right = 1920.0
+offset_bottom = 145.0
+color = Color(0.025, 0.045, 0.055, 0.76)
+mouse_filter = 2
+
+[node name="ChatBackground" type="ColorRect" parent="ChatUI/ChatPanel"]
+layout_mode = 0
+offset_left = 744.0
+offset_top = 154.0
+offset_right = 1888.0
+offset_bottom = 928.0
+color = Color(0.025, 0.04, 0.05, 0.74)
+mouse_filter = 2
+
+[node name="ChatFrameTop" type="ColorRect" parent="ChatUI/ChatPanel"]
+layout_mode = 0
+offset_left = 744.0
+offset_top = 154.0
+offset_right = 1888.0
+offset_bottom = 158.0
+color = Color(0.72, 0.57, 0.34, 1)
+mouse_filter = 2
+
+[node name="ChatFrameBottom" type="ColorRect" parent="ChatUI/ChatPanel"]
+layout_mode = 0
+offset_left = 744.0
+offset_top = 924.0
+offset_right = 1888.0
+offset_bottom = 928.0
+color = Color(0.72, 0.57, 0.34, 1)
+mouse_filter = 2
+
+[node name="CharacterName" type="Label" parent="ChatUI/ChatPanel"]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 24.0
+offset_right = 1010.0
+offset_bottom = 78.0
+theme_override_colors/font_color = Color(0.94, 0.81, 0.54, 1)
+theme_override_font_sizes/font_size = 36
+text = "小墨"
+
 [node name="ChatLog" type="RichTextLabel" parent="ChatUI/ChatPanel" unique_id=299886385]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = 78.0
-offset_right = -32.0
+offset_left = 766.0
+offset_top = 178.0
+offset_right = -62.0
 offset_bottom = -154.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -40,7 +108,7 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 32.0
+offset_left = 766.0
 offset_top = -80.0
 offset_right = -152.0
 offset_bottom = -32.0
@@ -97,42 +165,120 @@ offset_right = 1888.0
 offset_bottom = 180.0
 text = "飞花令"
 
-[node name="FeihualingStatus" type="Label" parent="ChatUI/ChatPanel"]
-visible = false
-layout_mode = 0
-offset_left = 32.0
-offset_top = 30.0
-offset_right = 452.0
-offset_bottom = 70.0
-theme_override_font_sizes/font_size = 22
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
-text = "令·山 ｜ 第1轮"
+[node name="FeihualingLayer" type="CanvasLayer" parent="."]
+layer = 2
+script = ExtResource("5_skin")
 
-[node name="FeihualingAgainButton" type="Button" parent="ChatUI/ChatPanel"]
+[node name="GameScreen" type="Control" parent="FeihualingLayer"]
 visible = false
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = -144.0
-offset_right = 160.0
-offset_bottom = -96.0
-grow_vertical = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 0
+
+[node name="Background" type="TextureRect" parent="FeihualingLayer/GameScreen"]
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("6_feihua")
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 2
+
+[node name="Shade" type="ColorRect" parent="FeihualingLayer/GameScreen"]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.02, 0.04, 0.05, 0.22)
+mouse_filter = 2
+
+[node name="Character" type="TextureRect" parent="FeihualingLayer/GameScreen"]
+offset_left = 35.0
+offset_top = 100.0
+offset_right = 690.0
+offset_bottom = 1020.0
+texture = ExtResource("3_chibi")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="PoetryPanel" type="ColorRect" parent="FeihualingLayer/GameScreen"]
+offset_left = 630.0
+offset_top = 110.0
+offset_right = 1850.0
+offset_bottom = 965.0
+color = Color(0.025, 0.065, 0.072, 0.83)
+mouse_filter = 2
+
+[node name="PanelAccent" type="ColorRect" parent="FeihualingLayer/GameScreen"]
+offset_left = 630.0
+offset_top = 110.0
+offset_right = 1850.0
+offset_bottom = 115.0
+color = Color(0.83, 0.66, 0.39, 1)
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="FeihualingLayer/GameScreen"]
+offset_left = 690.0
+offset_top = 145.0
+offset_right = 1120.0
+offset_bottom = 210.0
+theme_override_colors/font_color = Color(0.97, 0.85, 0.62, 1)
+theme_override_font_sizes/font_size = 48
+text = "飞花令"
+
+[node name="Status" type="Label" parent="FeihualingLayer/GameScreen"]
+offset_left = 1130.0
+offset_top = 160.0
+offset_right = 1590.0
+offset_bottom = 210.0
+theme_override_colors/font_color = Color(0.83, 0.95, 0.91, 1)
+theme_override_font_sizes/font_size = 26
+text = "令字待揭晓"
+vertical_alignment = 1
+
+[node name="ExitButton" type="Button" parent="FeihualingLayer/GameScreen"]
+offset_left = 1660.0
+offset_top = 150.0
+offset_right = 1800.0
+offset_bottom = 205.0
+text = "退出对局"
+
+[node name="Rules" type="Label" parent="FeihualingLayer/GameScreen"]
+offset_left = 695.0
+offset_top = 218.0
+offset_right = 1760.0
+offset_bottom = 258.0
+theme_override_colors/font_color = Color(0.77, 0.85, 0.78, 1)
+theme_override_font_sizes/font_size = 20
+text = "以含令字的诗句接上；答不上来可以直接认输。"
+
+[node name="GameLog" type="RichTextLabel" parent="FeihualingLayer/GameScreen"]
+offset_left = 690.0
+offset_top = 275.0
+offset_right = 1790.0
+offset_bottom = 805.0
+theme_override_font_sizes/normal_font_size = 25
+scroll_following = true
+
+[node name="GameInput" type="LineEdit" parent="FeihualingLayer/GameScreen"]
+offset_left = 690.0
+offset_top = 835.0
+offset_right = 1570.0
+offset_bottom = 895.0
+placeholder_text = "输入含令字的诗句，按回车应答…"
+
+[node name="GameSendButton" type="Button" parent="FeihualingLayer/GameScreen"]
+offset_left = 1590.0
+offset_top = 835.0
+offset_right = 1790.0
+offset_bottom = 895.0
+text = "应答"
+
+[node name="AgainButton" type="Button" parent="FeihualingLayer/GameScreen"]
+visible = false
+offset_left = 1540.0
+offset_top = 908.0
+offset_right = 1790.0
+offset_bottom = 952.0
 text = "再来一局"
-
-[node name="FeihualingLeaveButton" type="Button" parent="ChatUI/ChatPanel"]
-visible = false
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 172.0
-offset_top = -144.0
-offset_right = 300.0
-offset_bottom = -96.0
-grow_vertical = 0
-text = "不玩了"
 
 [node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1567165051]
 timeout = 60.0

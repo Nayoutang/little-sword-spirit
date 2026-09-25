@@ -1,129 +1,193 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle.gd" id="1_battle"]
+[ext_resource type="Texture2D" path="res://art/character/sword_spirit_ink_event.png" id="2_ink"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/battle_arena.png" id="3_arena"]
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="4_skin"]
+[ext_resource type="Texture2D" path="res://art/character/sword_spirit_chibi_cutout.png" id="5_chibi"]
 
 [node name="Battle" type="Node2D"]
 script = ExtResource("1_battle")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 offset_right = 1920.0
 offset_bottom = 1080.0
-color = Color(0.075, 0.085, 0.11, 1)
+texture = ExtResource("3_arena")
+expand_mode = 1
+stretch_mode = 6
 mouse_filter = 2
 
 [node name="BattleUI" type="CanvasLayer" parent="."]
+script = ExtResource("4_skin")
 
 [node name="EnemyArea" type="Control" parent="BattleUI"]
 offset_right = 1920.0
-offset_bottom = 360.0
+offset_bottom = 425.0
+
+[node name="EnemyBackdrop" type="ColorRect" parent="BattleUI/EnemyArea"]
+offset_left = 340.0
+offset_top = 10.0
+offset_right = 1580.0
+offset_bottom = 410.0
+color = Color(0.025, 0.04, 0.05, 0.16)
+mouse_filter = 2
 
 [node name="EnemyRow" type="HBoxContainer" parent="BattleUI/EnemyArea"]
-offset_left = 420.0
-offset_top = 45.0
-offset_right = 1500.0
-offset_bottom = 345.0
-theme_override_constants/separation = 45
+offset_left = 390.0
+offset_top = 35.0
+offset_right = 1530.0
+offset_bottom = 390.0
+theme_override_constants/separation = 24
 alignment = 1
 
 [node name="InfoArea" type="Control" parent="BattleUI"]
-offset_top = 360.0
+offset_top = 440.0
 offset_right = 1920.0
-offset_bottom = 650.0
+offset_bottom = 645.0
+
+[node name="InfoBackdrop" type="ColorRect" parent="BattleUI/InfoArea"]
+offset_left = 490.0
+offset_top = 12.0
+offset_right = 1500.0
+offset_bottom = 104.0
+color = Color(0.025, 0.04, 0.05, 0.82)
+mouse_filter = 2
 
 [node name="ComboLabel" type="Label" parent="BattleUI/InfoArea"]
-offset_left = 710.0
-offset_top = 25.0
-offset_right = 1210.0
-offset_bottom = 100.0
-theme_override_font_sizes/font_size = 46
-text = "连击数: 0"
+offset_left = 1260.0
+offset_top = 26.0
+offset_right = 1480.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0.95, 0.79, 0.49, 1)
+theme_override_font_sizes/font_size = 30
+text = "连击  0"
 horizontal_alignment = 1
 
 [node name="PlayerHP" type="Label" parent="BattleUI/InfoArea"]
-offset_left = 620.0
-offset_top = 115.0
+offset_left = 510.0
+offset_top = 28.0
 offset_right = 820.0
-offset_bottom = 160.0
-theme_override_font_sizes/font_size = 26
-text = "HP: 50"
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0.98, 0.73, 0.67, 1)
+theme_override_font_sizes/font_size = 27
+text = "生命  90 / 90"
 horizontal_alignment = 1
 
 [node name="Energy" type="Label" parent="BattleUI/InfoArea"]
-offset_left = 860.0
-offset_top = 115.0
+offset_left = 810.0
+offset_top = 28.0
 offset_right = 1060.0
-offset_bottom = 160.0
-theme_override_font_sizes/font_size = 26
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0.65, 0.94, 0.91, 1)
+theme_override_font_sizes/font_size = 27
 text = "精力: 3/3"
 horizontal_alignment = 1
 
 [node name="Block" type="Label" parent="BattleUI/InfoArea"]
-offset_left = 1100.0
-offset_top = 115.0
-offset_right = 1300.0
-offset_bottom = 160.0
-theme_override_font_sizes/font_size = 26
+offset_left = 1055.0
+offset_top = 28.0
+offset_right = 1260.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 24
 text = "格挡: 0"
 horizontal_alignment = 1
 
 [node name="Message" type="Label" parent="BattleUI/InfoArea"]
-offset_left = 460.0
-offset_top = 185.0
-offset_right = 1460.0
-offset_bottom = 235.0
-theme_override_font_sizes/font_size = 24
+visible = false
+offset_left = 650.0
+offset_top = -51.0
+offset_right = 1330.0
+offset_bottom = -11.0
+theme_override_colors/font_color = Color(0.98, 0.83, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0.01, 0.02, 0.02, 0.95)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 22
 text = "战斗开始"
 horizontal_alignment = 1
 
 [node name="CompanionPanel" type="ColorRect" parent="BattleUI"]
 offset_left = 42.0
-offset_top = 382.0
+offset_top = 380.0
 offset_right = 442.0
-offset_bottom = 638.0
-color = Color(0.16, 0.13, 0.24, 0.96)
+offset_bottom = 778.0
+color = Color(0, 0, 0, 0)
+mouse_filter = 2
+
+[node name="Portrait" type="TextureRect" parent="BattleUI/CompanionPanel"]
+offset_left = 10.0
+offset_top = 72.0
+offset_right = 150.0
+offset_bottom = 238.0
+texture = ExtResource("5_chibi")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
 
 [node name="Title" type="Label" parent="BattleUI/CompanionPanel"]
 offset_left = 22.0
 offset_top = 18.0
 offset_right = 378.0
 offset_bottom = 56.0
+theme_override_colors/font_shadow_color = Color(0.01, 0.02, 0.02, 0.95)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 27
 text = "小墨 · 第二牌手"
 horizontal_alignment = 1
 
 [node name="Status" type="Label" parent="BattleUI/CompanionPanel"]
-offset_left = 22.0
+offset_left = 150.0
 offset_top = 74.0
-offset_right = 378.0
-offset_bottom = 112.0
+offset_right = 434.0
+offset_bottom = 130.0
 theme_override_colors/font_color = Color(0.95, 0.78, 0.42, 1)
-theme_override_font_sizes/font_size = 21
+theme_override_colors/font_shadow_color = Color(0.01, 0.02, 0.02, 0.95)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 19
 text = "小墨在观察战局"
-horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="Reason" type="Label" parent="BattleUI/CompanionPanel"]
-offset_left = 24.0
-offset_top = 128.0
-offset_right = 376.0
-offset_bottom = 232.0
+offset_left = 150.0
+offset_top = 136.0
+offset_right = 434.0
+offset_bottom = 394.0
+theme_override_colors/font_shadow_color = Color(0.01, 0.02, 0.02, 0.95)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 19
 text = "回合结束时，她会从自己的牌池中选择一张牌。"
 autowrap_mode = 2
-vertical_alignment = 1
 
-[node name="HandArea" type="HBoxContainer" parent="BattleUI"]
-offset_left = 72.0
-offset_top = 690.0
-offset_right = 1848.0
-offset_bottom = 835.0
+[node name="HandBackdrop" type="ColorRect" parent="BattleUI"]
+offset_left = 46.0
+offset_top = 780.0
+offset_right = 1874.0
+offset_bottom = 958.0
+color = Color(0.025, 0.04, 0.05, 0.65)
+mouse_filter = 2
+
+[node name="HandViewport" type="ScrollContainer" parent="BattleUI"]
+offset_left = 295.0
+offset_top = 792.0
+offset_right = 1625.0
+offset_bottom = 950.0
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 0
+
+[node name="HandArea" type="HBoxContainer" parent="BattleUI/HandViewport"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 18
 alignment = 1
 
 [node name="DrawPile" type="ColorRect" parent="BattleUI"]
 offset_left = 72.0
-offset_top = 700.0
+offset_top = 810.0
 offset_right = 282.0
-offset_bottom = 825.0
+offset_bottom = 935.0
 color = Color(0.16, 0.25, 0.42, 1)
 mouse_default_cursor_shape = 2
 
@@ -141,9 +205,9 @@ vertical_alignment = 1
 
 [node name="DiscardPile" type="ColorRect" parent="BattleUI"]
 offset_left = 1638.0
-offset_top = 700.0
+offset_top = 810.0
 offset_right = 1848.0
-offset_bottom = 825.0
+offset_bottom = 935.0
 color = Color(0.32, 0.2, 0.2, 1)
 mouse_default_cursor_shape = 2
 
@@ -159,31 +223,31 @@ text = "弃牌堆\n0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Card1" type="Button" parent="BattleUI/HandArea"]
+[node name="Card1" type="Button" parent="BattleUI/HandViewport/HandArea"]
 custom_minimum_size = Vector2(250, 130)
 layout_mode = 2
 text = "[攻击]\n费1 伤害6\n连击+1"
 
-[node name="Card2" type="Button" parent="BattleUI/HandArea"]
+[node name="Card2" type="Button" parent="BattleUI/HandViewport/HandArea"]
 custom_minimum_size = Vector2(250, 130)
 layout_mode = 2
 text = "[攻击]\n费1 伤害6\n连击+1"
 
-[node name="Card3" type="Button" parent="BattleUI/HandArea"]
+[node name="Card3" type="Button" parent="BattleUI/HandViewport/HandArea"]
 custom_minimum_size = Vector2(250, 130)
 layout_mode = 2
 text = "[攻击]\n费1 伤害6\n连击+1"
 
-[node name="Card4" type="Button" parent="BattleUI/HandArea"]
+[node name="Card4" type="Button" parent="BattleUI/HandViewport/HandArea"]
 custom_minimum_size = Vector2(250, 130)
 layout_mode = 2
 text = "[防御]\n费1 格挡5\n清空连击"
 
 [node name="ActionArea" type="HBoxContainer" parent="BattleUI"]
 offset_left = 390.0
-offset_top = 875.0
+offset_top = 974.0
 offset_right = 1530.0
-offset_bottom = 955.0
+offset_bottom = 1054.0
 theme_override_constants/separation = 24
 alignment = 1
 
@@ -203,3 +267,88 @@ text = "终极技·华彩\n费0 / 伤害35 / 交心解锁"
 custom_minimum_size = Vector2(260, 70)
 layout_mode = 2
 text = "结束回合"
+
+[node name="FlowingLightLayer" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="FlowingLightCutIn" type="Control" parent="FlowingLightLayer"]
+visible = false
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="Veil" type="ColorRect" parent="FlowingLightLayer/FlowingLightCutIn"]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.018, 0.053, 0.061, 0.94)
+mouse_filter = 2
+
+[node name="Ribbon" type="ColorRect" parent="FlowingLightLayer/FlowingLightCutIn"]
+offset_left = 180.0
+offset_top = 580.0
+offset_right = 1970.0
+offset_bottom = 750.0
+rotation = -0.16
+color = Color(0.10, 0.64, 0.62, 0.46)
+mouse_filter = 2
+
+[node name="RibbonEdge" type="ColorRect" parent="FlowingLightLayer/FlowingLightCutIn"]
+offset_left = 180.0
+offset_top = 575.0
+offset_right = 1970.0
+offset_bottom = 586.0
+rotation = -0.16
+color = Color(0.76, 0.96, 0.89, 0.9)
+mouse_filter = 2
+
+[node name="Portrait" type="TextureRect" parent="FlowingLightLayer/FlowingLightCutIn"]
+offset_left = 770.0
+offset_top = 30.0
+offset_right = 1720.0
+offset_bottom = 1080.0
+texture = ExtResource("5_chibi")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="SkillTag" type="Label" parent="FlowingLightLayer/FlowingLightCutIn"]
+offset_left = 255.0
+offset_top = 360.0
+offset_right = 735.0
+offset_bottom = 405.0
+theme_override_colors/font_color = Color(0.95, 0.78, 0.47, 1)
+theme_override_font_sizes/font_size = 30
+text = "特殊技"
+
+[node name="SkillTitle" type="Label" parent="FlowingLightLayer/FlowingLightCutIn"]
+offset_left = 245.0
+offset_top = 416.0
+offset_right = 805.0
+offset_bottom = 555.0
+theme_override_colors/font_color = Color(0.94, 0.99, 0.95, 1)
+theme_override_colors/font_shadow_color = Color(0.02, 0.12, 0.13, 0.95)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 5
+theme_override_font_sizes/font_size = 106
+text = "流  光"
+
+[node name="SkillCaption" type="Label" parent="FlowingLightLayer/FlowingLightCutIn"]
+offset_left = 258.0
+offset_top = 580.0
+offset_right = 765.0
+offset_bottom = 640.0
+theme_override_colors/font_color = Color(0.77, 0.94, 0.87, 1)
+theme_override_font_sizes/font_size = 29
+text = "剑影如流 · 一瞬破阵"
+
+[node name="InkEventLayer" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="InkEvent" type="TextureRect" parent="InkEventLayer"]
+visible = false
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = ExtResource("2_ink")
+expand_mode = 1
+stretch_mode = 6

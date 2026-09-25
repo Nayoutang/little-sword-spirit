@@ -1,18 +1,20 @@
 extends Node2D
 
+const CHIBI_TEXTURE := preload("res://art/character/sword_spirit_chibi_cutout.png")
+
 # 固定10层：Home + 7层常规路线 + 第9层宝箱 + Boss。
 const TOTAL_LAYERS := 10
 const ROUTE_COUNT := 5
 const GUARANTEED_TREASURE_LAYER := 8 # 从0开始计数，即玩家看到的第9层。
 const SIDE_MARGIN := 150.0
 const NODE_X_JITTER := 24.0
-const TOP_MARGIN := 110.0
+const TOP_MARGIN := 165.0
 const BOTTOM_MARGIN := 120.0
 
 var layers: Array[Array] = []
 var connections: Dictionary = {} # RouteNode -> Array[RouteNode]
 var current_node: RouteNode
-var player_marker: Polygon2D
+var player_marker: Sprite2D
 var layer_node_types: Array[Array] = []
 var map_rng := RandomNumberGenerator.new()
 
@@ -31,6 +33,37 @@ func _ready() -> void:
 		RunState.get_bond_stage_name(),
 	]
 	_generate_map()
+	_build_legend()
+
+
+func _build_legend() -> void:
+	var legend_bar: ColorRect = $MapUI/LegendBar
+	var entries := [
+		[RouteNode.NodeType.HOME, "起点"],
+		[RouteNode.NodeType.BATTLE, "战斗"],
+		[RouteNode.NodeType.ELITE, "精英"],
+		[RouteNode.NodeType.TREASURE, "宝箱"],
+		[RouteNode.NodeType.UNKNOWN, "未知"],
+		[RouteNode.NodeType.ADVENTURE, "奇遇"],
+		[RouteNode.NodeType.BOSS, "首领"],
+	]
+	for index in range(entries.size()):
+		var entry: Array = entries[index]
+		var icon := RouteNode.new()
+		icon.setup(entry[0] as RouteNode.NodeType, -1)
+		icon.input_pickable = false
+		icon.position = Vector2(75.0 + index * 185.0, 28.0)
+		icon.scale = Vector2(0.46, 0.46)
+		legend_bar.add_child(icon)
+		var label := Label.new()
+		label.position = Vector2(99.0 + index * 185.0, 10.0)
+		label.size = Vector2(85.0, 36.0)
+		label.text = entry[1]
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.add_theme_font_size_override("font_size", 19)
+		label.add_theme_color_override("font_color", Color("#f5e8ce"))
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		legend_bar.add_child(label)
 
 
 func _generate_map() -> void:
@@ -207,21 +240,26 @@ func _draw_connections() -> void:
 		for to_node: RouteNode in connections[from_node]:
 			var line := Line2D.new()
 			line.z_index = 0
-			line.width = 5.0
-			line.default_color = Color("#777777")
+			line.width = 4.0
+			line.default_color = Color("#8d785b")
 			line.points = PackedVector2Array([from_node.position, to_node.position])
 			$MapContent.add_child(line)
 
 
 func _create_player_marker() -> void:
-	player_marker = Polygon2D.new()
+	player_marker = Sprite2D.new()
 	player_marker.z_index = 3
-	player_marker.color = Color("#55e6ff")
-	player_marker.polygon = PackedVector2Array([
-		Vector2(0, -14), Vector2(14, 0), Vector2(0, 14), Vector2(-14, 0)
-	])
+	player_marker.texture = CHIBI_TEXTURE
+	player_marker.scale = Vector2(0.075, 0.075)
 	$MapContent.add_child(player_marker)
-	player_marker.position = current_node.position + Vector2(0, -48)
+	player_marker.position = _marker_position(current_node)
+	var idle_tween := create_tween().set_loops()
+	idle_tween.tween_property(player_marker, "scale", Vector2(0.078, 0.078), 0.55)
+	idle_tween.tween_property(player_marker, "scale", Vector2(0.075, 0.075), 0.55)
+
+
+func _marker_position(route_node: RouteNode) -> Vector2:
+	return route_node.position + Vector2(80.0, 0.0)
 
 
 func _on_node_selected(route_node: RouteNode) -> void:
@@ -230,7 +268,7 @@ func _on_node_selected(route_node: RouteNode) -> void:
 	current_node = route_node
 	saved_layer_index = current_node.layer_index
 	saved_node_index = layers[saved_layer_index].find(current_node)
-	player_marker.position = current_node.position + Vector2(0, -48)
+	player_marker.position = _marker_position(current_node)
 	_refresh_node_states()
 	enter_node(current_node.node_type)
 func _refresh_node_states() -> void:

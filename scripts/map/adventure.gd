@@ -35,13 +35,13 @@ var resolved := false
 var pending_choice: Dictionary = {}
 var pending_effect_text := ""
 
-@onready var title_label: Label = $AdventureUI/Panel/Margin/Content/Title
-@onready var bond_label: Label = $AdventureUI/Panel/Margin/Content/Bond
-@onready var story_label: Label = $AdventureUI/Panel/Margin/Content/Story
-@onready var dialogue_label: Label = $AdventureUI/Panel/Margin/Content/Dialogue
-@onready var choices: VBoxContainer = $AdventureUI/Panel/Margin/Content/Choices
-@onready var result_label: Label = $AdventureUI/Panel/Margin/Content/Result
-@onready var continue_button: Button = $AdventureUI/Panel/Margin/Content/Continue
+@onready var title_label: Label = $AdventureUI/Title
+@onready var bond_label: Label = $AdventureUI/Bond
+@onready var story_label: Label = $AdventureUI/Story
+@onready var dialogue_label: Label = $AdventureUI/Dialogue
+@onready var choices: VBoxContainer = $AdventureUI/Choices
+@onready var result_label: Label = $AdventureUI/Result
+@onready var continue_button: Button = $AdventureUI/Continue
 @onready var http_request: HTTPRequest = $HTTPRequest
 
 

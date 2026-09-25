@@ -2,6 +2,10 @@ extends Node2D
 
 const CompanionCards = preload("res://scripts/data/companion_card_database.gd")
 const CompanionDirector = preload("res://scripts/battle/companion_card_director.gd")
+const NORMAL_ENEMY_ART := preload("res://art/enemies/ink_puppet.png")
+const ELITE_ENEMY_ART := preload("res://art/enemies/ink_duelist.png")
+const BOSS_ENEMY_ART := preload("res://art/enemies/cursed_guardian.png")
+const InkUISkin = preload("res://scripts/ui/ink_ui_skin.gd")
 
 # -----------------------------------------------------------------------------
 # 战斗流程专用参数；卡牌、敌人与全局基础数值分别由三个数据库统一提供。
@@ -114,29 +118,42 @@ var companion_save_recorded := false
 @onready var discard_pile_label: Label = $BattleUI/DiscardPile/Count
 @onready var draw_pile_panel: ColorRect = $BattleUI/DrawPile
 @onready var discard_pile_panel: ColorRect = $BattleUI/DiscardPile
-@onready var hand_buttons: Array[Button] = [
-	$BattleUI/HandArea/Card1,
-	$BattleUI/HandArea/Card2,
-	$BattleUI/HandArea/Card3,
-	$BattleUI/HandArea/Card4,
-]
+@onready var hand_area: HBoxContainer = $BattleUI/HandViewport/HandArea
+var hand_buttons: Array[Button] = []
 @onready var special_button: Button = $BattleUI/ActionArea/Special
 @onready var ultimate_button: Button = $BattleUI/ActionArea/Ultimate
 @onready var end_turn_button: Button = $BattleUI/ActionArea/EndTurn
 @onready var companion_status_label: Label = $BattleUI/CompanionPanel/Status
 @onready var companion_reason_label: Label = $BattleUI/CompanionPanel/Reason
+@onready var flowing_light_cut_in: Control = $FlowingLightLayer/FlowingLightCutIn
+@onready var flowing_light_veil: ColorRect = $FlowingLightLayer/FlowingLightCutIn/Veil
+@onready var flowing_light_ribbon: ColorRect = $FlowingLightLayer/FlowingLightCutIn/Ribbon
+@onready var flowing_light_ribbon_edge: ColorRect = $FlowingLightLayer/FlowingLightCutIn/RibbonEdge
+@onready var flowing_light_portrait: TextureRect = $FlowingLightLayer/FlowingLightCutIn/Portrait
+@onready var flowing_light_tag: Label = $FlowingLightLayer/FlowingLightCutIn/SkillTag
+@onready var flowing_light_title: Label = $FlowingLightLayer/FlowingLightCutIn/SkillTitle
+@onready var flowing_light_caption: Label = $FlowingLightLayer/FlowingLightCutIn/SkillCaption
+@onready var ink_event: TextureRect = $InkEventLayer/InkEvent
 
 var enemy_hp_labels: Array[Label] = []
+var enemy_hp_bars: Array[ProgressBar] = []
+var enemy_status_labels: Array[Label] = []
 var enemy_intent_labels: Array[Label] = []
 var enemy_blocks: Array[ColorRect] = []
+var enemy_sprites: Array[TextureRect] = []
+var enemy_frames: Array[Panel] = []
+var enemy_max_hps: Array[int] = []
 var pile_popup: PopupPanel
 var pile_popup_title: Label
 var pile_popup_text: RichTextLabel
+var ink_tween: Tween
+var flowing_light_tween: Tween
 
 
 func _ready() -> void:
-	for index in range(hand_buttons.size()):
-		hand_buttons[index].pressed.connect(_play_hand_card.bind(index))
+	for child in hand_area.get_children():
+		if child is Button:
+			_register_hand_button(child as Button)
 	special_button.pressed.connect(_use_special)
 	ultimate_button.pressed.connect(_use_ultimate)
 	special_button.text = CardDatabase.get_battle_text(CardDatabase.FLOWING_LIGHT)
@@ -156,6 +173,7 @@ func start_battle() -> void:
 	enemy_vulnerabilities.clear()
 	enemy_attack_reductions.clear()
 	_configure_encounter()
+	enemy_max_hps = enemy_hps.duplicate()
 	player_max_hp = RunState.player_max_hp
 	player_hp = RunState.player_hp
 	battle_start_hp = player_hp
@@ -221,45 +239,145 @@ func _build_enemy_display() -> void:
 	for child in enemy_row.get_children():
 		child.queue_free()
 	enemy_hp_labels.clear()
+	enemy_hp_bars.clear()
+	enemy_status_labels.clear()
 	enemy_intent_labels.clear()
 	enemy_blocks.clear()
+	enemy_sprites.clear()
+	enemy_frames.clear()
 
 	for index in range(enemy_count):
-		var enemy_box := VBoxContainer.new()
-		enemy_box.custom_minimum_size = Vector2(220, 250)
-		enemy_box.add_theme_constant_override("separation", 10)
+		var enemy_box := Control.new()
+		enemy_box.custom_minimum_size = Vector2(235, 315)
+		enemy_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		enemy_row.add_child(enemy_box)
 
-		var hp_label := Label.new()
-		hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hp_label.add_theme_font_size_override("font_size", 24)
-		enemy_box.add_child(hp_label)
-		enemy_hp_labels.append(hp_label)
-
 		var intent_label := Label.new()
+		intent_label.position = Vector2(10, 0)
+		intent_label.size = Vector2(215, 30)
 		intent_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		intent_label.add_theme_font_size_override("font_size", 20)
+		intent_label.add_theme_color_override("font_color", Color("#f3d8ad"))
+		intent_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		enemy_box.add_child(intent_label)
 		enemy_intent_labels.append(intent_label)
 
+		var hp_bar := ProgressBar.new()
+		hp_bar.position = Vector2(13, 33)
+		hp_bar.size = Vector2(209, 29)
+		hp_bar.show_percentage = false
+		hp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var bar_back := StyleBoxFlat.new()
+		bar_back.bg_color = Color(0.08, 0.11, 0.12, 0.88)
+		bar_back.border_color = Color("#c5aa7d")
+		bar_back.set_border_width_all(2)
+		bar_back.set_corner_radius_all(6)
+		hp_bar.add_theme_stylebox_override("background", bar_back)
+		var bar_fill := StyleBoxFlat.new()
+		bar_fill.bg_color = Color("#aa534c")
+		bar_fill.set_corner_radius_all(4)
+		hp_bar.add_theme_stylebox_override("fill", bar_fill)
+		enemy_box.add_child(hp_bar)
+		enemy_hp_bars.append(hp_bar)
+
+		var hp_label := Label.new()
+		hp_label.position = Vector2(13, 33)
+		hp_label.size = Vector2(209, 29)
+		hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		hp_label.add_theme_font_size_override("font_size", 18)
+		hp_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+		hp_label.add_theme_constant_override("shadow_offset_x", 1)
+		hp_label.add_theme_constant_override("shadow_offset_y", 1)
+		hp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		enemy_box.add_child(hp_label)
+		enemy_hp_labels.append(hp_label)
+
 		var enemy_block := ColorRect.new()
-		enemy_block.custom_minimum_size = Vector2(220, 190)
-		enemy_block.color = Color("#b82e2e")
+		enemy_block.position = Vector2(8, 68)
+		enemy_block.size = Vector2(219, 210)
+		enemy_block.color = Color.TRANSPARENT
 		enemy_block.mouse_filter = Control.MOUSE_FILTER_STOP
 		enemy_block.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		enemy_block.gui_input.connect(_on_enemy_input.bind(index))
 		enemy_box.add_child(enemy_block)
 		enemy_blocks.append(enemy_block)
 
+		var halo := Panel.new()
+		halo.position = Vector2(15, 28)
+		halo.size = Vector2(189, 170)
+		halo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var halo_style := StyleBoxFlat.new()
+		halo_style.bg_color = Color(0.77, 0.83, 0.73, 0.10)
+		halo_style.set_corner_radius_all(85)
+		halo.add_theme_stylebox_override("panel", halo_style)
+		enemy_block.add_child(halo)
+
+		var enemy_sprite := TextureRect.new()
+		enemy_sprite.texture = _enemy_art()
+		enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		enemy_sprite.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		enemy_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		enemy_block.add_child(enemy_sprite)
+		enemy_sprites.append(enemy_sprite)
+
+		var frame := Panel.new()
+		frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		enemy_block.add_child(frame)
+		enemy_frames.append(frame)
+
+		var name_backdrop := Panel.new()
+		name_backdrop.position = Vector2(19, 279)
+		name_backdrop.size = Vector2(197, 32)
+		name_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var name_style := StyleBoxFlat.new()
+		name_style.bg_color = Color(0.025, 0.045, 0.055, 0.83)
+		name_style.set_corner_radius_all(8)
+		name_backdrop.add_theme_stylebox_override("panel", name_style)
+		enemy_box.add_child(name_backdrop)
+
 		var name_label := Label.new()
-		name_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		name_label.text = "敌人 %d" % (index + 1)
+		name_label.position = Vector2(19, 279)
+		name_label.size = Vector2(197, 32)
+		name_label.text = _enemy_name(index)
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		name_label.add_theme_font_size_override("font_size", 26)
+		name_label.add_theme_font_size_override("font_size", 19)
 		name_label.add_theme_color_override("font_color", Color.WHITE)
 		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		enemy_block.add_child(name_label)
+		enemy_box.add_child(name_label)
+
+		var status_label := Label.new()
+		status_label.position = Vector2(0, 311)
+		status_label.size = Vector2(235, 29)
+		status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		status_label.add_theme_font_size_override("font_size", 17)
+		status_label.add_theme_color_override("font_color", Color("#d9e8e4"))
+		status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		enemy_box.add_child(status_label)
+		enemy_status_labels.append(status_label)
+
+
+func _enemy_art() -> Texture2D:
+	match RunState.pending_encounter:
+		RunState.EncounterType.ELITE:
+			return ELITE_ENEMY_ART
+		RunState.EncounterType.BOSS:
+			return BOSS_ENEMY_ART
+		_:
+			return NORMAL_ENEMY_ART
+
+
+func _enemy_name(index: int) -> String:
+	match RunState.pending_encounter:
+		RunState.EncounterType.ELITE:
+			return "墨甲剑客 %d" % (index + 1)
+		RunState.EncounterType.BOSS:
+			return "咒剑守卫"
+		_:
+			return "影傀 %d" % (index + 1)
 
 
 func _play_hand_card(index: int) -> void:
@@ -344,6 +462,7 @@ func _resolve_targeted_skill(enemy_index: int) -> void:
 		_record_bond_skill_use("流光")
 		var damage := special_damage + combo * attack_combo_bonus
 		_damage_enemy_at(enemy_index, damage)
+		_show_flowing_light()
 		combo = maxi(combo - special_combo_cost, 0)
 		var resonance_triggered := _apply_resonance_after_skill()
 		message_label.text = "流光攻击敌人%d，造成 %d 伤害，消耗 %d 层连击" % [
@@ -364,7 +483,52 @@ func _resolve_targeted_skill(enemy_index: int) -> void:
 		message_label.text = "华彩攻击敌人%d，造成 %d 伤害，连击清零" % [enemy_index + 1, damage]
 		if resonance_triggered:
 			message_label.text += "；剑鸣余韵生效，保留1层连击"
+		_show_ink_event()
 	_finish_action()
+
+
+func _show_flowing_light() -> void:
+	if flowing_light_tween != null and flowing_light_tween.is_running():
+		flowing_light_tween.kill()
+	flowing_light_cut_in.modulate.a = 1.0
+	flowing_light_cut_in.show()
+	flowing_light_veil.modulate.a = 0.0
+	flowing_light_ribbon.position.x = -1300.0
+	flowing_light_ribbon_edge.position.x = -1300.0
+	flowing_light_portrait.position.x = 1120.0
+	flowing_light_portrait.modulate.a = 0.0
+	flowing_light_tag.position.x = 150.0
+	flowing_light_title.position.x = 140.0
+	flowing_light_caption.position.x = 150.0
+	flowing_light_tag.modulate.a = 0.0
+	flowing_light_title.modulate.a = 0.0
+	flowing_light_caption.modulate.a = 0.0
+	flowing_light_tween = create_tween()
+	flowing_light_tween.tween_property(flowing_light_veil, "modulate:a", 1.0, 0.12)
+	flowing_light_tween.parallel().tween_property(flowing_light_ribbon, "position:x", 180.0, 0.26).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	flowing_light_tween.parallel().tween_property(flowing_light_ribbon_edge, "position:x", 180.0, 0.29).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	flowing_light_tween.parallel().tween_property(flowing_light_portrait, "position:x", 770.0, 0.27).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	flowing_light_tween.parallel().tween_property(flowing_light_portrait, "modulate:a", 1.0, 0.18)
+	flowing_light_tween.parallel().tween_property(flowing_light_tag, "position:x", 255.0, 0.23)
+	flowing_light_tween.parallel().tween_property(flowing_light_title, "position:x", 245.0, 0.23)
+	flowing_light_tween.parallel().tween_property(flowing_light_caption, "position:x", 258.0, 0.23)
+	for label in [flowing_light_tag, flowing_light_title, flowing_light_caption]:
+		flowing_light_tween.parallel().tween_property(label, "modulate:a", 1.0, 0.19)
+	flowing_light_tween.tween_interval(0.42)
+	flowing_light_tween.tween_property(flowing_light_cut_in, "modulate:a", 0.0, 0.23)
+	flowing_light_tween.tween_callback(flowing_light_cut_in.hide)
+
+
+func _show_ink_event() -> void:
+	if ink_tween != null and ink_tween.is_running():
+		ink_tween.kill()
+	ink_event.modulate.a = 0.0
+	ink_event.show()
+	ink_tween = create_tween()
+	ink_tween.tween_property(ink_event, "modulate:a", 1.0, 0.14)
+	ink_tween.tween_interval(0.56)
+	ink_tween.tween_property(ink_event, "modulate:a", 0.0, 0.24)
+	ink_tween.tween_callback(ink_event.hide)
 
 
 func _record_bond_skill_use(skill_name: String) -> void:
@@ -855,6 +1019,34 @@ func _initialize_deck() -> void:
 	draw_pile.shuffle()
 	for button in hand_buttons:
 		button.hide()
+	$BattleUI/HandViewport.scroll_horizontal = 0
+
+
+func _register_hand_button(button: Button) -> void:
+	var index := hand_buttons.size()
+	hand_buttons.append(button)
+	button.pressed.connect(_play_hand_card.bind(index))
+
+
+func _ensure_hand_button(index: int) -> void:
+	while hand_buttons.size() <= index:
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(250, 130)
+		button.name = "Card%d" % (hand_buttons.size() + 1)
+		button.hide()
+		hand_area.add_child(button)
+		InkUISkin.style_button(button)
+		_register_hand_button(button)
+
+
+func _show_card_in_slot(index: int, card: CardType) -> void:
+	_ensure_hand_button(index)
+	if index == hand.size():
+		hand.append(card)
+	else:
+		hand[index] = card
+	hand_buttons[index].text = CardDatabase.get_battle_text(card)
+	hand_buttons[index].show()
 
 
 func _discard_remaining_hand() -> void:
@@ -866,46 +1058,39 @@ func _discard_remaining_hand() -> void:
 
 
 func _draw_new_hand() -> void:
+	$BattleUI/HandViewport.scroll_horizontal = 0
 	for index in range(draw_count):
 		var drawn_card := _take_top_card()
 		if drawn_card < 0:
 			break
-		hand.append(drawn_card as CardType)
-		hand_buttons[index].text = CardDatabase.get_battle_text(drawn_card)
-		hand_buttons[index].show()
+		_show_card_in_slot(index, drawn_card as CardType)
 
 
 func _draw_card_into_slot(index: int) -> void:
 	var drawn_card := _take_top_card()
 	if drawn_card < 0:
 		return
-	hand[index] = drawn_card as CardType
-	hand_buttons[index].text = CardDatabase.get_battle_text(drawn_card)
-	hand_buttons[index].show()
+	_show_card_in_slot(index, drawn_card as CardType)
 
 
 func _draw_cards_into_empty_slots(count: int, preferred_index: int = -1) -> int:
 	var drawn_count := 0
-	var slots: Array[int] = []
-	if preferred_index >= 0:
-		slots.append(preferred_index)
-	for index in range(hand_buttons.size()):
-		if index != preferred_index and not hand_buttons[index].visible:
-			slots.append(index)
-	for slot in slots:
-		if drawn_count >= count:
-			break
+	for _draw_index in range(count):
 		var drawn_card := _take_top_card()
 		if drawn_card < 0:
 			break
-		if slot < hand.size():
-			hand[slot] = drawn_card as CardType
+		var slot := -1
+		if preferred_index >= 0 and preferred_index < hand.size() and not hand_buttons[preferred_index].visible:
+			slot = preferred_index
+			preferred_index = -1
 		else:
-			while hand.size() < slot:
-				hand.append(CardType.CURSE)
-			hand.append(drawn_card as CardType)
-		hand_buttons[slot].text = CardDatabase.get_battle_text(drawn_card)
-		hand_buttons[slot].show()
+			for index in range(hand.size()):
+				if not hand_buttons[index].visible:
+					slot = index
+					break
+		if slot < 0:
+			slot = hand.size()
+		_show_card_in_slot(slot, drawn_card as CardType)
 		drawn_count += 1
 	return drawn_count
 
@@ -939,7 +1124,11 @@ func _end_battle(player_won: bool) -> void:
 	if player_won:
 		message_label.text = "胜利"
 		print("胜利")
+		var victory_delay := 1.0
 		if RunState.pending_encounter == RunState.EncounterType.BOSS:
+			if player_hp * 4 <= player_max_hp:
+				_show_ink_event()
+				victory_delay = 1.2
 			SpecialEventManager.evaluate_boss_victory(
 				player_hp,
 				player_max_hp,
@@ -953,7 +1142,7 @@ func _end_battle(player_won: bool) -> void:
 		else:
 			RunState.pending_act_bond_gain = -1
 			RunState.post_battle_scene = "res://scenes/map.tscn"
-		_return_to_reward_after_delay()
+		_return_to_reward_after_delay(victory_delay)
 	else:
 		message_label.text = "失败"
 		print("失败")
@@ -963,8 +1152,8 @@ func _end_battle(player_won: bool) -> void:
 		_return_to_settlement_after_delay()
 
 
-func _return_to_reward_after_delay() -> void:
-	await get_tree().create_timer(1.0).timeout
+func _return_to_reward_after_delay(delay: float) -> void:
+	await get_tree().create_timer(delay).timeout
 	get_tree().change_scene_to_file("res://scenes/battle_reward.tscn")
 
 
@@ -975,42 +1164,51 @@ func _return_to_settlement_after_delay() -> void:
 
 func _refresh_ui() -> void:
 	battle_max_combo = maxi(battle_max_combo, combo)
+	message_label.visible = pending_attack_index >= 0 or pending_skill_target != 0
 	var target_index := _first_living_enemy_index()
 	for index in range(enemy_hps.size()):
-		enemy_blocks[index].scale = Vector2.ONE
-		enemy_hp_labels[index].text = "HP: %d  格挡: %d  易伤: %d" % [
-			enemy_hps[index], enemy_guards[index], enemy_vulnerabilities[index]
-		]
+		enemy_hp_bars[index].max_value = enemy_max_hps[index]
+		enemy_hp_bars[index].value = maxi(enemy_hps[index], 0)
+		enemy_hp_labels[index].text = "%d / %d" % [maxi(enemy_hps[index], 0), enemy_max_hps[index]]
+		var status_parts: Array[String] = []
+		if enemy_guards[index] > 0:
+			status_parts.append("格挡 %d" % enemy_guards[index])
+		if enemy_vulnerabilities[index] > 0:
+			status_parts.append("易伤 %d" % enemy_vulnerabilities[index])
+		enemy_status_labels[index].text = "   ·   ".join(status_parts)
+		var frame_color := Color.TRANSPARENT
 		if enemy_hps[index] <= 0:
-			enemy_blocks[index].color = Color("#303030")
+			enemy_sprites[index].modulate = Color(0.54, 0.56, 0.56, 0.42)
+			enemy_blocks[index].mouse_filter = Control.MOUSE_FILTER_IGNORE
+			enemy_status_labels[index].text = ""
 			enemy_intent_labels[index].text = "已击败"
 		elif pending_attack_index >= 0 or pending_skill_target != 0:
-			enemy_blocks[index].color = Color("#d6a52f")
-			enemy_blocks[index].pivot_offset = enemy_blocks[index].size * 0.5
-			enemy_blocks[index].scale = Vector2(1.06, 1.06)
+			frame_color = Color("#e9cb83")
 		elif index == last_target_index:
-			enemy_blocks[index].color = Color("#e8793a")
-			enemy_blocks[index].pivot_offset = enemy_blocks[index].size * 0.5
-			enemy_blocks[index].scale = Vector2(1.12, 1.12)
+			frame_color = Color("#e9cb83")
 		elif index == target_index:
-			enemy_blocks[index].color = Color("#d94747")
-		else:
-			enemy_blocks[index].color = Color("#8f3333")
+			frame_color = Color(0.62, 0.86, 0.81, 0.65)
+		var frame_style := StyleBoxFlat.new()
+		frame_style.bg_color = Color.TRANSPARENT
+		frame_style.border_color = frame_color
+		frame_style.set_border_width_all(2 if frame_color.a > 0.0 else 0)
+		frame_style.set_corner_radius_all(22)
+		enemy_frames[index].add_theme_stylebox_override("panel", frame_style)
 		if enemy_hps[index] > 0:
 			var intent := enemy_intents[index]
 			match intent["type"]:
 				EnemyIntent.ATTACK:
-					enemy_intent_labels[index].text = "下一步：攻击 %d" % intent["value"]
+					enemy_intent_labels[index].text = "⚔  攻击 %d" % intent["value"]
 				EnemyIntent.DEFEND:
-					enemy_intent_labels[index].text = "下一步：防御 %d" % intent["value"]
+					enemy_intent_labels[index].text = "◆  防御 %d" % intent["value"]
 				EnemyIntent.ENHANCE:
-					enemy_intent_labels[index].text = "下一步：强化 +%d攻击" % intent["value"]
+					enemy_intent_labels[index].text = "✦  攻击 +%d" % intent["value"]
 				EnemyIntent.CURSE:
-					enemy_intent_labels[index].text = "下一步：加入诅咒"
+					enemy_intent_labels[index].text = "☷  加入诅咒"
 				EnemyIntent.OTHER:
-					enemy_intent_labels[index].text = "下一步：观望"
-	combo_label.text = "连击数: %d" % combo
-	player_hp_label.text = "HP: %d" % player_hp
+					enemy_intent_labels[index].text = "·  观望"
+	combo_label.text = "连击  %d" % combo
+	player_hp_label.text = "生命  %d / %d" % [player_hp, player_max_hp]
 	energy_label.text = "精力: %d/%d" % [energy, max_energy]
 	block_label.text = "格挡: %d%s" % [block, _pending_boon_ui_text()]
 	draw_pile_label.text = "牌堆\n%d" % draw_pile.size()

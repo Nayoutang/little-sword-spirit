@@ -23,11 +23,13 @@ CardDatabase="*res://scripts/data/card_database.gd"
 AbilityManager="*res://scripts/autoload/ability_manager.gd"
 SpecialEventManager="*res://scripts/autoload/special_event_manager.gd"
 RunState="*res://scripts/autoload/run_state.gd"
+WindowMode="*res://scripts/autoload/window_mode.gd"
 
 [display]
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/size/mode=2
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 

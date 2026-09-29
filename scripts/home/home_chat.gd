@@ -44,6 +44,7 @@ func _ready() -> void:
 	messages.append({"role": "system", "content": system_prompt})
 	send_button.pressed.connect(_send_message)
 	depart_button.pressed.connect(_go_to_map)
+	feihualing_button.tooltip_text = "随机令字；也可在聊天中输入“飞花令，以柳为令”来自选。"
 	feihualing_button.pressed.connect(_start_feihualing)
 	game_again_button.pressed.connect(_on_game_again)
 	game_exit_button.pressed.connect(_on_game_leave)
@@ -146,7 +147,20 @@ func _is_feihualing_invitation(player_text: String) -> bool:
 	return player_text.contains("飞花令") or player_text.contains("對詩") or player_text.contains("对诗")
 
 
-func _start_feihualing() -> void:
+func _requested_feihualing_keyword(player_text: String) -> String:
+	var pattern := RegEx.new()
+	pattern.compile("(?:以|用|拿)\\s*([\\p{Han}])\\s*(?:字)?\\s*(?:为令|作令|玩飞花令)|令字\\s*[：:]?\\s*([\\p{Han}])|飞花令\\s*[：:]\\s*([\\p{Han}])")
+	var matched := pattern.search(player_text)
+	if matched == null:
+		return ""
+	for index in range(1, 4):
+		var candidate := matched.get_string(index)
+		if FeihualingGame.is_valid_keyword(candidate):
+			return candidate
+	return ""
+
+
+func _start_feihualing(chosen_keyword: String = "") -> void:
 	if request_in_flight or game_controller.busy or game_controller.game != null:
 		return
 	if LLMConfig.API_URL.is_empty() or LLMConfig.get_api_key().is_empty() or LLMConfig.MODEL_NAME.is_empty():
@@ -160,7 +174,7 @@ func _start_feihualing() -> void:
 	game_screen.show()
 	input.release_focus()
 	game_input.grab_focus()
-	game_controller.start()
+	game_controller.start(chosen_keyword)
 	_refresh_game_controls()
 
 
@@ -231,7 +245,7 @@ func _send_message() -> void:
 		return
 	if _is_feihualing_invitation(player_text):
 		input.clear()
-		_start_feihualing()
+		_start_feihualing(_requested_feihualing_keyword(player_text))
 		return
 
 	var api_key := LLMConfig.get_api_key()

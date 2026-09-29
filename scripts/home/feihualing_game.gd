@@ -2,7 +2,12 @@ class_name FeihualingGame
 extends MiniGameSession
 
 const RULES_PATH := "res://prompts/feihualing_rules.txt"
-const CHARACTERS := ["花", "月", "风", "雪", "酒", "剑", "春", "山", "水"]
+const CHARACTERS := [
+	"花", "月", "风", "雪", "酒", "剑", "春", "山", "水", "云", "雨", "柳",
+	"梅", "竹", "松", "秋", "夏", "冬", "夜", "日", "星", "天", "海", "江",
+	"河", "湖", "人", "心", "梦", "情", "愁", "别", "归", "家", "乡", "客",
+	"君", "书", "歌", "鸟", "雁", "马", "灯", "舟", "桥", "城", "楼", "帆",
+]
 const REQUIRED_KEYS := [
 	"intent", "player_line_valid", "player_line_source", "comment",
 	"my_line", "my_line_source", "prompt_next", "give_up",
@@ -17,7 +22,14 @@ var last_my_line := ""
 
 
 func _init(chosen_keyword: String = "") -> void:
-	keyword = chosen_keyword if chosen_keyword in CHARACTERS else CHARACTERS.pick_random()
+	keyword = chosen_keyword if is_valid_keyword(chosen_keyword) else CHARACTERS.pick_random()
+
+
+static func is_valid_keyword(value: String) -> bool:
+	if value.length() != 1:
+		return false
+	var codepoint := value.unicode_at(0)
+	return codepoint >= 0x4e00 and codepoint <= 0x9fff
 
 
 func rules_prompt() -> String:

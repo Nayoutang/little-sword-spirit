@@ -20,6 +20,7 @@ var line_retries := 0
 var retry_suffix := ""
 var closure_retries := 0
 var last_keyword := ""
+var remaining_keywords: Array[String] = []
 
 
 func _ready() -> void:
@@ -29,14 +30,27 @@ func _ready() -> void:
 	request.request_completed.connect(_on_request_completed)
 
 
-func start() -> void:
+func start(chosen_keyword: String = "") -> void:
 	if busy or game != null:
 		return
-	var choices := FeihualingGame.CHARACTERS.duplicate()
-	choices.erase(last_keyword)
-	game = FeihualingGame.new(choices.pick_random())
+	var next_keyword := chosen_keyword if FeihualingGame.is_valid_keyword(chosen_keyword) else _draw_keyword()
+	if FeihualingGame.is_valid_keyword(chosen_keyword):
+		remaining_keywords.erase(chosen_keyword)
+	game = FeihualingGame.new(next_keyword)
 	_update_hud()
 	_send_round("opening", "")
+
+
+func _draw_keyword() -> String:
+	if remaining_keywords.is_empty():
+		for character in FeihualingGame.CHARACTERS:
+			remaining_keywords.append(character)
+		remaining_keywords.shuffle()
+		if remaining_keywords.size() > 1 and remaining_keywords.back() == last_keyword:
+			var first := remaining_keywords[0]
+			remaining_keywords[0] = remaining_keywords[remaining_keywords.size() - 1]
+			remaining_keywords[remaining_keywords.size() - 1] = first
+	return remaining_keywords.pop_back()
 
 
 func cancel() -> void:

@@ -40,6 +40,8 @@ static func build_prompt(context: Dictionary, allowed_ids: Array[String]) -> Str
 reason 必须绑定上面确实存在的一条具体事实：共同经历里的某件往事、某个约定、本趟记录里的某一场，或玩家这回合刚做的具体操作（刚出了什么牌、攒了几连击）。能引用共同经历时优先引用。泛泛的“为了保护你”“相信你”不合格；不得虚构档案中不存在的经历。
 reason 的语气要演出你此刻对他的信任程度：
 %s
+你最近说过的话（reason 别和它们撞开头或句式）：
+%s
 只输出一个 JSON 对象，不要代码块、解释或额外文字：
 {"card_id":"授权列表中的一个id","reason":"小墨第一人称的一句简短归因，必须能挂回当前战局或关系历史"}
 """ % [
@@ -56,6 +58,7 @@ reason 的语气要演出你此刻对他的信任程度：
 		str(context.get("shared_history", "【你们的共同经历】\n暂无。")),
 		str(context.get("run_journal", "暂无可用记录。")),
 		_stage_voice(int(context.get("bond_stage", 0))),
+		str(context.get("recent_lines", "（暂无）")),
 	]
 
 

@@ -5,6 +5,7 @@ signal spoken(text: String)
 signal hud_changed(text: String, visible: bool)
 signal busy_changed(busy: bool)
 signal finished(summary: String)
+signal intent_learned(card_id: String, player_line: String)
 
 const DEBUG_LOG := "user://feihualing_debug.log"
 
@@ -21,6 +22,11 @@ var retry_suffix := ""
 var closure_retries := 0
 var last_keyword := ""
 var remaining_keywords: Array[String] = []
+# 剑意感悟：本轮玩家若对出剑意诗句，提示她演出感悟；一局最多一次。
+var intent_cue := ""
+var pending_intent_id := ""
+var rounds_before_turn := 0
+var intent_triggered_this_game := false
 
 
 func _ready() -> void:
@@ -37,6 +43,7 @@ func start(chosen_keyword: String = "") -> void:
 	if FeihualingGame.is_valid_keyword(chosen_keyword):
 		remaining_keywords.erase(chosen_keyword)
 	game = FeihualingGame.new(next_keyword)
+	intent_triggered_this_game = false
 	_update_hud()
 	_send_round("opening", "")
 
@@ -86,10 +93,11 @@ func _send_round(next_action: String, next_player_text: String, retry: bool = fa
 		line_retries = 0
 		closure_retries = 0
 		retry_suffix = ""
+		_prepare_intent_cue()
 	var prompt := game.round_request(action, player_text, {
 		"intent_hint": intent_hint,
 		"local_verdict": local_result,
-	}) + retry_suffix
+	}) + intent_cue + retry_suffix
 	var payload := {
 		"model": LLMConfig.MODEL_NAME,
 		"response_format": {"type": "json_object"},
@@ -163,6 +171,12 @@ func _on_request_completed(result: int, status: int, _headers: PackedStringArray
 	var speech := str(outcome.get("speech", ""))
 	if not speech.is_empty():
 		spoken.emit(speech)
+	if not pending_intent_id.is_empty() and game.player_rounds > rounds_before_turn:
+		intent_triggered_this_game = true
+		if RunState.learn_sword_intent(pending_intent_id, player_text):
+			intent_learned.emit(pending_intent_id, player_text)
+	pending_intent_id = ""
+	intent_cue = ""
 	if outcome.get("finished", false):
 		last_keyword = game.keyword
 		var player_won := bool(outcome.get("player_won", false))
@@ -173,6 +187,24 @@ func _on_request_completed(result: int, status: int, _headers: PackedStringArray
 		finished.emit(summary)
 	else:
 		_update_hud()
+
+
+func _prepare_intent_cue() -> void:
+	intent_cue = ""
+	pending_intent_id = ""
+	rounds_before_turn = game.player_rounds
+	if action != "turn" or intent_triggered_this_game or local_result != "合规":
+		return
+	var card_id := CompanionCardDatabase.match_sword_intent(player_text)
+	if card_id.is_empty() or card_id in RunState.learned_sword_intents:
+		return
+	var definition := CompanionCardDatabase.get_definition(card_id)
+	pending_intent_id = card_id
+	intent_cue = "\n【特别】玩家这一句出自%s「%s」。%s这句触动了你，你忽然想起某种出剑的剑意。这一轮 comment 先停一下，用一两句演出你心有所感的那一刻（可以隐约想起很久以前有人这样出剑，但不要展开），然后照常出句。不要说“剑招”“技能”“领悟”这类字眼，不要解释效果。" % [
+		str(definition.get("source", "")),
+		str(definition.get("poem", "")),
+		str(definition.get("hint", "")),
+	]
 
 
 func _on_bad_reply(reason: String, raw: String) -> void:

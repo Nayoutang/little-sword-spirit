@@ -107,6 +107,9 @@ var companion_block_this_turn := 0
 var turn_player_cards: Array[String] = []
 var boon_moment_recorded := false
 var companion_save_recorded := false
+# 剑意「断水」「长风」留给玩家下回合的资源。
+var cut_water_active := false
+var long_wind_bonus := 0
 
 @onready var enemy_row: HBoxContainer = $BattleUI/EnemyArea/EnemyRow
 @onready var combo_label: Label = $BattleUI/InfoArea/ComboLabel
@@ -178,6 +181,8 @@ func start_battle() -> void:
 	player_hp = RunState.player_hp
 	battle_start_hp = player_hp
 	battle_index = RunState.begin_battle()
+	cut_water_active = false
+	long_wind_bonus = 0
 	companion_block_this_turn = 0
 	turn_player_cards.clear()
 	boon_moment_recorded = false
@@ -634,16 +639,25 @@ func _play_hide_edge() -> void:
 func _play_defense_card(cost: int, block_amount: int) -> void:
 	energy -= cost
 	block += block_amount
-	combo = 0
-	message_label.text = "获得 %d 格挡，连击清零" % block_amount
+	if cut_water_active:
+		cut_water_active = false
+		message_label.text = "获得 %d 格挡；断水生效，连击保留" % block_amount
+	else:
+		combo = 0
+		message_label.text = "获得 %d 格挡，连击清零" % block_amount
 	_finish_action()
 
 
 func _play_status_card(hand_index: int, cost: int) -> void:
 	energy -= cost
-	combo = 0
-	_draw_card_into_slot(hand_index)
-	message_label.text = "抽取 1 张牌，连击清零"
+	if cut_water_active:
+		cut_water_active = false
+		_draw_card_into_slot(hand_index)
+		message_label.text = "抽取 1 张牌；断水生效，连击保留"
+	else:
+		combo = 0
+		_draw_card_into_slot(hand_index)
+		message_label.text = "抽取 1 张牌，连击清零"
 	_finish_action()
 
 
@@ -676,6 +690,7 @@ func _end_turn() -> void:
 		return
 	# 小墨上一回合留下的资源只服务于当前玩家回合；没用掉就到此失效。
 	pending_boon.clear()
+	cut_water_active = false
 	pending_attack_index = -1
 	pending_skill_target = 0
 	battle_turn_count += 1
@@ -692,7 +707,7 @@ func _end_turn() -> void:
 
 
 func _run_companion_turn() -> void:
-	var allowed_ids := CompanionCards.get_allowed_card_ids(RunState.get_bond_stage_index())
+	var allowed_ids := CompanionCards.get_allowed_card_ids(RunState.get_bond_stage_index(), RunState.learned_sword_intents)
 	var context := _build_companion_context()
 	var choice := await _request_companion_choice(context, allowed_ids)
 	if choice.is_empty():
@@ -716,6 +731,7 @@ func _build_companion_context() -> Dictionary:
 		"bond_stage": RunState.get_bond_stage_index(),
 		"turn_player_cards": "、".join(turn_player_cards) if not turn_player_cards.is_empty() else "这回合他一张牌都没出",
 		"shared_history": RunState.get_shared_history_prompt(6),
+		"recent_lines": RunState.get_recent_lines_block(6),
 		"active_promise": RunState.active_promise,
 		"relationship_archive": RunState.get_relationship_archive(),
 		"run_journal": RunState.get_run_journal_prompt(),
@@ -792,12 +808,65 @@ func _apply_companion_card(choice: Dictionary) -> void:
 			last_target_index = target_index
 			preserve_combo_this_turn = true
 			result_text = "对敌人%d造成 %d 伤害，保留连击" % [target_index + 1, damage]
+		CompanionCards.FROST_COLD:
+			for index in range(enemy_hps.size()):
+				if enemy_hps[index] <= 0:
+					continue
+				_damage_enemy_at(index, int(definition["damage"]))
+				if enemy_hps[index] > 0 and enemy_intents[index]["type"] == EnemyIntent.ATTACK:
+					enemy_intents[index]["value"] = maxi(int(enemy_intents[index]["value"]) - int(definition["weaken"]), 0)
+			last_target_index = -1
+			result_text = "对全体敌人各造成 %d 伤害，它们本回合攻击 -%d" % [int(definition["damage"]), int(definition["weaken"])]
+		CompanionCards.TEN_STEPS:
+			var damage := int(definition["damage"]) + combo * int(definition["combo_scale"])
+			_damage_enemy_at(target_index, damage)
+			last_target_index = target_index
+			result_text = "对敌人%d造成 %d 伤害" % [target_index + 1, damage]
+			if target_index >= 0 and enemy_hps[target_index] <= 0:
+				combo += 1
+				result_text += "，击杀后连击 +1"
+		CompanionCards.GRIND_SWORD:
+			var damage := int(definition["damage"]) + battle_turn_count * int(definition["turn_scale"])
+			_damage_enemy_at(target_index, damage)
+			last_target_index = target_index
+			result_text = "对敌人%d造成 %d 伤害（第 %d 回合出鞘）" % [target_index + 1, damage, battle_turn_count]
+		CompanionCards.CUT_WATER:
+			cut_water_active = true
+			result_text = "玩家下回合第一张防御或状态牌不会清空连击"
+		CompanionCards.LONG_WIND:
+			long_wind_bonus = int(definition["energy"])
+			result_text = "玩家下回合精力 +%d" % long_wind_bonus
+		CompanionCards.BEHEAD_LOULAN:
+			var highest := _highest_hp_enemy_index()
+			var damage := int(definition["damage"])
+			_damage_enemy_at(highest, damage)
+			last_target_index = highest
+			result_text = "对生命最高的敌人%d造成 %d 伤害" % [highest + 1, damage]
+		CompanionCards.YIN_MOUNTAIN:
+			var strongest := -1
+			for index in range(enemy_intents.size()):
+				if enemy_hps[index] > 0 and enemy_intents[index]["type"] == EnemyIntent.ATTACK:
+					if strongest < 0 or int(enemy_intents[index]["value"]) > int(enemy_intents[strongest]["value"]):
+						strongest = index
+			if strongest >= 0:
+				var blocked := int(enemy_intents[strongest]["value"])
+				enemy_intents[strongest]["value"] = 0
+				result_text = "挡下敌人%d本回合的攻击（%d）" % [strongest + 1, blocked]
+			else:
+				result_text = "本回合没有敌人要攻击，剑势落空"
+		CompanionCards.FEW_RETURN:
+			var gained_block := int(definition["block_low"]) if player_hp * 4 <= player_max_hp else int(definition["block"])
+			block += gained_block
+			companion_block_this_turn += gained_block
+			result_text = "获得 %d 格挡" % gained_block
 		_:
 			var damage := int(definition["damage"])
 			_damage_enemy_at(target_index, damage)
 			last_target_index = target_index
 			result_text = "对敌人%d造成 %d 伤害" % [target_index + 1, damage]
 	companion_last_card_id = card_id
+	if str(choice.get("source", "")) == "llm":
+		RunState.record_spoken_line(str(choice.get("reason", "")))
 	companion_last_reason = str(choice.get("reason", "")).strip_edges()
 	companion_last_source = str(choice.get("source", "fallback"))
 	RunState.record_companion_card(card_id)
@@ -813,6 +882,16 @@ func _apply_companion_card(choice: Dictionary) -> void:
 		_end_battle(true)
 	else:
 		_refresh_ui()
+
+
+func _highest_hp_enemy_index() -> int:
+	var target_index := -1
+	var target_hp := 0
+	for index in range(enemy_hps.size()):
+		if enemy_hps[index] > 0 and (target_index < 0 or enemy_hps[index] > target_hp):
+			target_index = index
+			target_hp = enemy_hps[index]
+	return target_index
 
 
 func _lowest_hp_enemy_index() -> int:
@@ -911,7 +990,8 @@ func _resolve_enemy_turn() -> void:
 	battle_damage_taken += damage_taken
 	RunState.player_hp = player_hp
 	RunState.record_player_hp()
-	energy = max_energy
+	energy = max_energy + long_wind_bonus
+	long_wind_bonus = 0
 	var combo_was_preserved := preserve_combo_this_turn
 	if not preserve_combo_this_turn:
 		combo = 0
@@ -1320,6 +1400,15 @@ func _format_card_counts(counts: Dictionary) -> String:
 
 
 func _pending_boon_ui_text() -> String:
+	var extra := ""
+	if cut_water_active:
+		extra += "　断水：下张防御不断连击"
+	if long_wind_bonus > 0:
+		extra += "　长风：下回合精力 +%d" % long_wind_bonus
+	return _pending_boon_core_text() + extra
+
+
+func _pending_boon_core_text() -> String:
 	if pending_boon.is_empty():
 		return ""
 	if str(pending_boon.get("type", "")) == "multiply":

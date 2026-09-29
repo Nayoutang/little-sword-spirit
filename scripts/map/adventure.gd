@@ -101,6 +101,7 @@ func _request_llm_response() -> void:
 	var system_prompt := LLMConfig.load_system_prompt()
 	system_prompt += "\n\n" + RunState.get_relationship_prompt()
 	system_prompt += "\n\n" + RunState.get_shared_history_prompt()
+	system_prompt += "\n\n" + RunState.get_variety_prompt()
 	system_prompt += """
 
 你正在演绎一次游戏内奇遇。奇遇的数值结果已由游戏本地结算，你无权改变奖励、生命、羁绊、卡牌或剧情事实。
@@ -128,6 +129,8 @@ func _request_llm_response() -> void:
 			{"role": "user", "content": user_context},
 		],
 		"response_format": {"type": "json_object"},
+		"temperature": 1.1,
+		"frequency_penalty": 0.4,
 	}
 	var headers := PackedStringArray([
 		"Content-Type: application/json",
@@ -188,6 +191,7 @@ func _parse_generated_response(content: String) -> Dictionary:
 
 
 func _show_generated_response(narration: String, reply: String) -> void:
+	RunState.record_spoken_line(reply)
 	result_label.text = "%s\n\n小墨：%s\n\n%s" % [narration, reply, pending_effect_text]
 	continue_button.show()
 

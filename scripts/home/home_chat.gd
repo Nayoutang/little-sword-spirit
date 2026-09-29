@@ -20,6 +20,7 @@ var request_in_flight := false
 var game_controller: FeihualingController
 var game_choice_pending := false
 var greeting_in_flight := false
+var variety_retried := false
 
 
 func _ready() -> void:
@@ -59,6 +60,7 @@ func _ready() -> void:
 	game_controller.hud_changed.connect(_on_game_hud_changed)
 	game_controller.busy_changed.connect(_on_game_busy_changed)
 	game_controller.finished.connect(_on_game_finished)
+	game_controller.intent_learned.connect(_on_intent_learned)
 	_refresh_bond_display()
 	if SpecialEventManager.has_active_event():
 		chat_log.append_text("[特殊对话] 小墨似乎有一件刚才发生的事想和你谈谈。\n\n")
@@ -88,7 +90,7 @@ func _request_homecoming_greeting() -> void:
 		LLMConfig.API_URL,
 		headers,
 		HTTPClient.METHOD_POST,
-		JSON.stringify({"model": LLMConfig.MODEL_NAME, "messages": messages})
+		JSON.stringify(_chat_payload())
 	)
 	if error != OK:
 		greeting_in_flight = false
@@ -116,6 +118,38 @@ func _handle_greeting_response(result: int, response_code: int, body: PackedByte
 		return
 	messages.append({"role": "assistant", "content": reply})
 	chat_log.append_text("小墨：%s\n\n" % reply)
+	RunState.record_spoken_line(reply)
+
+
+# 请求体：在最后一条玩家消息之前插入一条临时提示（最近说过的话 + 此刻心情），不写进对话历史。
+func _chat_payload(strict: bool = false) -> Dictionary:
+	var payload_messages: Array = messages.duplicate()
+	var note := RunState.get_variety_prompt()
+	if strict:
+		note += "\n你刚才那版回复的开头或口头禅和最近说过的话撞了。重说一遍，换一个完全不同的切入点。"
+	payload_messages.insert(maxi(payload_messages.size() - 1, 1), {"role": "system", "content": note})
+	var payload := {"model": LLMConfig.MODEL_NAME, "messages": payload_messages}
+	if SpecialEventManager.has_active_event():
+		payload["temperature"] = 1.0
+	else:
+		payload["temperature"] = 1.3
+		payload["frequency_penalty"] = 0.5
+		payload["presence_penalty"] = 0.3
+	return payload
+
+
+func _retry_for_variety() -> bool:
+	var api_key := LLMConfig.get_api_key()
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % api_key,
+	])
+	_set_request_in_flight(true)
+	var error := http_request.request(LLMConfig.API_URL, headers, HTTPClient.METHOD_POST, JSON.stringify(_chat_payload(true)))
+	if error != OK:
+		_set_request_in_flight(false)
+		return false
+	return true
 
 
 func _refresh_bond_display() -> void:
@@ -210,6 +244,16 @@ func _on_game_spoken(text: String) -> void:
 	game_log.append_text("小墨：%s\n\n" % text)
 
 
+func _on_intent_learned(card_id: String, _player_line: String) -> void:
+	var definition := CompanionCardDatabase.get_definition(card_id)
+	game_log.append_text("[剑意] 小墨从「%s」（%s）里有所感悟：「%s」——%s 战斗中，出不出这一剑由她决定。\n\n" % [
+		str(definition.get("poem", "")),
+		str(definition.get("source", "")),
+		str(definition.get("name", card_id)),
+		str(definition.get("description", "")),
+	])
+
+
 func _on_game_hud_changed(label: String, visible: bool) -> void:
 	game_status.text = label if visible else "令字待揭晓"
 
@@ -257,10 +301,7 @@ func _send_message() -> void:
 	chat_log.append_text("玩家：%s\n\n" % player_text)
 	messages.append({"role": "user", "content": player_text})
 
-	var payload := {
-		"model": LLMConfig.MODEL_NAME,
-		"messages": messages,
-	}
+	var payload := _chat_payload()
 	var headers := PackedStringArray([
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % api_key,
@@ -343,9 +384,15 @@ func _on_request_completed(
 		_remove_unanswered_user_message()
 		_show_error("API 返回了空回复。")
 		return
+	if not SpecialEventManager.has_active_event() and not variety_retried and RunState.is_repetitive(reply):
+		variety_retried = true
+		if _retry_for_variety():
+			return
+	variety_retried = false
 
 	messages.append({"role": "assistant", "content": reply})
 	chat_log.append_text("小墨：%s\n\n" % reply)
+	RunState.record_spoken_line(reply)
 	if event_outcome.get("resolved", false):
 		if event_outcome.get("unlocked", false):
 			var ability_id := str(event_outcome.get("ability_id", ""))

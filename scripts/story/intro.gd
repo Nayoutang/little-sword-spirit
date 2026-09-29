@@ -262,6 +262,7 @@ func _ask_llm(cue: String, fallback: String, callback: Callable) -> void:
 		return
 	var system_prompt := LLMConfig.load_system_prompt()
 	system_prompt += "\n\n" + RunState.get_relationship_prompt()
+	system_prompt += "\n\n" + RunState.get_variety_prompt()
 	system_prompt += "\n\n这是你们的初遇：你是一把插在山林断碑旁、积了很久灰的古剑的剑灵，刚被这个陌生人惊醒。你们彼此还完全不认识。只写你说出口的话，一两句，不要括号动作、旁白或替他说话。"
 	if http_request == null:
 		http_request = HTTPRequest.new()
@@ -279,6 +280,8 @@ func _ask_llm(cue: String, fallback: String, callback: Callable) -> void:
 				{"role": "user", "content": "【旁白】" + cue},
 			],
 			"max_tokens": 100,
+			"temperature": 1.3,
+			"frequency_penalty": 0.5,
 		})
 	)
 	if error != OK:
@@ -306,5 +309,7 @@ func _deliver(reply: String) -> void:
 		clean = clean.trim_prefix("小墨：").strip_edges()
 	if clean.is_empty():
 		clean = pending_fallback
+	else:
+		RunState.record_spoken_line(clean)
 	if pending_callback.is_valid():
 		pending_callback.call(clean)

@@ -68,6 +68,7 @@ func _request_line() -> void:
 	var system_prompt := LLMConfig.load_system_prompt()
 	system_prompt += "\n\n" + RunState.get_relationship_prompt()
 	system_prompt += "\n\n" + RunState.get_shared_history_prompt()
+	system_prompt += "\n\n" + RunState.get_variety_prompt()
 	var cue := """【旁白】持剑人正要出门。让你放不下的事：%s。
 你想拉住他，要他这一趟%s。
 只说一两句你说出口的话：要点到那件具体的事，用你此刻对他的关系态度说（可以嘴硬、可以别扭），最后把要求提出来。
@@ -90,6 +91,9 @@ func _request_line() -> void:
 				{"role": "user", "content": cue},
 			],
 			"max_tokens": 120,
+			"temperature": 1.3,
+			"frequency_penalty": 0.5,
+			"presence_penalty": 0.3,
 		})
 	)
 	if error != OK:
@@ -116,4 +120,5 @@ func _show_line(reply: String) -> void:
 	if clean.is_empty():
 		clean = str(FALLBACK_LINES.get(str(concern.get("kind", "")), FALLBACK_LINES["reckless"]))
 	line_label.text = "小墨：%s" % clean
+	RunState.record_spoken_line(clean)
 	_set_choices_enabled(true)

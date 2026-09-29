@@ -57,6 +57,25 @@ var run_min_hp := 0
 # 初遇剧情：玩家名字与是否已经播过。
 var player_name := ""
 var intro_done := false
+# 防止台词重复：跨场景记住她最近说过的话；每次说话随机给一点此刻的心情。
+const RECENT_LINES_LIMIT := 12
+const MOODS := [
+	"有点困，懒得跟他斗嘴",
+	"刚发现剑鞘上多了一道划痕，心里不痛快",
+	"想起一句诗，憋着想考考他",
+	"心情不错，但不想让他看出来",
+	"在琢磨一个出剑的架势，有点走神",
+	"忽然想起很久以前的什么，说不清",
+	"闲得发慌，想找点事做",
+	"对他之前的某个举动还有点在意",
+	"想逞强，显得自己很可靠",
+	"刚才在发呆，被他打断了",
+	"肚子里憋着一句损人的话",
+	"有点想听他多说几句，又不肯开口要",
+]
+var recent_lines: Array[String] = []
+# 剑意：飞花令里对出特定诗句时，她领悟的剑招（进入她的战斗牌池）。
+var learned_sword_intents: Array[String] = []
 
 
 func _ready() -> void:
@@ -220,6 +239,65 @@ func get_relationship_prompt() -> String:
 	return stage_text
 
 
+func record_spoken_line(text: String) -> void:
+	var clean := text.replace("\n", " ").strip_edges().left(120)
+	if clean.is_empty():
+		return
+	recent_lines.append(clean)
+	while recent_lines.size() > RECENT_LINES_LIMIT:
+		recent_lines.pop_front()
+
+
+func get_recent_lines_block(limit: int = 8) -> String:
+	if recent_lines.is_empty():
+		return "（暂无）"
+	var lines: Array[String] = []
+	for index in range(maxi(recent_lines.size() - limit, 0), recent_lines.size()):
+		lines.append("- " + recent_lines[index])
+	return "\n".join(lines)
+
+
+func get_variety_prompt() -> String:
+	return "【别重复自己】你最近说过的话：\n%s\n这次换一个开头和句式，别复用上面的说法和口头禅。\n【此刻的你】%s（只影响你的语气和想到的事，不必说出来）" % [
+		get_recent_lines_block(),
+		str(MOODS.pick_random()),
+	]
+
+
+# 开头和最近几句撞了，或又用了已经用过的滥口头禅，就算重复。
+func is_repetitive(text: String) -> bool:
+	var clean := text.strip_edges()
+	if clean.length() < 4:
+		return false
+	var head := clean.left(3)
+	for index in range(maxi(recent_lines.size() - 4, 0), recent_lines.size()):
+		if recent_lines[index].left(3) == head:
+			return true
+	for worn in ["我才不是", "才不是担心", "别误会"]:
+		if clean.contains(worn):
+			for line in recent_lines:
+				if line.contains(worn):
+					return true
+	return false
+
+
+func learn_sword_intent(card_id: String, player_line: String) -> bool:
+	if card_id.is_empty() or card_id in learned_sword_intents:
+		return false
+	learned_sword_intents.append(card_id)
+	var definition: Dictionary = CompanionCardDatabase.get_definition(card_id)
+	shared_history.append({
+		"expedition": expedition_count,
+		"label": "飞花令",
+		"summary": "飞花令里你对出「%s」，她从这句里领悟了剑意「%s」。" % [
+			player_line.replace("\n", " ").strip_edges().left(40),
+			str(definition.get("name", card_id)),
+		],
+	})
+	_save_relationship()
+	return true
+
+
 func needs_intro() -> bool:
 	return not intro_done and expedition_count == 0 and bond_value == 0 and shared_history.is_empty()
 
@@ -376,7 +454,9 @@ func get_shared_history_prompt(limit: int = 9) -> String:
 		indices.push_front(0)
 	for index in indices:
 		var fact: Dictionary = shared_history[index]
-		var label := "初遇" if int(fact.get("expedition", 0)) == 0 else "第%d趟" % int(fact.get("expedition", 0))
+		var label := str(fact.get("label", ""))
+		if label.is_empty():
+			label = "初遇" if int(fact.get("expedition", 0)) == 0 else "第%d趟" % int(fact.get("expedition", 0))
 		lines.append("- %s：%s" % [label, str(fact.get("summary", ""))])
 	return "\n".join(lines)
 
@@ -550,6 +630,8 @@ func _save_relationship() -> void:
 	config.set_value("progress", "pending_concern", pending_concern)
 	config.set_value("progress", "intro_done", intro_done)
 	config.set_value("profile", "player_name", player_name)
+	config.set_value("memory", "recent_lines", recent_lines)
+	config.set_value("memory", "sword_intents", learned_sword_intents)
 	config.set_value("memory", "shared_history", shared_history)
 	config.set_value("memory", "battles_won", int(relationship_facts.get("battles_won", 0)))
 	config.set_value("memory", "battles_lost", int(relationship_facts.get("battles_lost", 0)))
@@ -603,6 +685,15 @@ func _load_relationship() -> void:
 	expedition_count = maxi(int(config.get_value("progress", "expedition_count", 0)), 0)
 	intro_done = bool(config.get_value("progress", "intro_done", false))
 	player_name = str(config.get_value("profile", "player_name", ""))
+	var saved_lines: Variant = config.get_value("memory", "recent_lines", [])
+	if saved_lines is Array:
+		for line in saved_lines:
+			recent_lines.append(str(line))
+	var saved_intents: Variant = config.get_value("memory", "sword_intents", [])
+	if saved_intents is Array:
+		for card_id in saved_intents:
+			if not CompanionCardDatabase.get_definition(str(card_id)).is_empty():
+				learned_sword_intents.append(str(card_id))
 	var saved_concern: Variant = config.get_value("progress", "pending_concern", {})
 	if saved_concern is Dictionary:
 		pending_concern = saved_concern.duplicate(true)
@@ -646,6 +737,8 @@ func _reset_relationship_facts() -> void:
 	pending_concern = {}
 	player_name = ""
 	intro_done = false
+	recent_lines.clear()
+	learned_sword_intents.clear()
 	run_moments.clear()
 	relationship_facts = {
 		"battles_won": 0,

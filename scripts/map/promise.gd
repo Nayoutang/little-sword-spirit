@@ -12,9 +12,9 @@ const REQUIREMENT_TEXT := {
 	"finish": "平安走完这一趟，别再倒下",
 }
 const FALLBACK_LINES := {
-	"reckless": "……上回你的血都掉到那么低了，还往前冲。这趟给我顾好自己。",
-	"fell": "上次你倒下的时候……算了。这趟你得给我平安走回来。",
-	"broken": "上回答应我的事，你可没做到。这次……你再说一遍？",
+	"reckless": "上回你的血掉到那么低还往前冲。这趟给我顾好自己。",
+	"fell": "上次你倒在半路。这趟你得给我平安走回来。",
+	"broken": "上回答应我的事，你没做到。这次再说一遍，我听着。",
 }
 
 var concern: Dictionary = {}
@@ -37,7 +37,7 @@ func _ready() -> void:
 	title_label.text = "出门前"
 	line_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	line_label.offset_bottom = line_label.offset_top + 110.0
-	line_label.text = "小墨拉住了你的衣袖……"
+	line_label.text = "小墨拉住了你的衣袖。"
 	sincere_button.text = "认真答应她\n%s" % RULE_TEXT.get(promise_type, "")
 	perfunctory_button.text = "随口应付一句"
 	ignore_button.text = "不接话，直接出发"

@@ -3,7 +3,7 @@ extends Node2D
 const MILESTONES := {
 	1: {
 		"title": "关系突破　相识",
-		"line": "小墨难得没有移开视线。\n“如果哪天我很麻烦……你也不会把我丢下？”",
+		"line": "小墨难得没有移开视线。\n“要是哪天我变得很麻烦，你会不会把我丢下？”",
 		"choices": [
 			"认真看着她：不会。你不是麻烦。",
 			"笑她：原来你也会害怕？",
@@ -13,7 +13,7 @@ const MILESTONES := {
 	},
 	2: {
 		"title": "关系突破　交心",
-		"line": "她把声音压得很低。\n“有些事……就算是你，我也不知道该不该说。”",
+		"line": "她把声音压得很低。\n“有件事我一直没跟你说。不是不信你，是我自己还没想好。”",
 		"choices": [
 			"不逼问她：等你想说的时候，我会听。",
 			"追问她到底隐瞒了什么。",
@@ -23,7 +23,7 @@ const MILESTONES := {
 	},
 	3: {
 		"title": "关系突破　生死之交",
-		"line": "她握紧了剑柄，却第一次没有嘴硬。\n“无论以后去哪里……都带上我，好不好？”",
+		"line": "她握紧了剑柄，却第一次没有嘴硬。\n“以后不管去哪儿，都带上我。好不好？”",
 		"choices": [
 			"向她伸手：我们一直一起走。",
 			"逗她先求我几句再说。",
@@ -71,7 +71,7 @@ func _choose(index: int) -> void:
 	for child in choices.get_children():
 		(child as Button).disabled = true
 	if success:
-		result_label.text = "她怔了一下，别过脸去。\n“……说好了。你可不许反悔。”\n关系阶段突破：%s" % target_name
+		result_label.text = "她怔了一下，别过脸去。\n“说好了。你可不许反悔。”\n关系阶段突破：%s" % target_name
 	else:
 		result_label.text = "她的神情重新绷紧。\n“算了，当我没问。”\n本次突破暂缓，羁绊不会减少。"
 	result_label.show()

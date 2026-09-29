@@ -200,7 +200,7 @@ func _prepare_intent_cue() -> void:
 		return
 	var definition := CompanionCardDatabase.get_definition(card_id)
 	pending_intent_id = card_id
-	intent_cue = "\n【特别】玩家这一句出自%s「%s」。%s这句触动了你，你忽然想起某种出剑的剑意。这一轮 comment 先停一下，用一两句演出你心有所感的那一刻（可以隐约想起很久以前有人这样出剑，但不要展开），然后照常出句。不要说“剑招”“技能”“领悟”这类字眼，不要解释效果。" % [
+	intent_cue = "\n【特别】玩家这一句出自%s「%s」。%s这句诗说的是剑，你来了兴致。这一轮 comment 用一两句，以懂剑的人的眼光具体说出这一剑好在哪、换你会怎么出，然后照常出句。不要吞吞吐吐，不要用省略号开头，不要提“以前”“有个人”，不要说“剑招”“技能”“领悟”这类字眼，不要解释效果。" % [
 		str(definition.get("source", "")),
 		str(definition.get("poem", "")),
 		str(definition.get("hint", "")),

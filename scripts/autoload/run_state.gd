@@ -65,7 +65,7 @@ const MOODS := [
 	"想起一句诗，憋着想考考他",
 	"心情不错，但不想让他看出来",
 	"在琢磨一个出剑的架势，有点走神",
-	"忽然想起很久以前的什么，说不清",
+	"嫌屋里太闷，想出去走走",
 	"闲得发慌，想找点事做",
 	"对他之前的某个举动还有点在意",
 	"想逞强，显得自己很可靠",
@@ -273,7 +273,11 @@ func is_repetitive(text: String) -> bool:
 	for index in range(maxi(recent_lines.size() - 4, 0), recent_lines.size()):
 		if recent_lines[index].left(3) == head:
 			return true
-	for worn in ["我才不是", "才不是担心", "别误会"]:
+	if clean.begins_with("…"):
+		for index in range(maxi(recent_lines.size() - 4, 0), recent_lines.size()):
+			if recent_lines[index].begins_with("…"):
+				return true
+	for worn in ["我才不是", "才不是担心", "别误会", "以前有个人", "你不必知道"]:
 		if clean.contains(worn):
 			for line in recent_lines:
 				if line.contains(worn):

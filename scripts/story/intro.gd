@@ -9,20 +9,20 @@ const UI_SKIN := preload("res://scripts/ui/ink_ui_skin.gd")
 const WAKE_TEXT := "你在一片陌生的山林里醒来。天色将暗，风里有松针和铁锈的味道。\n不远处的断碑旁，斜插着一把积满灰的剑。"
 
 const FIRST_CHOICES := [
-	{"id": "pull", "text": "伸手拔剑", "line": "……手脏死了，谁准你碰我的？", "memory": "你伸手就去拔她"},
-	{"id": "wipe", "text": "先把剑身上的灰擦掉", "line": "多、多管闲事……我又没让你擦。", "memory": "你先替她擦掉了剑身上的灰"},
+	{"id": "pull", "text": "伸手拔剑", "line": "手脏死了，谁准你碰我的？", "memory": "你伸手就去拔她"},
+	{"id": "wipe", "text": "先把剑身上的灰擦掉", "line": "多管闲事。我又没让你擦。", "memory": "你先替她擦掉了剑身上的灰"},
 	{"id": "leave", "text": "绕开它，往山下走", "line": "喂！你——你就这么走了？", "memory": "你本想绕开她往山下走，她忍不住叫住了你"},
 ]
 
 const REACTIONS := [
-	{"text": "剑……会说话？", "fallback": "少见多怪。剑灵会说话，有什么稀奇的。", "memory": "你的第一反应是「剑……会说话？」"},
-	{"text": "抱歉，吵醒你了", "fallback": "……哼，还算有点礼貌。", "memory": "你跟她道歉，说吵醒她了"},
-	{"text": "那我放回去？", "fallback": "你敢！……咳，我是说，随便你。", "memory": "你逗她说要把她放回去"},
+	{"text": "剑会说话？", "fallback": "少见多怪。剑灵会说话，有什么稀奇的。", "memory": "你的第一反应是「剑会说话？」"},
+	{"text": "抱歉，吵醒你了", "fallback": "还算有点礼貌。", "memory": "你跟她道歉，说吵醒她了"},
+	{"text": "那我放回去？", "fallback": "你敢！咳，我是说，随便你。", "memory": "你逗她说要把她放回去"},
 ]
 
-const ASK_NAME_LINE := "……你叫什么？"
-const NAME_LINE := "……叫我小墨就行。以前也有人这么叫——算了，就叫小墨。"
-const ENDING_LINE := "喂，天要黑了。你总得找个地方落脚吧……带上我。不是我想跟着你，是这荒山野岭的，你一个人肯定活不下去。"
+const ASK_NAME_LINE := "你叫什么？"
+const NAME_LINE := "我叫小墨。记住了，别叫错。"
+const ENDING_LINE := "喂，天要黑了。你总得找个地方落脚吧？带上我。不是我想跟着你，是这荒山野岭的，你一个人肯定活不下去。"
 const ENDING_TEXT := "山脚下有一间废弃的小屋。从那天起，它成了你们的家。"
 const DEFAULT_NAME := "持剑人"
 
@@ -158,7 +158,7 @@ func _on_reaction(index: int) -> void:
 		str(first_choice["line"]),
 		str(reaction["text"]),
 	]
-	_set_story("你：%s\n\n小墨……" % str(reaction["text"]))
+	_set_story("你：%s\n\n（小墨正要开口）" % str(reaction["text"]))
 	_ask_llm(cue, str(reaction["fallback"]), func(line: String):
 		_set_story("你：%s\n\n小墨：%s" % [str(reaction["text"]), line])
 		_show_continue(_show_ask_name))
@@ -179,8 +179,8 @@ func _submit_name() -> void:
 	player_name = clean if not clean.is_empty() else DEFAULT_NAME
 	name_row.visible = false
 	var cue := "你刚问了持剑人的名字，他说他叫「%s」。请你就着这个名字嘴硬地回一句（只说一句，不要说出你自己的名字）。" % player_name
-	_set_story("你：我叫%s。\n\n小墨……" % player_name)
-	_ask_llm(cue, "%s……哼，名字倒是挺普通的。" % player_name, func(line: String):
+	_set_story("你：我叫%s。\n\n（小墨正要开口）" % player_name)
+	_ask_llm(cue, "%s？名字倒是挺普通的。" % player_name, func(line: String):
 		_set_story("你：我叫%s。\n\n小墨：%s\n\n小墨：%s" % [player_name, line, NAME_LINE])
 		_show_continue(_show_ending))
 

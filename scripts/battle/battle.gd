@@ -389,7 +389,7 @@ func _play_hand_card(index: int) -> void:
 	if index < 0 or index >= hand.size() or not hand_buttons[index].visible:
 		return
 	if hand[index] == CardType.CURSE:
-		message_label.text = "诅咒牌无法打出"
+		message_label.text = "心魔无法打出"
 		return
 	var played_card := hand[index]
 	var cost := _card_cost(played_card)
@@ -572,7 +572,7 @@ func _play_sweep_card() -> void:
 			_damage_enemy_at(index, damage)
 	combo += 1
 	last_target_index = -1
-	message_label.text = "横扫对所有敌人造成 %d 伤害，连击 +1" % damage
+	message_label.text = "扫叶对所有敌人造成 %d 伤害，连击 +1" % damage
 	_finish_action()
 
 
@@ -610,7 +610,7 @@ func _play_unload_force_card(target_index: int) -> void:
 		enemy_intents[target_index]["value"] = maxi(int(enemy_intents[target_index]["value"]) - unload_force_reduction, 0)
 	else:
 		enemy_attack_reductions[target_index] += unload_force_reduction
-	message_label.text = "卸力：敌人%d下一次攻击伤害降低 %d" % [target_index + 1, unload_force_reduction]
+	message_label.text = "拨千斤：敌人%d下一次攻击伤害降低 %d" % [target_index + 1, unload_force_reduction]
 	_finish_action()
 
 
@@ -958,7 +958,7 @@ func _resolve_enemy_turn() -> void:
 				action_messages.append("敌人%d强化，攻击力+%d" % [index + 1, intent["value"]])
 			EnemyIntent.CURSE:
 				discard_pile.append(CardType.CURSE)
-				action_messages.append("敌人%d加入一张诅咒" % (index + 1))
+				action_messages.append("敌人%d往你牌组里塞了一张心魔" % (index + 1))
 			EnemyIntent.OTHER:
 				action_messages.append("敌人%d观望" % (index + 1))
 	var damage_taken := maxi(incoming_damage - block, 0)
@@ -1284,7 +1284,7 @@ func _refresh_ui() -> void:
 				EnemyIntent.ENHANCE:
 					enemy_intent_labels[index].text = "✦  攻击 +%d" % intent["value"]
 				EnemyIntent.CURSE:
-					enemy_intent_labels[index].text = "☷  加入诅咒"
+					enemy_intent_labels[index].text = "☷  塞入心魔"
 				EnemyIntent.OTHER:
 					enemy_intent_labels[index].text = "·  观望"
 	combo_label.text = "连击  %d" % combo

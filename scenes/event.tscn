@@ -77,20 +77,20 @@ text = "选择一张卡牌"
 
 [node name="CardChoices" type="HBoxContainer" parent="EventUI"]
 offset_left = 390.0
-offset_top = 450.0
+offset_top = 400.0
 offset_right = 1530.0
-offset_bottom = 620.0
+offset_bottom = 750.0
 theme_override_constants/separation = 30
 alignment = 1
 
 [node name="Choice1" type="Button" parent="EventUI/CardChoices"]
-custom_minimum_size = Vector2(340, 160)
+custom_minimum_size = Vector2(260, 310)
 layout_mode = 2
 
 [node name="Choice2" type="Button" parent="EventUI/CardChoices"]
-custom_minimum_size = Vector2(340, 160)
+custom_minimum_size = Vector2(260, 310)
 layout_mode = 2
 
 [node name="Choice3" type="Button" parent="EventUI/CardChoices"]
-custom_minimum_size = Vector2(340, 160)
+custom_minimum_size = Vector2(260, 310)
 layout_mode = 2

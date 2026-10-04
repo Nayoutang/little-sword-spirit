@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "created": "2026-10-04",
+  "source": "OpenAI built-in imagegen; generated for this project",
+  "third_party_assets": false,
+  "art_direction": "Chinese ink fantasy, pale torn cloth, dark armor, old gold and jade accents; transparent full-body silhouettes",
+  "assets": [
+    {"role": "swordsman", "original": "ink_swordsman_v1.png", "runtime": "ink_swordsman_sprite_v1.png", "generation_id": "exec-ffb65754-6b69-4ff6-8596-1073b3cdd579", "silhouette": "Narrow straw-hat sword warrior"},
+    {"role": "guardian", "original": "ink_guardian_v1.png", "runtime": "ink_guardian_sprite_v1.png", "generation_id": "exec-b29529be-5e82-4a0c-b1e6-d84ae1a521ea", "silhouette": "Broad armored shield warrior"},
+    {"role": "hexer", "original": "ink_hexer_v1.png", "runtime": "ink_hexer_sprite_v1.png", "generation_id": "exec-73d3bcfc-0552-4d40-a7a7-d02f98e02cd4", "silhouette": "Floating ritualist with talismans and ribbons"}
+  ],
+  "normalization": {"script": "res://tools/normalize_enemy_art.gd", "canvas": [768, 896], "content_max": [672, 800], "bottom_anchor_y": 848, "resampling": "Lanczos", "format": "RGBA PNG"},
+  "import": {"mipmaps": true, "filter": "LINEAR_WITH_MIPMAPS", "alpha_border_fix": true},
+  "animation": "Single-sprite Tween idle, action, hit and death; procedural Control effects",
+  "validation": {"godot_import": "passed", "runtime_render": "passed", "battle_smoke": "passed", "cooperation_sim": "passed", "user_art_review": "pending"}
+}

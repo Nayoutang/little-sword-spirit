@@ -1,0 +1,24 @@
+{
+  "source": "OpenAI built-in imagegen",
+  "created": "2026-10-04",
+  "assets": [
+    {
+      "original": "ink_slash_source_v1.png",
+      "runtime": "ink_slash_vfx_v1.png",
+      "prompt": "Production transparent 2D game VFX sprite, Chinese ink fantasy matching white teal gold chibi sword spirit and dark ink arena. Single isolated effect only centered on transparent RGBA canvas, generous transparent margin. Hand-painted brush texture, sharp luminous ivory core, subtle jade-teal edge glow, broken ink feathering and a few tiny gold motes, professional game combat VFX with layered detail. No character, weapon object, scenery, text, interface, circular geometric diagram, opaque background or rectangular glow. Readable at 220px, hollow negative space so victim remains visible. A SINGLE slender dynamic crescent sword trail sweeping diagonally from lower-left to upper-right; tapered pointed ends, irregular flowing brush streaks following the arc, ivory jade energy with delicate dark ink wisps. Main trail forms an open crescent, not a full ring."
+    },
+    {
+      "original": "ink_heavy_source_v1.png",
+      "runtime": "ink_heavy_vfx_v1.png",
+      "prompt": "Production transparent 2D game VFX sprite, Chinese ink fantasy matching white teal gold chibi sword spirit and dark ink arena. Single isolated effect only centered on transparent RGBA canvas, generous transparent margin. Hand-painted brush texture, sharp luminous ivory core, subtle jade-teal edge glow, broken ink feathering and a few tiny gold motes, professional game combat VFX with layered detail. No character, weapon object, scenery, text, interface, circular geometric diagram, opaque background or rectangular glow. Readable at 220px, hollow negative space so victim remains visible. A powerful broad diagonal sword impact brush slash from upper-left to lower-right; thick torn ivory-gold blade-shaped energy core with jade shadows, branching ink splashes, small angular ember fragments around contact point. Open asymmetrical composition with transparent gaps, no solid filled explosion."
+    },
+    {
+      "original": "ink_frost_source_v1.png",
+      "runtime": "ink_frost_vfx_v1.png",
+      "prompt": "Production transparent 2D game VFX sprite, Chinese ink fantasy matching white teal gold chibi sword spirit and dark ink arena. Single isolated effect only centered on transparent RGBA canvas, generous transparent margin. Hand-painted brush texture, sharp luminous ivory core, subtle jade-teal edge glow, broken ink feathering and a few tiny gold motes, professional game combat VFX with layered detail. No character, weapon object, scenery, text, interface, circular geometric diagram, opaque background or rectangular glow. Readable at 220px, hollow negative space so victim remains visible. A localized frost sword impact: several asymmetric crystalline icy shards radiating diagonally around an EMPTY center, pale ivory cyan edges, delicate ice splinters and wispy cold ink mist curling below, hand-painted frost petals, no snowflake icon, no regular star or geometric ring."
+    }
+  ],
+  "normalization": "768x768 RGBA, Lanczos, centered, 40px transparent margin, mipmaps",
+  "validation": "Alpha verified, Godot imported, actual render inspected, battle smoke passed",
+  "scope": "All companion action effects and enemy attack, guard, curse; see support_asset_manifest.json for six additional textures"
+}

@@ -17,6 +17,7 @@ const BOND_STAGE_NAMES := BalanceConfig.BOND_STAGE_NAMES
 var player_max_hp := BalanceConfig.PLAYER_START_MAX_HP
 var player_hp := BalanceConfig.PLAYER_START_MAX_HP
 var pending_encounter := EncounterType.NORMAL
+var route_layer := 1
 var pending_event := EventType.TREASURE
 var deck: Array[int] = []
 var run_id := 0
@@ -38,6 +39,7 @@ var relationship_facts: Dictionary = {
 	"promise_broken": 0,
 	"companion_card_counts": {},
 	"minigame_results": [],
+	"cooperation": {},
 }
 var current_run_journal: Array[Dictionary] = []
 var last_run_journal: Array[Dictionary] = []
@@ -76,9 +78,14 @@ const MOODS := [
 var recent_lines: Array[String] = []
 # 剑意：飞花令里对出特定诗句时，她领悟的剑招（进入她的战斗牌池）。
 var learned_sword_intents: Array[String] = []
+var suppress_persistence := false
 
 
 func _ready() -> void:
+	if "--cooperation-sim" in OS.get_cmdline_user_args():
+		suppress_persistence = true
+		_reset_deck()
+		return
 	_migrate_legacy_save()
 	_load_relationship()
 	if deck.is_empty():
@@ -86,6 +93,7 @@ func _ready() -> void:
 
 
 func start_new_run() -> void:
+	route_layer = 1
 	run_id += 1
 	player_max_hp = BalanceConfig.PLAYER_START_MAX_HP
 	player_hp = player_max_hp
@@ -472,6 +480,16 @@ func consume_homecoming() -> bool:
 	return pending
 
 
+# 配合事实独立于羁绊；旧档没有字段时全部从零开始。
+func record_cooperation(kind: String, amount: int = 1) -> void:
+	if kind not in ["opportunities_used", "opportunities_wasted", "finisher_combo_total", "finishers", "guards"]:
+		return
+	var stats: Dictionary = relationship_facts.get("cooperation", {})
+	stats[kind] = maxi(int(stats.get(kind, 0)) + amount, 0)
+	relationship_facts["cooperation"] = stats
+	_save_relationship()
+
+
 func record_companion_card(card_id: String) -> void:
 	var counts: Dictionary = relationship_facts.get("companion_card_counts", {})
 	counts[card_id] = int(counts.get(card_id, 0)) + 1
@@ -625,6 +643,8 @@ func apply_settlement() -> Dictionary:
 
 
 func _save_relationship() -> void:
+	if suppress_persistence:
+		return
 	var config := ConfigFile.new()
 	config.set_value("relationship", "bond_value", bond_value)
 	config.set_value("relationship", "bond_stage", bond_stage)
@@ -636,6 +656,7 @@ func _save_relationship() -> void:
 	config.set_value("profile", "player_name", player_name)
 	config.set_value("memory", "recent_lines", recent_lines)
 	config.set_value("memory", "sword_intents", learned_sword_intents)
+	config.set_value("memory", "cooperation", relationship_facts.get("cooperation", {}))
 	config.set_value("memory", "shared_history", shared_history)
 	config.set_value("memory", "battles_won", int(relationship_facts.get("battles_won", 0)))
 	config.set_value("memory", "battles_lost", int(relationship_facts.get("battles_lost", 0)))
@@ -693,6 +714,10 @@ func _load_relationship() -> void:
 	if saved_lines is Array:
 		for line in saved_lines:
 			recent_lines.append(str(line))
+	var saved_cooperation: Variant = config.get_value("memory", "cooperation", {})
+	if saved_cooperation is Dictionary:
+		for key in ["opportunities_used", "opportunities_wasted", "finisher_combo_total", "finishers", "guards"]:
+			relationship_facts["cooperation"][key] = maxi(int(saved_cooperation.get(key, 0)), 0)
 	var saved_intents: Variant = config.get_value("memory", "sword_intents", [])
 	if saved_intents is Array:
 		for card_id in saved_intents:
@@ -751,6 +776,7 @@ func _reset_relationship_facts() -> void:
 		"promise_broken": 0,
 		"companion_card_counts": {},
 		"minigame_results": [],
+		"cooperation": {},
 	}
 
 

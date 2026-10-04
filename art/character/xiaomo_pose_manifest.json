@@ -1,0 +1,114 @@
+{
+  "created": "2026-10-04",
+  "source": "OpenAI built-in imagegen",
+  "reference": "sword_spirit_chibi_cutout.png",
+  "normalization": {
+    "canvas": [
+      768,
+      896
+    ],
+    "bottom_anchor": 848,
+    "content_max": [
+      720,
+      800
+    ],
+    "filter": "linear mipmaps"
+  },
+  "poses": [
+    {
+      "pose": "swing",
+      "original": "xiaomo_swing_source_v1.png",
+      "runtime": "xiaomo_swing_pose_v1.png",
+      "prompt": "Production 2D chibi game character action illustration. Reference is Xiaomo's exact identity and art style: dark brown long hair with high bun, golden amber eyes, white floral hair ornaments, jade teal ribbons, white teal and gold Chinese sword outfit, dark tights and gold trimmed boots, ornate straight sword. Preserve her face, costume details, 2.5-head chibi proportions, line thickness and cel-painted finish. One full body character only, facing toward screen RIGHT enemies. All hair feet weapon and cloth fully visible with generous transparent margin. Actual transparent background, no text, frame, scenery, extra character or large VFX. Change her actual arm leg torso pose distinctly, not merely move the reference image. SWING ATTACK: lunge right with sword extended horizontally right."
+    },
+    {
+      "pose": "heavy",
+      "original": "xiaomo_heavy_source_v1.png",
+      "runtime": "xiaomo_heavy_pose_v1.png",
+      "prompt": "Production 2D chibi game character action illustration. Reference is Xiaomo's exact identity and art style: dark brown long hair with high bun, golden amber eyes, white floral hair ornaments, jade teal ribbons, white teal and gold Chinese sword outfit, dark tights and gold trimmed boots, ornate straight sword. Preserve her face, costume details, 2.5-head chibi proportions, line thickness and cel-painted finish. One full body character only, facing toward screen RIGHT enemies. All hair feet weapon and cloth fully visible with generous transparent margin. Actual transparent background, no text, frame, scenery, extra character or large VFX. Change her actual arm leg torso pose distinctly, not merely move the reference image. Pose: HEAVY STRIKE: both hands grasp the sword hilt raised high above head toward upper right, torso twisting ready to bring blade down toward right, wide planted stance, fiercely focused expression."
+    },
+    {
+      "pose": "guard",
+      "original": "xiaomo_guard_source_v1.png",
+      "runtime": "xiaomo_guard_pose_v1.png",
+      "prompt": "Production 2D chibi game character action illustration. Reference is Xiaomo's exact identity and art style: dark brown long hair with high bun, golden amber eyes, white floral hair ornaments, jade teal ribbons, white teal and gold Chinese sword outfit, dark tights and gold trimmed boots, ornate straight sword. Preserve her face, costume details, 2.5-head chibi proportions, line thickness and cel-painted finish. One full body character only, facing toward screen RIGHT enemies. All hair feet weapon and cloth fully visible with generous transparent margin. Actual transparent background, no text, frame, scenery, extra character or large VFX. Change her actual arm leg torso pose distinctly, not merely move the reference image. Pose: DEFENSIVE GUARD: firmly planted feet, knees bent, torso facing three-quarter right, right hand holds sword diagonally upward across chest to intercept an incoming strike from right, left palm bracing near hilt, protective resolute expression."
+    },
+    {
+      "pose": "gather",
+      "original": "xiaomo_gather_source_v1.png",
+      "runtime": "xiaomo_gather_pose_v1.png",
+      "prompt": "Production 2D chibi game character action illustration. Reference is Xiaomo's exact identity and art style: dark brown long hair with high bun, golden amber eyes, white floral hair ornaments, jade teal ribbons, white teal and gold Chinese sword outfit, dark tights and gold trimmed boots, ornate straight sword. Preserve her face, costume details, 2.5-head chibi proportions, line thickness and cel-painted finish. One full body character only, facing toward screen RIGHT enemies. All hair feet weapon and cloth fully visible with generous transparent margin. Actual transparent background, no text, frame, scenery, extra character or large VFX. Change her actual arm leg torso pose distinctly, not merely move the reference image. Pose: GATHER SWORD ENERGY: standing balanced upright, sword held vertically down near right side, left fingers gently touch blade near hilt in a focused sharpening ritual, head slightly lowered, eyes calmly half closed, flowing cloth at rest."
+    },
+    {
+      "pose": "intent",
+      "original": "xiaomo_intent_source_v1.png",
+      "runtime": "xiaomo_intent_pose_v1.png",
+      "prompt": "Production 2D chibi game character action illustration. Reference is Xiaomo's exact identity and art style: dark brown long hair with high bun, golden amber eyes, white floral hair ornaments, jade teal ribbons, white teal and gold Chinese sword outfit, dark tights and gold trimmed boots, ornate straight sword. Preserve her face, costume details, 2.5-head chibi proportions, line thickness and cel-painted finish. One full body character only, facing toward screen RIGHT enemies. All hair feet weapon and cloth fully visible with generous transparent margin. Actual transparent background, no text, frame, scenery, extra character or large VFX. Change her actual arm leg torso pose distinctly, not merely move the reference image. Pose: CAST SWORD INTENT: upright floating poised stance, left arm reaches toward right with index and middle fingers extended in sword seal, right hand holds sword beside body angled upward, calm confident eyes, ribbons gently floating, only very small jade glow at fingertips."
+    }
+  ],
+  "idle": "xiaomo_idle_pose_v1.png, normalized existing reference",
+  "status": "Godot import and all 18 pose mappings passed; real renderer inspected",
+  "display": "Wide action poses scale 1.3 around foot pivot; gather and idle 1.0",
+  "alpha_validation": [
+    {
+      "pose": "idle",
+      "bounds": [
+        48,
+        48,
+        720,
+        848
+      ],
+      "transparent_corner": true
+    },
+    {
+      "pose": "swing",
+      "bounds": [
+        24,
+        271,
+        742,
+        838
+      ],
+      "transparent_corner": true
+    },
+    {
+      "pose": "heavy",
+      "bounds": [
+        24,
+        247,
+        743,
+        844
+      ],
+      "transparent_corner": true
+    },
+    {
+      "pose": "guard",
+      "bounds": [
+        24,
+        243,
+        744,
+        844
+      ],
+      "transparent_corner": true
+    },
+    {
+      "pose": "gather",
+      "bounds": [
+        55,
+        48,
+        703,
+        830
+      ],
+      "transparent_corner": true
+    },
+    {
+      "pose": "intent",
+      "bounds": [
+        29,
+        252,
+        743,
+        842
+      ],
+      "transparent_corner": true
+    }
+  ]
+}

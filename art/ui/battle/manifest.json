@@ -1,0 +1,20 @@
+{
+  "tool": "built-in imagegen",
+  "reference": "art/concepts/battle-ui-target-v1.png",
+  "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10539-8237-7b10-a100-b2b00cb5e3c6\\exec-858d1252-5fa1-43e2-873f-88067a7dd4d3.png",
+  "normalization": "Inspected grid sliced with transparent gutters. Originals retained.",
+  "assets": [
+    "gather",
+    "guard",
+    "waves",
+    "thrust",
+    "frame",
+    "deck",
+    "discard",
+    "intent",
+    "button",
+    "hud",
+    "speech",
+    "shield"
+  ]
+}

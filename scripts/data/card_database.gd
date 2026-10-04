@@ -21,14 +21,14 @@ const DEFINITIONS := {
 	ATTACK: {"name": "平刺", "type": "攻击", "cost": 1, "damage": 6, "combo": 1, "battle": "[平刺]\n费1 基础伤害6\n连击+1", "reward": "平刺\n费1 / 基础伤害6 / 连击+1"},
 	DEFENSE: {"name": "横架", "type": "防御", "cost": 1, "block": 5, "battle": "[横架]\n费1 格挡5\n清空连击", "reward": "横架\n费1 / 格挡5 / 清空连击"},
 	STATUS: {"name": "凝神", "type": "技巧", "cost": 1, "battle": "[凝神]\n费1 抽张牌\n清空连击", "reward": "凝神\n费1 / 抽1张 / 清空连击"},
-	HEAVY_ATTACK: {"name": "劈山", "type": "攻击", "cost": 2, "damage": 14, "combo": 1, "battle": "[劈山]\n费2 基础伤害14\n连击+1", "reward": "劈山\n费2 / 基础伤害14 / 连击+1"},
+	HEAVY_ATTACK: {"name": "劈山", "type": "攻击", "cost": 2, "damage": 16, "combo": 1, "battle": "[劈山]\n费2 基础伤害16\n连击+1", "reward": "劈山\n费2 / 基础伤害16 / 连击+1"},
 	HEAVY_DEFENSE: {"name": "铁门闩", "type": "防御", "cost": 2, "block": 12, "battle": "[铁门闩]\n费2 格挡12\n清空连击", "reward": "铁门闩\n费2 / 格挡12 / 清空连击"},
 	SWEEP: {"name": "扫叶", "type": "攻击", "cost": 1, "damage": 3, "combo": 1, "battle": "[扫叶]\n费1 全体基础伤害3\n连击+1", "reward": "扫叶\n费1 / 全体基础伤害3 / 连击+1"},
 	COMBO_BOOST: {"name": "叠浪", "type": "攻击", "cost": 1, "damage": 6, "combo": 2, "battle": "[叠浪]\n费1 基础伤害6\n连击+2", "reward": "叠浪\n费1 / 基础伤害6 / 连击+2"},
 	CURSE: {"name": "心魔", "type": "诅咒", "cost": 0, "battle": "[心魔]\n无法打出", "reward": "心魔\n无法打出"},
 	TUNE_BREATH: {"name": "调息", "type": "技巧", "cost": 0, "battle": "[调息·技巧]\n费0 抽1张\n每回合限用一次", "reward": "调息\n费0 / 抽1张 / 每回合限用一次"},
 	SHADOW_STEP: {"name": "掠影", "type": "技巧", "cost": 1, "battle": "[掠影·技巧]\n费1 抽2张", "reward": "掠影\n费1 / 抽2张"},
-	BREAK_EDGE: {"name": "破锋", "type": "攻击", "cost": 1, "damage": 8, "combo": 1, "vulnerable": 2, "battle": "[破锋·攻击]\n费1 基础伤害8\n连击+1 / 结算后2层易伤", "reward": "破锋\n费1 / 基础伤害8 / 连击+1 / 2层易伤"},
+	BREAK_EDGE: {"name": "破锋", "type": "攻击", "cost": 1, "damage": 8, "combo": 1, "vulnerable": 2, "battle": "[破锋·攻击]\n费1 基础伤害8\n连击+1 / 结算后2层易伤\n易伤：每次命中加伤，敌方回合末-1层", "reward": "破锋\n费1 / 基础伤害8 / 连击+1 / 2层易伤\n敌方回合末易伤-1层"},
 	UNLOAD_FORCE: {"name": "拨千斤", "type": "技巧", "cost": 1, "attack_reduction": 5, "battle": "[拨千斤·技巧]\n费1 指定敌人\n其下一次攻击伤害-5", "reward": "拨千斤\n费1 / 敌人下一次攻击伤害-5"},
 	HIDE_EDGE: {"name": "藏锋", "type": "防御", "cost": 1, "block": 6, "battle": "[藏锋·防御]\n费1 格挡6\n本回合结束连击不清零", "reward": "藏锋\n费1 / 格挡6 / 回合结束保留连击"},
 	FLOWING_LIGHT: {"name": "流光", "type": "特殊技", "cost": 1, "damage": 15, "combo_required": 2, "combo_cost": 2, "bond_stage": 1, "battle": "[特殊技·流光]\n费1 基础伤害15\n需2连击 / 消耗2连击 / 相识解锁", "reward": "流光\n羁绊特殊技"},
@@ -36,7 +36,7 @@ const DEFINITIONS := {
 }
 
 const REWARD_CARD_IDS := [
-	ATTACK, DEFENSE, STATUS, HEAVY_ATTACK, HEAVY_DEFENSE, SWEEP, COMBO_BOOST,
+	HEAVY_ATTACK, HEAVY_DEFENSE, SWEEP, COMBO_BOOST,
 	TUNE_BREATH, SHADOW_STEP, BREAK_EDGE, UNLOAD_FORCE, HIDE_EDGE,
 ]
 

@@ -2,10 +2,14 @@ extends Node2D
 
 const CHIBI_TEXTURE := preload("res://art/character/sword_spirit_chibi_cutout.png")
 
-# 固定10层：Home + 7层常规路线 + 第9层宝箱 + Boss。
-const TOTAL_LAYERS := 10
+# 20层路线：起点、分叉遭遇、两次整备宝箱、中途奇遇与最终Boss。
+const TOTAL_LAYERS := BalanceConfig.ROUTE_TOTAL_LAYERS
 const ROUTE_COUNT := 5
-const GUARANTEED_TREASURE_LAYER := 8 # 从0开始计数，即玩家看到的第9层。
+const GUARANTEED_TREASURE_LAYER := 18
+const TREASURE_LAYERS := [8, 18]
+const RECOVERY_LAYER := 10
+const LAYER_SPACING := 110.0
+var map_scroll := 0.0
 const SIDE_MARGIN := 150.0
 const NODE_X_JITTER := 24.0
 const TOP_MARGIN := 165.0
@@ -77,12 +81,19 @@ func _generate_map() -> void:
 	map_rng.seed = run_seed
 	_build_node_type_plan()
 	var viewport_size := get_viewport_rect().size
-	var usable_height := viewport_size.y - TOP_MARGIN - BOTTOM_MARGIN
+
 
 	for layer_index in range(TOTAL_LAYERS):
 		var node_count := _node_count_for_layer(layer_index)
 		var layer_nodes: Array[RouteNode] = []
-		var y := viewport_size.y - BOTTOM_MARGIN - usable_height * layer_index / (TOTAL_LAYERS - 1.0)
+		var y := viewport_size.y - BOTTOM_MARGIN - LAYER_SPACING * layer_index
+		var depth_label := Label.new()
+		depth_label.text = "起点" if layer_index == 0 else "%d层" % layer_index
+		depth_label.position = Vector2(35, y - 14)
+		depth_label.add_theme_font_size_override("font_size", 20)
+		depth_label.add_theme_color_override("font_color", Color("#413b30"))
+		depth_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		$MapContent.add_child(depth_label)
 		for node_index in range(node_count):
 			var route_node := RouteNode.new()
 			route_node.z_index = 2
@@ -103,6 +114,31 @@ func _generate_map() -> void:
 	current_node = layers[restored_layer][restored_index]
 	_create_player_marker()
 	_refresh_node_states()
+	_set_map_scroll(restored_layer * LAYER_SPACING - 340)
+	$MapUI/Title.text = "路线选择 · %d / %d" % [restored_layer, TOTAL_LAYERS - 1]
+	$MapUI/Hint.text = "青色节点可选 · 滚轮或↑↓浏览路线"
+
+
+func _set_map_scroll(value: float) -> void:
+	var max_scroll := maxf((TOTAL_LAYERS - 1) * LAYER_SPACING - (get_viewport_rect().size.y - TOP_MARGIN - BOTTOM_MARGIN), 0)
+	map_scroll = clampf(value, 0, max_scroll)
+	$MapContent.position.y = map_scroll
+	for layer: Array in layers:
+		for node: RouteNode in layer:
+			node.input_pickable = node.is_selectable and node.global_position.y >= 130 and node.global_position.y <= 1000
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_set_map_scroll(map_scroll + 120)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_set_map_scroll(map_scroll - 120)
+	elif event is InputEventKey and event.pressed:
+		if event.keycode == KEY_UP:
+			_set_map_scroll(map_scroll + 120)
+		elif event.keycode == KEY_DOWN:
+			_set_map_scroll(map_scroll - 120)
 
 
 func _node_count_for_layer(layer_index: int) -> int:
@@ -129,35 +165,40 @@ func _build_node_type_plan() -> void:
 				types.append(RouteNode.NodeType.HOME)
 			elif layer_index == TOTAL_LAYERS - 1:
 				types.append(RouteNode.NodeType.BOSS)
-			elif layer_index == GUARANTEED_TREASURE_LAYER:
+			elif layer_index in TREASURE_LAYERS:
 				types.append(RouteNode.NodeType.TREASURE)
+			elif layer_index == RECOVERY_LAYER:
+				types.append(RouteNode.NodeType.ADVENTURE)
 			else:
 				types.append(RouteNode.NodeType.BATTLE)
 		layer_node_types.append(types)
 
-	# 尖塔式短局分布：
-	# 1. 第1层必为普通战，让玩家先建立卡组；前3层不出现精英。
-	# 2. 显式宝箱只放在固定宝箱层，其他宝箱由“?”事件结果承担。
-	# 3. 中后段放2个不相邻层的精英，避免连续精英。
-	# 4. 再放5个“?”与5个“奇”。“奇”直接替换普通战，不触发战斗。
-	#    40个中间节点最终为23战/5宝/5问号/5奇遇/2精英。
+	# 前后两段各两层可选精英，不相邻；宝箱与中途奇遇独立。
 	var elite_layer_pairs := [[4, 6], [4, 7], [5, 7]]
-	var elite_layers: Array = elite_layer_pairs[map_rng.randi_range(0, elite_layer_pairs.size() - 1)]
+	var elite_layers: Array = elite_layer_pairs[map_rng.randi_range(0, elite_layer_pairs.size() - 1)].duplicate()
+	var late_pairs := [[12, 15], [12, 16], [13, 16]]
+	elite_layers.append_array(late_pairs[map_rng.randi_range(0, late_pairs.size() - 1)])
 	for layer_index: int in elite_layers:
 		var route_index := _pick_column_avoiding_adjacent_type(layer_index, RouteNode.NodeType.ELITE)
 		layer_node_types[layer_index][route_index] = RouteNode.NodeType.ELITE
 
-	var unknown_layers := [2, 3, 4, 5, 6, 7]
+	var unknown_layers: Array = []
+	for layer in range(2, GUARANTEED_TREASURE_LAYER):
+		if layer not in TREASURE_LAYERS and layer != RECOVERY_LAYER:
+			unknown_layers.append(layer)
 	_shuffle_with_map_rng(unknown_layers)
-	unknown_layers.resize(5)
+	unknown_layers.resize(10)
 	unknown_layers.sort()
 	for layer_index: int in unknown_layers:
 		var route_index := _pick_column_avoiding_adjacent_type(layer_index, RouteNode.NodeType.UNKNOWN)
 		layer_node_types[layer_index][route_index] = RouteNode.NodeType.UNKNOWN
 
-	var adventure_layers := [2, 3, 4, 5, 6, 7]
+	var adventure_layers: Array = []
+	for layer in range(2, GUARANTEED_TREASURE_LAYER):
+		if layer not in TREASURE_LAYERS and layer != RECOVERY_LAYER:
+			adventure_layers.append(layer)
 	_shuffle_with_map_rng(adventure_layers)
-	adventure_layers.resize(5)
+	adventure_layers.resize(10)
 	adventure_layers.sort()
 	for layer_index: int in adventure_layers:
 		var route_index := _pick_column_avoiding_adjacent_type(layer_index, RouteNode.NodeType.ADVENTURE)
@@ -266,6 +307,7 @@ func _on_node_selected(route_node: RouteNode) -> void:
 	if not connections.get(current_node, []).has(route_node):
 		return
 	current_node = route_node
+	RunState.route_layer = current_node.layer_index
 	saved_layer_index = current_node.layer_index
 	saved_node_index = layers[saved_layer_index].find(current_node)
 	player_marker.position = _marker_position(current_node)
@@ -303,7 +345,7 @@ func enter_node(node_type: RouteNode.NodeType) -> void:
 		RouteNode.NodeType.UNKNOWN:
 			if randf() < 0.5:
 				var encounter := RunState.EncounterType.NORMAL
-				if randf() >= 0.7:
+				if RunState.route_layer > 3 and randf() >= 0.7:
 					encounter = RunState.EncounterType.ELITE
 				start_battle(encounter)
 			else:

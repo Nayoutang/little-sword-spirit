@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://c8nnt7cml3qwu"
+
+[deps]
+
+files=["res://docs/progression-curve.normal.translation", "res://docs/progression-curve.normal.translation", "res://docs/progression-curve.elite.translation", "res://docs/progression-curve.elite.translation", "res://docs/progression-curve.swordsman.translation", "res://docs/progression-curve.swordsman.translation", "res://docs/progression-curve.guardian.translation", "res://docs/progression-curve.boss.translation", "res://docs/progression-curve.boss.translation"]
+
+source_file="res://docs/progression-curve.csv"
+dest_files=["res://docs/progression-curve.normal.translation", "res://docs/progression-curve.normal.translation", "res://docs/progression-curve.elite.translation", "res://docs/progression-curve.elite.translation", "res://docs/progression-curve.swordsman.translation", "res://docs/progression-curve.swordsman.translation", "res://docs/progression-curve.guardian.translation", "res://docs/progression-curve.boss.translation", "res://docs/progression-curve.boss.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

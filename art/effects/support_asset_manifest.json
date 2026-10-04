@@ -1,0 +1,39 @@
+{
+  "source": "OpenAI built-in imagegen",
+  "created": "2026-10-04",
+  "assets": [
+    {
+      "original": "ink_shield_source_v1.png",
+      "runtime": "ink_shield_vfx_v1.png",
+      "prompt": "Transparent RGBA production 2D game VFX sprite for Chinese ink fantasy. Single isolated hand-painted effect centered, 15% transparent margin, no background, character, scene, weapon object, text, labels, interface or regular geometric outline. Cohesive ivory jade-teal old gold palette, organic brush texture, luminous accents, ink wisps, layered details readable at 180 pixels. Center must stay mostly empty to preserve character visibility. Protective curved shell made from overlapping translucent jade sword-energy petals and flowing ivory brush ribbons. Broad open crescent canopy, gold fragments, NO shield icon or thin polygon."
+    },
+    {
+      "original": "ink_gather_source_v1.png",
+      "runtime": "ink_gather_vfx_v1.png",
+      "prompt": "Transparent RGBA production 2D game VFX sprite for Chinese ink fantasy. Single isolated hand-painted effect centered, 15% transparent margin, no background, character, scene, weapon object, text, labels, interface or regular geometric outline. Cohesive ivory jade-teal old gold palette, organic brush texture, luminous accents, ink wisps, layered details readable at 180 pixels. Center must stay mostly empty to preserve character visibility. Sword energy gathering inward as asymmetrical flowing ivory jade brush wisps and fine old-gold motes, converging toward a small luminous seed near lower center. NO complete circle or straight diagram."
+    },
+    {
+      "original": "ink_water_source_v1.png",
+      "runtime": "ink_water_vfx_v1.png",
+      "prompt": "Transparent RGBA production 2D game VFX sprite for Chinese ink fantasy. Single isolated hand-painted effect centered, 15% transparent margin, no background, character, scene, weapon object, text, labels, interface or regular geometric outline. Cohesive ivory jade-teal old gold palette, organic brush texture, luminous accents, ink wisps, layered details readable at 180 pixels. Center must stay mostly empty to preserve character visibility. Three interwoven translucent flowing jade water ribbons with foam flecks and ink feathered spray, sweeping horizontally, uneven sinuous painterly shapes, mostly empty center. NO simple sine-wave lines."
+    },
+    {
+      "original": "ink_wind_source_v1.png",
+      "runtime": "ink_wind_vfx_v1.png",
+      "prompt": "Transparent RGBA production 2D game VFX sprite for Chinese ink fantasy. Single isolated hand-painted effect centered, 15% transparent margin, no background, character, scene, weapon object, text, labels, interface or regular geometric outline. Cohesive ivory jade-teal old gold palette, organic brush texture, luminous accents, ink wisps, layered details readable at 180 pixels. Center must stay mostly empty to preserve character visibility. Rising gust of pale jade mist with tapered ivory flowing brush trails, tiny wind-carried leaves and gold dust, diagonal airy spiral open at center, NO solid ring."
+    },
+    {
+      "original": "ink_mountain_source_v1.png",
+      "runtime": "ink_mountain_vfx_v1.png",
+      "prompt": "Transparent RGBA production 2D game VFX sprite for Chinese ink fantasy. Single isolated hand-painted effect centered, 15% transparent margin, no background, character, scene, weapon object, text, labels, interface or regular geometric outline. Cohesive ivory jade-teal old gold palette, organic brush texture, luminous accents, ink wisps, layered details readable at 180 pixels. Center must stay mostly empty to preserve character visibility. Protective low mountain ridge formed by layered jade-grey ink brush silhouettes, glowing ivory edges, mist bands and subtle golden sparks. Compact low horizontal silhouette, transparent sky, NO triangular line icon."
+    },
+    {
+      "original": "ink_curse_source_v1.png",
+      "runtime": "ink_curse_vfx_v1.png",
+      "prompt": "Transparent RGBA production 2D game VFX sprite for Chinese ink fantasy. Single isolated hand-painted effect centered, 15% transparent margin, no background, character, scene, weapon object, text, labels, interface or regular geometric outline. Cohesive ivory jade-teal old gold palette, organic brush texture, luminous accents, ink wisps, layered details readable at 180 pixels. Center must stay mostly empty to preserve character visibility. Enemy curse magical effect with irregular violet ink-smoke tendrils, three torn blank paper talismans suspended around an empty center, dark-purple aura with muted ivory paper, no readable symbols, no circular rune diagram."
+    }
+  ],
+  "normalization": "768x768 RGBA, Lanczos, centered, mipmaps",
+  "coverage": "All companion action effect categories and enemy attack/guard/curse",
+  "validation": "Godot imported; all 18 companion effects rendered; enemy effect trio rendered"
+}

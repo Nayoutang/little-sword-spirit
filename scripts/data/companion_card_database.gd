@@ -120,14 +120,14 @@ const INTENT_DEFINITIONS := {
 		"damage": 4, "combo_scale": 4,
 		"poem": "十步杀一人，千里不留行", "source": "李白《侠客行》", "trigger": "十步杀一人",
 		"hint": "这句写侠客十步之内取人，千里不留行迹。",
-		"description": "对生命最低的敌人造成4+连击×4伤害；若将其击杀，连击+1。",
+		"description": "对生命最低的敌人造成4+连击×4伤害；击杀则连击+1并保留到下回合，否则清空连击。",
 	},
 	GRIND_SWORD: {
-		"name": "磨剑", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,
-		"damage": 6, "turn_scale": 3,
+		"name": "磨剑", "min_bond_stage": 0, "stance": STANCE_INVEST, "requires_intent": true,
+		"preserve_combo": true,
 		"poem": "十年磨一剑，霜刃未曾试", "source": "贾岛《剑客》", "trigger": "十年磨一剑",
 		"hint": "这句写十年磨一剑、霜刃还没出过鞘。你自己就是一把剑。",
-		"description": "对生命最低的敌人造成6+已过回合数×3伤害，越晚出越狠。",
+		"description": "不造成伤害；护住当前连击，保留到下一回合，留给玩家或下一次收招。",
 	},
 	CUT_WATER: {
 		"name": "断水", "min_bond_stage": 0, "stance": STANCE_INVEST, "requires_intent": true,

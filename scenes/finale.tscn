@@ -1,0 +1,6 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/story/finale.gd" id="script"]
+[ext_resource type="PackedScene" path="res://ui/finale/finale_ui.tscn" id="ui"]
+[node name="Finale" type="Node2D"]
+script = ExtResource("script")
+[node name="FinaleUI" parent="." instance=ExtResource("ui")]

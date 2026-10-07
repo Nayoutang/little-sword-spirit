@@ -1,5 +1,7 @@
 extends Node2D
 
+@export var preview_offline := false
+
 @onready var chat_log: RichTextLabel = $ChatUI/ChatPanel/ChatLog
 @onready var input: LineEdit = $ChatUI/ChatPanel/Input
 @onready var send_button: Button = $ChatUI/ChatPanel/SendButton
@@ -21,16 +23,16 @@ var game_controller: FeihualingController
 var game_choice_pending := false
 var greeting_in_flight := false
 var variety_retried := false
+var reply_pages: Array[String] = []
+var reply_page_index := 0
 
 
 func _ready() -> void:
+	_resize_background()
+	get_viewport().size_changed.connect(_resize_background)
 	# 新存档第一次进家前，先播初遇剧情。
 	if RunState.needs_intro():
 		get_tree().change_scene_to_file("res://scenes/intro.tscn")
-		return
-	# 防止玩家在结算后退出游戏，从而绕过已经触发的关系突破。
-	if RunState.has_pending_bond_milestone():
-		get_tree().change_scene_to_file("res://scenes/relationship_milestone.tscn")
 		return
 	if SpecialEventManager.activate_next():
 		RunState.save_persistent_state()
@@ -43,6 +45,17 @@ func _ready() -> void:
 	if SpecialEventManager.has_active_event():
 		system_prompt += "\n\n" + SpecialEventManager.get_prompt_context()
 	messages.append({"role": "system", "content": system_prompt})
+	game_screen.hide()
+	$ChatUI/ChatPanel/HistoryButton.pressed.connect(_toggle_history)
+	$ChatUI/ChatPanel/ReplyNext.pressed.connect(_advance_reply)
+	$ChatUI/ChatPanel/HistoryClose.pressed.connect(_toggle_history)
+	var card_library = preload("res://scripts/ui/card_library.gd").new()
+	card_library.name = "CardLibrary"
+	add_child(card_library)
+	$ChatUI/ChatPanel/CardLibraryButton.pressed.connect(card_library.open)
+	for button: Button in [depart_button, feihualing_button, $ChatUI/ChatPanel/SaveSlotsButton, $ChatUI/ChatPanel/CardLibraryButton]:
+		button.mouse_entered.connect(_set_menu_hover.bind(button, true))
+		button.mouse_exited.connect(_set_menu_hover.bind(button, false))
 	send_button.pressed.connect(_send_message)
 	depart_button.pressed.connect(_go_to_map)
 	feihualing_button.tooltip_text = "随机令字；也可在聊天中输入“飞花令，以柳为令”来自选。"
@@ -67,16 +80,16 @@ func _ready() -> void:
 	if not AbilityManager.unlocked.is_empty():
 		chat_log.append_text("[已掌握神通] %s\n\n" % AbilityManager.get_unlocked_names())
 	input.grab_focus()
-	if RunState.consume_homecoming():
+	if RunState.finale_state != "invited" and not preview_offline and RunState.consume_homecoming():
 		_request_homecoming_greeting()
 
 
 # 远征归来后，小墨先就着这一趟里某件具体的事开口；失败时静默跳过，不用代码替她说话。
 func _request_homecoming_greeting() -> void:
 	var api_key := LLMConfig.get_api_key()
-	if LLMConfig.API_URL.is_empty() or api_key.is_empty() or LLMConfig.MODEL_NAME.is_empty():
+	if preview_offline or LLMConfig.API_URL.is_empty() or api_key.is_empty() or LLMConfig.MODEL_NAME.is_empty():
 		return
-	var cue := "【旁白，不是持剑人说的话】持剑人刚结束第%d趟远征回到家，还没开口。请你先开口，只说一两句：从本趟记录里挑一件最具体的事（某一场、某个血量、某张牌、某个约定）来说，用你此刻对他的关系态度说出来，可以嘴硬、可以关心，但要让他听得出你注意到了那件事。不要复述整趟流水账，不要问他今天怎么样。" % RunState.expedition_count
+	var cue := "【旁白，不是持剑人说的话】持剑人刚结束第%d趟远征回到家，还没开口。你可以先随口说一两句，接着本趟某件真实的事，也可以只是轻轻招呼他休息。让熟悉程度自然体现在语气里，不报血量和羁绊数字，不宣布关系升级，不复述流水账，不要求他回答、道歉或作出承诺。不是每件经历都需要当场谈清楚，也不要把每次回家都写成严肃谈心。" % RunState.expedition_count
 	if SpecialEventManager.has_active_event():
 		cue += "如果当前特殊事件正好是你最想说的那件事，就从它开口。这一轮是你先开口，event_result.resolved 必须为 false。"
 	messages.append({"role": "user", "content": cue})
@@ -118,6 +131,7 @@ func _handle_greeting_response(result: int, response_code: int, body: PackedByte
 		return
 	messages.append({"role": "assistant", "content": reply})
 	chat_log.append_text("小墨：%s\n\n" % reply)
+	_show_home_reply(reply)
 	RunState.record_spoken_line(reply)
 
 
@@ -153,11 +167,8 @@ func _retry_for_variety() -> bool:
 
 
 func _refresh_bond_display() -> void:
-	bond_label.text = "羁绊：%d/%d　%s" % [
-		RunState.bond_value,
-		RunState.BOND_MAX,
-		RunState.get_bond_stage_name(),
-	]
+	# 进度仍用于内部节奏与配合，日常相处不展示亲密度计分。
+	bond_label.hide()
 
 
 func _go_to_map() -> void:
@@ -197,15 +208,18 @@ func _requested_feihualing_keyword(player_text: String) -> String:
 func _start_feihualing(chosen_keyword: String = "") -> void:
 	if request_in_flight or game_controller.busy or game_controller.game != null:
 		return
-	if LLMConfig.API_URL.is_empty() or LLMConfig.get_api_key().is_empty() or LLMConfig.MODEL_NAME.is_empty():
-		_show_error("未配置 LLM API Key。请设置环境变量 %s。" % LLMConfig.API_KEY_ENV)
-		return
 	game_choice_pending = false
 	game_again_button.hide()
 	game_log.clear()
 	game_status.text = "令字待揭晓"
 	game_input.clear()
 	game_screen.show()
+	$ChatUI/ChatPanel.hide()
+	if preview_offline or LLMConfig.API_URL.is_empty() or LLMConfig.get_api_key().is_empty() or LLMConfig.MODEL_NAME.is_empty():
+		game_status.text = "暂时无法开始"
+		game_log.text = "飞花令需要配置对话服务，配置完成后再来对诗吧。"
+		_refresh_game_controls()
+		return
 	input.release_focus()
 	game_input.grab_focus()
 	game_controller.start(chosen_keyword)
@@ -221,6 +235,7 @@ func _on_game_leave() -> void:
 	game_choice_pending = false
 	game_again_button.hide()
 	game_screen.hide()
+	$ChatUI/ChatPanel.show()
 	_set_request_in_flight(request_in_flight)
 	input.grab_focus()
 
@@ -293,12 +308,15 @@ func _send_message() -> void:
 		return
 
 	var api_key := LLMConfig.get_api_key()
-	if LLMConfig.API_URL.is_empty() or api_key.is_empty() or LLMConfig.MODEL_NAME.is_empty():
+	if preview_offline or LLMConfig.API_URL.is_empty() or api_key.is_empty() or LLMConfig.MODEL_NAME.is_empty():
 		_show_error("未配置 LLM API Key。请设置环境变量 %s。" % LLMConfig.API_KEY_ENV)
 		return
 
 	input.clear()
-	chat_log.append_text("玩家：%s\n\n" % player_text)
+	var display_name := RunState.player_name.strip_edges()
+	if display_name.is_empty():
+		display_name = "你"
+	chat_log.append_text("%s：%s\n\n" % [display_name, player_text])
 	messages.append({"role": "user", "content": player_text})
 
 	var payload := _chat_payload()
@@ -392,6 +410,7 @@ func _on_request_completed(
 
 	messages.append({"role": "assistant", "content": reply})
 	chat_log.append_text("小墨：%s\n\n" % reply)
+	_show_home_reply(reply)
 	RunState.record_spoken_line(reply)
 	if event_outcome.get("resolved", false):
 		if event_outcome.get("unlocked", false):
@@ -464,3 +483,70 @@ func _set_request_in_flight(value: bool) -> void:
 
 func _show_error(message: String) -> void:
 	chat_log.append_text("[错误] %s\n\n" % message)
+	_show_home_reply(message)
+
+
+func _show_home_reply(reply: String) -> void:
+	reply_pages.clear()
+	var label: RichTextLabel = $ChatUI/ChatPanel/CurrentReply
+	var font := label.get_theme_font("normal_font")
+	var font_size := label.get_theme_font_size("normal_font_size")
+	var max_lines := maxi(1, int(label.size.y / font.get_height(font_size)))
+	var page := ""
+	var width := 0.0
+	var lines := 1
+	for character in reply:
+		var character_width := font.get_string_size(character, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		if character == "\n" or width + character_width > label.size.x - 12.0:
+			if lines >= max_lines:
+				reply_pages.append(page)
+				page = ""
+				lines = 1
+			else:
+				if character != "\n":
+					page += "\n"
+				lines += 1
+			width = 0.0
+		page += character
+		if character != "\n":
+			width += character_width
+	if not page.is_empty():
+		reply_pages.append(page)
+	if reply_pages.is_empty():
+		reply_pages.append("")
+	reply_page_index = 0
+	_display_reply_page()
+
+
+func _advance_reply() -> void:
+	if reply_page_index + 1 < reply_pages.size():
+		reply_page_index += 1
+		_display_reply_page()
+
+
+func _display_reply_page() -> void:
+	$ChatUI/ChatPanel/CurrentReply.text = reply_pages[reply_page_index]
+	$ChatUI/ChatPanel/ReplyNext.visible = reply_page_index + 1 < reply_pages.size()
+
+
+func _resize_background() -> void:
+	$Background.size = get_viewport_rect().size
+
+
+func _toggle_history() -> void:
+	var show_history := not chat_log.visible
+	chat_log.visible = show_history
+	$ChatUI/ChatPanel/HistoryArt.visible = show_history
+	$ChatUI/ChatPanel/HistoryTitle.visible = show_history
+	$ChatUI/ChatPanel/HistoryClose.visible = show_history
+	$ChatUI/ChatPanel/HistoryButton.text = "收起对话" if show_history else "回看对话"
+
+
+func _set_menu_hover(button: Button, hovered: bool) -> void:
+	button.pivot_offset = button.size * 0.5
+	var previous: Tween = button.get_meta("hover_tween", null)
+	if previous != null and previous.is_valid():
+		previous.kill()
+	var tween := create_tween()
+	button.set_meta("hover_tween", tween)
+	tween.tween_property(button, "scale", Vector2.ONE * (1.04 if hovered else 1.0), 0.14)

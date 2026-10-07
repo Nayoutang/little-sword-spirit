@@ -1,0 +1,56 @@
+[gd_scene format=3]
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="paper"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="font"]
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="skin"]
+[ext_resource type="Script" path="res://scripts/home/finale_invitation.gd" id="invite_script"]
+[sub_resource type="Theme" id="Theme"]
+default_font = ExtResource("font")
+Label/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+RichTextLabel/colors/default_color = Color(0.12, 0.22, 0.19, 1)
+[node name="FinaleInvitation" type="CanvasLayer"]
+layer = 5
+script = ExtResource("invite_script")
+[node name="Invite" type="Control" parent="."]
+offset_left = 820.0
+offset_top = 230.0
+offset_right = 1780.0
+offset_bottom = 830.0
+[node name="Paper" type="TextureRect" parent="Invite"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("paper")
+expand_mode = 1
+mouse_filter = 2
+[node name="Words" type="RichTextLabel" parent="Invite"]
+offset_left = 90.0
+offset_top = 90.0
+offset_right = 870.0
+offset_bottom = 435.0
+theme = SubResource("Theme")
+theme_override_font_sizes/normal_font_size = 27
+text = "小墨：我想起了山里的一座旧祠。有些事情，我想回去弄明白。
+
+以前总觉得，一个人去也没什么。可现在……我想让你陪我。
+
+不是因为你欠我什么。是因为有你在，我才敢回去看看。
+你愿意吗？"
+
+[node name="Go" type="Button" parent="Invite"]
+offset_left = 110.0
+offset_top = 450.0
+offset_right = 450.0
+offset_bottom = 520.0
+text = "去，我陪你"
+[node name="Stay" type="Button" parent="Invite"]
+offset_left = 510.0
+offset_top = 450.0
+offset_right = 850.0
+offset_bottom = 520.0
+text = "不去"
+tooltip_text = "小墨将独自前往，进入独行结局。"
+[node name="Journey" type="Button" parent="."]
+offset_left = 1450.0
+offset_top = 460.0
+offset_right = 1830.0
+offset_bottom = 540.0
+text = "陪小墨前往旧祠"

@@ -1,9 +1,9 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/relationship_milestone.gd" id="1_milestone"]
 [ext_resource type="Texture2D" path="res://art/character/sword_spirit_dialogue_portrait.png" id="2_portrait"]
 [ext_resource type="Texture2D" path="res://art/backgrounds/home_room.png" id="3_room"]
-[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="4_skin"]
+[ext_resource type="PackedScene" path="res://ui/relationship_milestone/milestone_ui.tscn" id="ui_MilestoneUI"]
 
 [node name="RelationshipMilestone" type="Node2D"]
 script = ExtResource("1_milestone")
@@ -24,75 +24,4 @@ expand_mode = 1
 stretch_mode = 6
 mouse_filter = 2
 
-[node name="MilestoneUI" type="CanvasLayer" parent="."]
-script = ExtResource("4_skin")
-
-[node name="TextBackdrop" type="ColorRect" parent="MilestoneUI"]
-offset_left = 355.0
-offset_top = 92.0
-offset_right = 1580.0
-offset_bottom = 980.0
-color = Color(0.025, 0.045, 0.055, 0.86)
-mouse_filter = 2
-
-[node name="Title" type="Label" parent="MilestoneUI"]
-offset_left = 510.0
-offset_top = 120.0
-offset_right = 1410.0
-offset_bottom = 190.0
-theme_override_font_sizes/font_size = 42
-text = "关系突破"
-horizontal_alignment = 1
-
-[node name="Line" type="Label" parent="MilestoneUI"]
-offset_left = 360.0
-offset_top = 235.0
-offset_right = 1560.0
-offset_bottom = 360.0
-theme_override_font_sizes/font_size = 28
-text = "她似乎有话想对你说。"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Choices" type="VBoxContainer" parent="MilestoneUI"]
-offset_left = 510.0
-offset_top = 405.0
-offset_right = 1410.0
-offset_bottom = 650.0
-theme_override_constants/separation = 18
-
-[node name="Choice1" type="Button" parent="MilestoneUI/Choices"]
-custom_minimum_size = Vector2(900, 68)
-layout_mode = 2
-theme_override_font_sizes/font_size = 23
-text = "选项一"
-
-[node name="Choice2" type="Button" parent="MilestoneUI/Choices"]
-custom_minimum_size = Vector2(900, 68)
-layout_mode = 2
-theme_override_font_sizes/font_size = 23
-text = "选项二"
-
-[node name="Choice3" type="Button" parent="MilestoneUI/Choices"]
-custom_minimum_size = Vector2(900, 68)
-layout_mode = 2
-theme_override_font_sizes/font_size = 23
-text = "选项三"
-
-[node name="Result" type="Label" parent="MilestoneUI"]
-offset_left = 410.0
-offset_top = 700.0
-offset_right = 1510.0
-offset_bottom = 825.0
-theme_override_font_sizes/font_size = 26
-text = "突破结果"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Continue" type="Button" parent="MilestoneUI"]
-offset_left = 760.0
-offset_top = 875.0
-offset_right = 1160.0
-offset_bottom = 950.0
-theme_override_font_sizes/font_size = 24
-text = "返回 Home"
+[node name="MilestoneUI" parent="." instance=ExtResource("ui_MilestoneUI")]

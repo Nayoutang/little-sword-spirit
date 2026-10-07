@@ -1,6 +1,7 @@
 extends Node2D
 
 const CHIBI_TEXTURE := preload("res://art/character/sword_spirit_chibi_cutout.png")
+const MAP_FONT := preload("res://ui/shared/comic_font.tres")
 
 # 20层路线：起点、分叉遭遇、两次整备宝箱、中途奇遇与最终Boss。
 const TOTAL_LAYERS := BalanceConfig.ROUTE_TOTAL_LAYERS
@@ -8,9 +9,9 @@ const ROUTE_COUNT := 5
 const GUARANTEED_TREASURE_LAYER := 18
 const TREASURE_LAYERS := [8, 18]
 const RECOVERY_LAYER := 10
-const LAYER_SPACING := 110.0
+const LAYER_SPACING := 150.0
 var map_scroll := 0.0
-const SIDE_MARGIN := 150.0
+const SIDE_MARGIN := 300.0
 const NODE_X_JITTER := 24.0
 const TOP_MARGIN := 165.0
 const BOTTOM_MARGIN := 120.0
@@ -30,12 +31,10 @@ static var saved_run_id := -1
 
 
 func _ready() -> void:
+	$Background.size = get_viewport_rect().size
 	$MapUI/ReturnButton.pressed.connect(_return_home)
 	$MapUI/Title.text = "路线选择"
-	$MapUI/Bond.text = "羁绊: %d/100　%s" % [
-		RunState.bond_value,
-		RunState.get_bond_stage_name(),
-	]
+	$MapUI/Bond.hide()
 	_generate_map()
 	_build_legend()
 
@@ -56,16 +55,17 @@ func _build_legend() -> void:
 		var icon := RouteNode.new()
 		icon.setup(entry[0] as RouteNode.NodeType, -1)
 		icon.input_pickable = false
-		icon.position = Vector2(75.0 + index * 185.0, 28.0)
+		icon.position = Vector2(45.0, 52.0 + index * 70.0)
 		icon.scale = Vector2(0.46, 0.46)
 		legend_bar.add_child(icon)
 		var label := Label.new()
-		label.position = Vector2(99.0 + index * 185.0, 10.0)
+		label.position = Vector2(70.0, 34.0 + index * 70.0)
 		label.size = Vector2(85.0, 36.0)
 		label.text = entry[1]
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		label.add_theme_font_size_override("font_size", 19)
-		label.add_theme_color_override("font_color", Color("#f5e8ce"))
+		label.add_theme_font_override("font", MAP_FONT)
+		label.add_theme_color_override("font_color", Color("#40382e"))
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		legend_bar.add_child(label)
 
@@ -91,6 +91,8 @@ func _generate_map() -> void:
 		depth_label.text = "起点" if layer_index == 0 else "%d层" % layer_index
 		depth_label.position = Vector2(35, y - 14)
 		depth_label.add_theme_font_size_override("font_size", 20)
+		depth_label.add_theme_font_override("font", MAP_FONT)
+		depth_label.set_meta("depth_label", true)
 		depth_label.add_theme_color_override("font_color", Color("#413b30"))
 		depth_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		$MapContent.add_child(depth_label)
@@ -115,8 +117,8 @@ func _generate_map() -> void:
 	_create_player_marker()
 	_refresh_node_states()
 	_set_map_scroll(restored_layer * LAYER_SPACING - 340)
-	$MapUI/Title.text = "路线选择 · %d / %d" % [restored_layer, TOTAL_LAYERS - 1]
-	$MapUI/Hint.text = "青色节点可选 · 滚轮或↑↓浏览路线"
+	$MapUI/Title.text = "山行图卷 · %d / %d" % [restored_layer, TOTAL_LAYERS - 1]
+	$MapUI/Hint.text = "青色标记可前往 · 滚轮或↑↓展开图卷"
 
 
 func _set_map_scroll(value: float) -> void:
@@ -125,7 +127,13 @@ func _set_map_scroll(value: float) -> void:
 	$MapContent.position.y = map_scroll
 	for layer: Array in layers:
 		for node: RouteNode in layer:
-			node.input_pickable = node.is_selectable and node.global_position.y >= 130 and node.global_position.y <= 1000
+			node.visible = node.global_position.y >= TOP_MARGIN and node.global_position.y <= get_viewport_rect().size.y - BOTTOM_MARGIN
+			node.input_pickable = node.is_selectable and node.visible
+	for child in $MapContent.get_children():
+		if child.has_meta("depth_label"):
+			child.visible = child.global_position.y >= TOP_MARGIN and child.global_position.y <= get_viewport_rect().size.y - BOTTOM_MARGIN
+		elif child is Line2D:
+			child.visible = child.get_meta("from").visible and child.get_meta("to").visible
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -281,9 +289,13 @@ func _draw_connections() -> void:
 		for to_node: RouteNode in connections[from_node]:
 			var line := Line2D.new()
 			line.z_index = 0
-			line.width = 4.0
-			line.default_color = Color("#8d785b")
-			line.points = PackedVector2Array([from_node.position, to_node.position])
+			line.width = 2.0
+			line.default_color = Color(0.40, 0.33, 0.23, 0.40)
+			var midpoint := (from_node.position + to_node.position) * 0.5
+			line.points = PackedVector2Array([from_node.position, midpoint + Vector2(0, 12), to_node.position])
+			line.antialiased = true
+			line.set_meta("from", from_node)
+			line.set_meta("to", to_node)
 			$MapContent.add_child(line)
 
 
@@ -319,6 +331,12 @@ func _refresh_node_states() -> void:
 		for route_node: RouteNode in layer:
 			var is_current := route_node == current_node
 			route_node.set_map_state(available_nodes.has(route_node), route_node.is_visited or is_current, is_current)
+	for child in $MapContent.get_children():
+		if child is Line2D:
+			var from_node: RouteNode = child.get_meta("from")
+			var to_node: RouteNode = child.get_meta("to")
+			child.default_color = Color("#368e86") if from_node == current_node and available_nodes.has(to_node) else Color(0.40, 0.33, 0.23, 0.30)
+			child.width = 3.0 if from_node == current_node else 1.6
 
 
 # 后续在这里接入战斗、奖励或随机事件场景。

@@ -1,0 +1,359 @@
+{
+  "version": 1,
+  "date": "2026-10-06",
+  "engine": "Godot 4.7.2",
+  "purpose": "Distinct card covers for 20 player and 18 companion definitions; ancient ink-style layered Huacai finishing animation",
+  "normalization": "Generated covers fit with transparent padding in 512x442 RGBA; original generated sources retained in Codex generated_images; no repainting in normalization",
+  "references": {
+    "ordinary": [
+      "art/ui/battle/thrust.png",
+      "art/ui/battle/guard.png"
+    ],
+    "brilliance": [
+      "art/character/sword_spirit_ink_event.png"
+    ]
+  },
+  "existingUniqueCovers": [
+    {
+      "card": "平刺",
+      "path": "art/ui/battle/thrust.png"
+    },
+    {
+      "card": "横架",
+      "path": "art/ui/battle/guard.png"
+    },
+    {
+      "card": "凝神",
+      "path": "art/ui/battle/gather.png"
+    },
+    {
+      "card": "叠浪",
+      "path": "art/ui/battle/waves.png"
+    }
+  ],
+  "generatedCovers": [
+    {
+      "owner": "player",
+      "name": "劈山",
+      "path": "art/cards/player/03_mountain_cleave_v1.png",
+      "source": "C:/Users/Du/.codex/generated_images/01a10fa1-f5d6-7e51-b173-c70baff6c25c/exec-74be0a7b-e3a7-4212-9e5a-c3a7fecf666a.png",
+      "subject": "Heavy two-handed descending mountain cleave"
+    },
+    {
+      "owner": "player",
+      "slug": "04_iron_gate",
+      "name": "铁门闩",
+      "subject": "A very low planted defensive stance, sword held horizontally like a locked iron gate; two massive ink-black gate pillars frame her, rectangular jade barrier and antique-gold crossbar. Strong architectural square silhouette.",
+      "path": "art/cards/player/04_iron_gate_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-4bfd3a2d-8c64-431c-a783-f1060e06903c.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "09_shadow_step",
+      "name": "掠影",
+      "subject": "An agile sideways evasive step with two pale ghost afterimages trailing to the left; she looks back over shoulder while her sleeve and scarf ribbon swoop diagonally; dry charcoal speed brushstrokes beneath her feet.",
+      "path": "art/cards/player/09_shadow_step_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-8fba5500-ede0-4f38-ba00-a39ba70e8791.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "05_sweep_leaves",
+      "name": "扫叶",
+      "subject": "A low sweeping sword strike across the ground, broad shallow jade crescent blowing dozens of golden and teal bamboo leaves sideways; three small ink enemy silhouettes retreat in the far background. Strong horizontal sweep, not ocean waves.",
+      "path": "art/cards/player/05_sweep_leaves_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-3e270b84-e9f0-442a-84e8-6f7cc9d754ad.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "10_break_edge",
+      "name": "破锋",
+      "subject": "She pierces an enemy's empty cracked dark steel armor breastplate, jade blade emerging through a clean zigzag fracture in the foreground; close bold impact composition, chunks of armor and gold sparks, no blood.",
+      "path": "art/cards/player/10_break_edge_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-cd5d0485-245e-470e-a461-6ee828c5f507.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "07_inner_demon",
+      "name": "心魔",
+      "subject": "She kneels with sword lowered, her shadow behind her expands into a threatening smoky faceless double with curling dark violet ink tendrils; tense inward emotion, violet very restrained, pale face clearly readable, no gore.",
+      "path": "art/cards/player/07_inner_demon_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-4361d560-a333-4b6c-8916-db12cb9c7082.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "11_deflect_force",
+      "name": "拨千斤",
+      "subject": "She gently redirects a huge descending dark weapon using just the tip of her slim sword, weightless curved jade arc guides the heavy force away; her relaxed one-handed posture sharply contrasts the heavy black diagonal weapon.",
+      "path": "art/cards/player/11_deflect_force_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-fab332dd-a7fa-4f50-8ee5-e1e6a7fd8c8f.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "12_hidden_edge",
+      "name": "藏锋",
+      "subject": "She stands in three-quarter view with her sword almost fully sheathed at her hip, one hand on the hilt, eyes watchful; a small coiled jade glow is concealed inside the scabbard, mist and closed white blossoms, quiet contained strength.",
+      "path": "art/cards/player/12_hidden_edge_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-6529f7c3-4392-4128-a7af-81f928c544d2.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "08_breath",
+      "name": "调息",
+      "subject": "Calm seated cross-legged meditation, eyes half closed, sword resting across lap, one gentle jade breathing spiral and a tiny gold leaf hovering at chest; sparse ink bamboo and ivory space, no combat pose.",
+      "path": "art/cards/player/08_breath_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-4c74a4c2-da53-44b4-bd27-0e974d96c258.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "13_flowing_light",
+      "name": "流光",
+      "subject": "A fast forward airborne lunge along a SINGLE long diagonal jade light streak, sword extended forward, scarf streamers trailing, elongated ink speed lines; bright luminous point at sword tip, light-and-speed silhouette different from basic horizontal thrust.",
+      "path": "art/cards/player/13_flowing_light_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-0b6a6819-2edb-4439-a502-32de645e2ecf.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "15_flowing_cloud",
+      "name": "行云",
+      "subject": "She strides gracefully through three stepping cloud ribbons curled beneath her, sword turned backwards at shoulder, compositional flowing S curve and three tiny suspended golden leaves to suggest continuous rhythm; pale cloud shapes and teal fabric.",
+      "path": "art/cards/player/15_flowing_cloud_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-f96c8e9b-7911-45a8-8d3c-3dac64f716d0.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "16_chase_wind",
+      "name": "追风",
+      "subject": "A low forward sprint with sword held behind body, three tapered jade wind ribbons racing beside her, long ponytail flowing straight back; asymmetric speed silhouette, feet visible and blade opposite from thrust art.",
+      "path": "art/cards/player/16_chase_wind_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-df88b7a4-9a94-47a2-a313-b8fed63b5f2b.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "17_shield_strike",
+      "name": "护盾攻击",
+      "subject": "She drives a compact angular jade energy shield forward with her shoulder, sword held tucked behind; the translucent shield is visibly battering a dark rock slab into fragments, aggressive shield bash posture, diamond-like barrier.",
+      "path": "art/cards/player/17_shield_strike_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-2b42da48-979d-4d78-94a8-01f42961af73.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "18_retain_shield",
+      "name": "留盾",
+      "subject": "She calmly holds both hands around a stable layered jade protective sphere with a small gold knot sealing its lower edge; sword rests upright beside her, two stacked concentric talisman arcs emphasize lasting protection, tranquil guarded posture.",
+      "path": "art/cards/player/18_retain_shield_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-b127f779-6b17-47c0-8a1b-2d790d374643.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "guard_echo",
+      "name": "剑影回护",
+      "subject": "Three translucent hovering sword silhouettes form a protective fan behind the swordswoman, who reaches one open hand toward the viewer as if guarding her companion; jade sword-shadow arcs, no circular shield.",
+      "path": "art/cards/companion/guard_echo_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-e1e82384-3ea5-4fc2-9a1a-7767be66fc51.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "19_parry",
+      "name": "回锋",
+      "subject": "At the exact instant of parry, her angled sword intercepts a descending shadow blade and sends a hooked jade countercut back upward; crossed blades, tiny gold impact star and rebound curved arrow of energy, sharp dynamic counterattack.",
+      "path": "art/cards/player/19_parry_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-0f63d9c0-f75b-43b9-8344-65765dd01ca3.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "quick_slash",
+      "name": "随手一斩",
+      "subject": "An effortless casual one-handed diagonal flick of the sword, relaxed smiling face, one short thin jade slash, almost no background scenery, loose sleeve movement, clearly a light casual attack.",
+      "path": "art/cards/companion/quick_slash_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-9d71d6a9-2613-429e-8edf-c73502c27b3f.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "follow_up",
+      "name": "衔锋",
+      "subject": "She follows a fading previous sword trail and joins her blade into its end to form a linked two-stroke zigzag of jade light; forward leaning partner follow-up, two connected arcs and tiny gold joint.",
+      "path": "art/cards/companion/follow_up_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-46cf3223-4617-4df4-9073-8dbd27f3a278.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "lead_momentum",
+      "name": "引势",
+      "subject": "She stands to one side, guiding a bright jade rising current with an open palm toward an EMPTY upright sword in the foreground; supportive anticipation, gold light gathering at the sword tip, no direct strike.",
+      "path": "art/cards/companion/lead_momentum_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-868bca6e-a7bc-4229-8be7-75da8c52edd9.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "return_guard",
+      "name": "回护",
+      "subject": "She turns backward protectively, one arm extended behind her and her sword guarding to the front, broad teal cloak sheltering a small white flame; returning protective pose and sweeping semicircular fabric.",
+      "path": "art/cards/companion/return_guard_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-4cb6e6fe-151b-48ef-a8ba-aa7a461d4ae1.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "oath_guard",
+      "name": "守诺",
+      "subject": "She holds a small tied jade-and-gold promise cord over her heart while her sword forms a protective arc around an ivory cloth silhouette beside her; warm solemn eyes, gold knot motif prominent, devoted guardianship.",
+      "path": "art/cards/companion/oath_guard_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-b588707a-df34-4ef1-bb13-66b7bd833c5e.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "clean_cut",
+      "name": "利落",
+      "subject": "A crisp side-profile precise downward single cut, a falling narrow bamboo stem cleanly separated in midair, minimal background ink, neat confident expression, straight short blade gesture rather than heavy mountain cleave.",
+      "path": "art/cards/companion/clean_cut_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-62dbc8ff-67aa-4035-8ec2-38ae69155ac9.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "heart_resonance",
+      "name": "同心剑鸣",
+      "subject": "Her sword resonates with a SECOND floating sword in parallel, joined by delicate gold concentric sound ripples between their blades; gentle eyes and harmonizing teal ribbons, two blades clearly visible, no duplicate characters.",
+      "path": "art/cards/companion/heart_resonance_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-ba51d10e-0745-475b-94a0-303fc0889ff5.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "escort",
+      "name": "拱卫",
+      "subject": "Two small jade sword wards stand like sentinels on either side of a luminous upright blade she presents forward, guarded procession with a narrow gold path; simultaneously guarding and empowering, symmetric flanking structure.",
+      "path": "art/cards/companion/escort_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-c4971ed1-d997-471b-aaa7-c8ccac804839.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "lone_judgment",
+      "name": "独断",
+      "subject": "Alone in a stark vertical ink composition, she plants her sword point downward with a severe decisive expression, one bold descending gold-and-jade slash divides the mist, strong lone upright silhouette.",
+      "path": "art/cards/companion/lone_judgment_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-7810f2ec-e7d2-4510-863a-c4172242da90.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "frost_cold",
+      "name": "霜寒",
+      "subject": "She sweeps a blade releasing jade-white crystalline frost over ink-black distant mountain peaks, frost blossoms and pale icy bamboo, cool teal palette with tiny snow specks; distinct cold wide-area magical action.",
+      "path": "art/cards/companion/frost_cold_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-9bd749d4-c920-49e7-bba5-4e15a892736b.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "grind_sword",
+      "name": "磨剑",
+      "subject": "She kneels patiently polishing a sheathed-resting blade with an ivory cloth over a smooth ink stone, restrained gold glint on newly honed edge, concentration and stored potential; no attack and no explosions.",
+      "path": "art/cards/companion/grind_sword_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-2fcadf09-c99b-4b6a-93c9-89a10af402d6.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "ten_steps",
+      "name": "十步",
+      "subject": "She walks away in three-quarter rear view, turns her amber eye toward viewer, sword at hip, a chain of ten small fading gold footprints crosses ink mist behind her; stealthy quiet assassin stride with no gore.",
+      "path": "art/cards/companion/ten_steps_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-82218758-40e3-4dc0-97bc-25a0145e7b7c.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "cut_water",
+      "name": "断水",
+      "subject": "Her slim blade passes through a falling jade stream that separates around the steel then reconnects below, poised diagonal stroke; flowing water remains uninterrupted, expressive clear ribbon of water, no sea-wave background.",
+      "path": "art/cards/companion/cut_water_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-1bb98fae-2b8e-4816-bb3a-f0996d133319.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "behead_loulan",
+      "name": "斩楼兰",
+      "subject": "She makes a resolute forward descending cut before distant dry ink desert walls and a torn empty banner, large jade angled blade arc and dusty gold particles, heroic decisive battlefield action, no blood or severed body.",
+      "path": "art/cards/companion/behead_loulan_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-0b8ab259-c1a3-495a-bd8a-37a898820b88.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "yin_mountain",
+      "name": "阴山",
+      "subject": "She braces before a high ink mountain pass, planted sword and a wide tall jade wall block three tiny black cavalry silhouettes far behind; clear mountain-gate protective silhouette, no close violent enemies.",
+      "path": "art/cards/companion/yin_mountain_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-85d5f192-1e09-4086-998b-3da8bb81596e.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "long_wind",
+      "name": "长风",
+      "subject": "She stands on a small ink cliff with sword pointing toward a distant tiny ivory sail, long jade wind trails carry gold cloud fragments upward; hopeful open horizon and airborne ribbon motion.",
+      "path": "art/cards/companion/long_wind_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-4cef7bd2-2269-436c-bfd8-ef12895ac7fe.png",
+      "status": "generated"
+    },
+    {
+      "owner": "companion",
+      "slug": "few_return",
+      "name": "几人回",
+      "subject": "Battle-weary yet determined, she carries a tattered gold-and-teal banner with sword guarding an enduring small warm ivory lantern, scattered silent ink battlefield spears behind; protective resilience and bittersweet hope.",
+      "path": "art/cards/companion/few_return_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-b7e96ca6-a7ff-4d57-9f5a-97cc80baec3e.png",
+      "status": "generated"
+    },
+    {
+      "owner": "player",
+      "slug": "14_brilliance",
+      "name": "华彩",
+      "subject": "Adult-proportioned original ancient Chinese ink style; dynamic sword finish; not chibi",
+      "path": "art/cards/player/14_brilliance_v1.png",
+      "source": "C:\\Users\\Du\\.codex\\generated_images\\01a10fa1-f5d6-7e51-b173-c70baff6c25c\\exec-16e148e9-a14d-4dcc-831e-877e94a9fec8.png",
+      "status": "generated"
+    }
+  ],
+  "finisherLayer": {
+    "path": "art/effects/brilliance_ink_approved.png",
+    "source": "C:/Users/Du/.codex/generated_images/01a10fa1-f5d6-7e51-b173-c70baff6c25c/exec-16e148e9-a14d-4dcc-831e-877e94a9fec8.png",
+    "style": "Original adult-proportioned ancient ink painting",
+    "usage": "Transparent moving character layer only; native ink-paper ribbon, text and swordlight animate independently"
+  },
+  "provenance": {
+    "tool": "Built-in image_gen",
+    "generatedAssets": 35,
+    "previousProjectAssetsRetained": 4,
+    "externalDownload": false,
+    "referenceRights": "User-provided project artwork",
+    "originals": "Original generated PNGs are retained at their source paths; normalized derivatives tracked by SHA-256 in raster-qa.json"
+  },
+  "qa": {
+    "raster": "art/cards/raster-qa.json",
+    "engine": "tools/card_library_smoke.gd --check-all-art",
+    "visual": "art/previews/all-card-faces-v1.png and card-library / brilliance previews"
+  }
+}

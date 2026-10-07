@@ -1,0 +1,144 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" uid="uid://drf2imhcvk24u" path="res://art/character/sword_spirit_chibi_cutout.png" id="3_chibi"]
+[ext_resource type="Script" uid="uid://ck3wagfo4b4xf" path="res://scripts/ui/ink_ui_skin.gd" id="5_skin"]
+[ext_resource type="Texture2D" uid="uid://dhhnysn6f6chu" path="res://art/backgrounds/feihualing_pavilion.png" id="6_feihua"]
+
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="unified_paper"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="unified_font"]
+[sub_resource type="Theme" id="UnifiedTheme"]
+default_font = ExtResource("unified_font")
+Label/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+RichTextLabel/colors/default_color = Color(0.12, 0.22, 0.19, 1)
+
+[node name="FeihualingLayer" type="CanvasLayer" unique_id=768513359]
+layer = 2
+script = ExtResource("5_skin")
+
+[node name="GameScreen" type="Control" parent="." unique_id=489037884]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="Background" type="TextureRect" parent="GameScreen" unique_id=353947851]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = ExtResource("6_feihua")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Shade" type="ColorRect" parent="GameScreen" unique_id=1748731947]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.02, 0.04, 0.05, 0.22)
+
+[node name="Character" type="TextureRect" parent="GameScreen" unique_id=85061874]
+layout_mode = 0
+offset_left = 35.0
+offset_top = 100.0
+offset_right = 690.0
+offset_bottom = 1020.0
+mouse_filter = 2
+texture = ExtResource("3_chibi")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PoetryPanel" type="TextureRect" parent="GameScreen" unique_id=2019307299]
+layout_mode = 0
+offset_left = 630.0
+offset_top = 110.0
+offset_right = 1850.0
+offset_bottom = 965.0
+mouse_filter = 2
+
+texture = ExtResource("unified_paper")
+expand_mode = 1
+[node name="PanelAccent" type="ColorRect" parent="GameScreen" unique_id=1629198983]
+layout_mode = 0
+offset_left = 630.0
+offset_top = 110.0
+offset_right = 1850.0
+offset_bottom = 115.0
+mouse_filter = 2
+color = Color(0.83, 0.66, 0.39, 1)
+
+visible = false
+[node name="Title" type="Label" parent="GameScreen" unique_id=142400571]
+layout_mode = 0
+offset_left = 750.0
+offset_top = 165.0
+offset_right = 1120.0
+offset_bottom = 230.0
+theme_override_font_sizes/font_size = 48
+text = "飞花令"
+
+theme = SubResource("UnifiedTheme")
+[node name="Status" type="Label" parent="GameScreen" unique_id=974406306]
+layout_mode = 0
+offset_left = 1130.0
+offset_top = 160.0
+offset_right = 1590.0
+offset_bottom = 230.0
+theme_override_font_sizes/font_size = 26
+text = "令字待揭晓"
+vertical_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="ExitButton" type="Button" parent="GameScreen" unique_id=724413727]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 150.0
+offset_right = 1800.0
+offset_bottom = 205.0
+text = "退出对局"
+
+[node name="Rules" type="Label" parent="GameScreen" unique_id=858944914]
+layout_mode = 0
+offset_left = 750.0
+offset_top = 238.0
+offset_right = 1760.0
+offset_bottom = 278.0
+theme_override_font_sizes/font_size = 20
+text = "以含令字的诗句接上；答不上来可以直接认输。"
+
+theme = SubResource("UnifiedTheme")
+[node name="GameLog" type="RichTextLabel" parent="GameScreen" unique_id=52894625]
+layout_mode = 0
+offset_left = 750.0
+offset_top = 305.0
+offset_right = 1790.0
+offset_bottom = 805.0
+theme_override_font_sizes/normal_font_size = 25
+scroll_following = true
+
+theme = SubResource("UnifiedTheme")
+[node name="GameInput" type="LineEdit" parent="GameScreen" unique_id=835745638]
+layout_mode = 0
+offset_left = 750.0
+offset_top = 835.0
+offset_right = 1570.0
+offset_bottom = 895.0
+placeholder_text = "输入含令字的诗句，按回车应答…"
+
+[node name="GameSendButton" type="Button" parent="GameScreen" unique_id=1963007841]
+layout_mode = 0
+offset_left = 1590.0
+offset_top = 835.0
+offset_right = 1790.0
+offset_bottom = 895.0
+text = "应答"
+
+[node name="AgainButton" type="Button" parent="GameScreen" unique_id=90630803]
+visible = false
+layout_mode = 0
+offset_left = 1540.0
+offset_top = 908.0
+offset_right = 1790.0
+offset_bottom = 952.0
+text = "再来一局"

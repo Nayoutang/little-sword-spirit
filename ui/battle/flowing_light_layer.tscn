@@ -1,0 +1,84 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://art/character/sword_spirit_chibi_cutout.png" id="5_chibi"]
+[node name="FlowingLightLayer" type="CanvasLayer" unique_id=43965854]
+layer = 2
+
+[node name="FlowingLightCutIn" type="Control" parent="." unique_id=2119479429]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="Veil" type="ColorRect" parent="FlowingLightCutIn" unique_id=1688051103]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.018, 0.053, 0.061, 0.94)
+
+[node name="Ribbon" type="ColorRect" parent="FlowingLightCutIn" unique_id=1703951107]
+layout_mode = 0
+offset_left = 180.0
+offset_top = 580.0
+offset_right = 1970.0
+offset_bottom = 750.0
+rotation = -0.16
+mouse_filter = 2
+color = Color(0.1, 0.64, 0.62, 0.46)
+
+[node name="RibbonEdge" type="ColorRect" parent="FlowingLightCutIn" unique_id=675858514]
+layout_mode = 0
+offset_left = 180.0
+offset_top = 575.0
+offset_right = 1970.0
+offset_bottom = 586.0
+rotation = -0.16
+mouse_filter = 2
+color = Color(0.76, 0.96, 0.89, 0.9)
+
+[node name="Portrait" type="TextureRect" parent="FlowingLightCutIn" unique_id=724883349]
+layout_mode = 0
+offset_left = 770.0
+offset_top = 30.0
+offset_right = 1720.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = ExtResource("5_chibi")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SkillTag" type="Label" parent="FlowingLightCutIn" unique_id=521980430]
+layout_mode = 0
+offset_left = 255.0
+offset_top = 360.0
+offset_right = 735.0
+offset_bottom = 405.0
+theme_override_colors/font_color = Color(0.95, 0.78, 0.47, 1)
+theme_override_font_sizes/font_size = 30
+text = "特殊技"
+
+[node name="SkillTitle" type="Label" parent="FlowingLightCutIn" unique_id=1123024853]
+layout_mode = 0
+offset_left = 245.0
+offset_top = 416.0
+offset_right = 805.0
+offset_bottom = 555.0
+theme_override_colors/font_color = Color(0.94, 0.99, 0.95, 1)
+theme_override_colors/font_shadow_color = Color(0.02, 0.12, 0.13, 0.95)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 5
+theme_override_font_sizes/font_size = 106
+text = "流  光"
+
+[node name="SkillCaption" type="Label" parent="FlowingLightCutIn" unique_id=1551955030]
+layout_mode = 0
+offset_left = 258.0
+offset_top = 580.0
+offset_right = 765.0
+offset_bottom = 640.0
+theme_override_colors/font_color = Color(0.77, 0.94, 0.87, 1)
+theme_override_font_sizes/font_size = 29
+text = "剑影如流 · 一瞬破阵"

@@ -1,8 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/map/map.gd" id="1_map"]
-[ext_resource type="Texture2D" path="res://art/route_map_background.png" id="2_map_art"]
-[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="3_skin"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/route_map_v2.png" id="2_map_art"]
+[ext_resource type="PackedScene" path="res://ui/map/map_ui.tscn" id="ui_MapUI"]
 
 [node name="Map" type="Node2D"]
 script = ExtResource("1_map")
@@ -17,50 +17,4 @@ mouse_filter = 2
 
 [node name="MapContent" type="Node2D" parent="."]
 
-[node name="MapUI" type="CanvasLayer" parent="."]
-script = ExtResource("3_skin")
-
-[node name="Header" type="ColorRect" parent="MapUI"]
-offset_right = 1920.0
-offset_bottom = 108.0
-color = Color(0.075, 0.105, 0.12, 0.88)
-mouse_filter = 2
-
-[node name="Title" type="Label" parent="MapUI"]
-offset_left = 32.0
-offset_top = 24.0
-offset_right = 300.0
-offset_bottom = 70.0
-theme_override_font_sizes/font_size = 28
-text = "路线选择"
-
-[node name="Hint" type="Label" parent="MapUI"]
-offset_left = 32.0
-offset_top = 70.0
-offset_right = 500.0
-offset_bottom = 104.0
-text = "青色描边的节点可以选择"
-
-[node name="Bond" type="Label" parent="MapUI"]
-offset_left = 1370.0
-offset_top = 31.0
-offset_right = 1715.0
-offset_bottom = 70.0
-theme_override_font_sizes/font_size = 23
-text = "羁绊: 0/100　初遇"
-horizontal_alignment = 2
-
-[node name="ReturnButton" type="Button" parent="MapUI"]
-offset_left = 1744.0
-offset_top = 24.0
-offset_right = 1888.0
-offset_bottom = 72.0
-text = "返回 home"
-
-[node name="LegendBar" type="ColorRect" parent="MapUI"]
-offset_left = 260.0
-offset_top = 1020.0
-offset_right = 1660.0
-offset_bottom = 1076.0
-color = Color(0.075, 0.105, 0.12, 0.84)
-mouse_filter = 2
+[node name="MapUI" parent="." instance=ExtResource("ui_MapUI")]

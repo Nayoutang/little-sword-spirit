@@ -1,0 +1,91 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="3_skin"]
+
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="unified_paper"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="unified_font"]
+[sub_resource type="Theme" id="UnifiedTheme"]
+default_font = ExtResource("unified_font")
+Label/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+RichTextLabel/colors/default_color = Color(0.12, 0.22, 0.19, 1)
+
+[node name="SaveUI" type="CanvasLayer"]
+script = ExtResource("3_skin")
+
+[node name="TextBackdrop" type="TextureRect" parent="."]
+offset_left = 465.0
+offset_top = 88.0
+offset_right = 1455.0
+offset_bottom = 900.0
+mouse_filter = 2
+
+texture = ExtResource("unified_paper")
+expand_mode = 1
+[node name="Title" type="Label" parent="."]
+offset_left = 610.0
+offset_top = 130.0
+offset_right = 1310.0
+offset_bottom = 205.0
+theme_override_font_sizes/font_size = 42
+text = "选择存档"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Hint" type="Label" parent="."]
+offset_left = 510.0
+offset_top = 220.0
+offset_right = 1410.0
+offset_bottom = 270.0
+theme_override_font_sizes/font_size = 22
+text = "羁绊与关系进度仅在各自存档内保留"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Slots" type="VBoxContainer" parent="."]
+offset_left = 550.0
+offset_top = 335.0
+offset_right = 1370.0
+offset_bottom = 825.0
+theme_override_constants/separation = 28
+
+[node name="Slot1" type="HBoxContainer" parent="Slots"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Open" type="Button" parent="Slots/Slot1"]
+custom_minimum_size = Vector2(620, 120)
+layout_mode = 2
+text = "存档 1\n新游戏"
+
+[node name="Delete" type="Button" parent="Slots/Slot1"]
+custom_minimum_size = Vector2(180, 120)
+layout_mode = 2
+text = "删除存档"
+
+[node name="Slot2" type="HBoxContainer" parent="Slots"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Open" type="Button" parent="Slots/Slot2"]
+custom_minimum_size = Vector2(620, 120)
+layout_mode = 2
+text = "存档 2\n新游戏"
+
+[node name="Delete" type="Button" parent="Slots/Slot2"]
+custom_minimum_size = Vector2(180, 120)
+layout_mode = 2
+text = "删除存档"
+
+[node name="Slot3" type="HBoxContainer" parent="Slots"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Open" type="Button" parent="Slots/Slot3"]
+custom_minimum_size = Vector2(620, 120)
+layout_mode = 2
+text = "存档 3\n新游戏"
+
+[node name="Delete" type="Button" parent="Slots/Slot3"]
+custom_minimum_size = Vector2(180, 120)
+layout_mode = 2
+text = "删除存档"

@@ -23,12 +23,12 @@ func _ready() -> void:
 	skip_button.hide()
 	skip_button.pressed.connect(_skip_choice)
 	_refresh_status()
-	message_label.text = "共同经历一场战斗，羁绊 +2。选择一张卡牌，或跳过。"
+	message_label.text = "战斗结束。选择一张卡牌，或跳过。"
 	if RunState.pending_act_bond_gain >= 0:
 		if RunState.pending_act_bond_gain > 0:
-			message_label.text = "战斗羁绊 +2，本层约定兑现 +%d。选择一张卡牌，或跳过。" % RunState.pending_act_bond_gain
+			message_label.text = "这场战斗，你做到了答应她的事。选择一张卡牌，或跳过。"
 		else:
-			message_label.text = "战斗羁绊 +2，本层约定未兑现。选择一张卡牌，或跳过。"
+			message_label.text = "这场战斗没能守住约定。选择一张卡牌，或跳过。"
 	_show_card_choices()
 
 
@@ -38,7 +38,7 @@ func _show_card_choices() -> void:
 	card_choices.show()
 	skip_button.show()
 	var candidates: Array[int] = []
-	for card_type in CardDatabase.get_reward_card_ids():
+	for card_type in CardDatabase.get_reward_card_ids(RunState.deck):
 		candidates.append(card_type)
 	candidates.shuffle()
 	for index in range(card_choices.get_child_count()):
@@ -130,9 +130,4 @@ func _complete_reward(message: String) -> void:
 
 
 func _refresh_status() -> void:
-	$RewardUI/Status.text = "HP: %d/%d　羁绊: %d/100（%s）" % [
-		RunState.player_hp,
-		RunState.player_max_hp,
-		RunState.bond_value,
-		RunState.get_bond_stage_name(),
-	]
+	$RewardUI/Status.text = "生命：%d/%d" % [RunState.player_hp, RunState.player_max_hp]

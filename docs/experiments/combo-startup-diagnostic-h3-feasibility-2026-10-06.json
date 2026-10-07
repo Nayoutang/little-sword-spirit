@@ -1,0 +1,248 @@
+{
+	"boundary_checks": {
+		"draw_only_recycled_wind": {
+			"feasible": true,
+			"witness": [
+				0,
+				6,
+				16,
+				16,
+				13,
+				14
+			]
+		},
+		"draw_only_second_wind": {
+			"feasible": true,
+			"witness": [
+				0,
+				6,
+				16,
+				16,
+				13,
+				14
+			]
+		},
+		"refund_draws_attack": {
+			"feasible": true,
+			"witness": [
+				0,
+				6,
+				16,
+				0,
+				13,
+				14
+			]
+		},
+		"refund_draws_defense": {
+			"feasible": false,
+			"witness": []
+		}
+	},
+	"examples": [
+		{
+			"continuation": [
+				15,
+				5,
+				6,
+				16,
+				16,
+				13,
+				14
+			],
+			"group": "2/refund",
+			"hand": [
+				5.0,
+				16.0,
+				6.0,
+				15.0
+			],
+			"seed": 200007.0,
+			"turn": 5
+		},
+		{
+			"continuation": [
+				5,
+				6,
+				16,
+				16,
+				13,
+				14
+			],
+			"group": "2/refund",
+			"hand": [
+				5.0,
+				16.0,
+				6.0
+			],
+			"seed": 200007.0,
+			"turn": 5
+		},
+		{
+			"continuation": [
+				6,
+				16,
+				16,
+				13,
+				14
+			],
+			"group": "2/refund",
+			"hand": [
+				16.0,
+				6.0
+			],
+			"seed": 200007.0,
+			"turn": 5
+		},
+		{
+			"continuation": [
+				16,
+				16,
+				13,
+				14
+			],
+			"group": "2/refund",
+			"hand": [
+				16.0
+			],
+			"seed": 200007.0,
+			"turn": 5
+		},
+		{
+			"continuation": [
+				6,
+				0,
+				0,
+				16,
+				13,
+				14
+			],
+			"group": "2/refund",
+			"hand": [
+				6.0,
+				0.0,
+				0.0,
+				3.0
+			],
+			"seed": 200018.0,
+			"turn": 2
+		},
+		{
+			"continuation": [
+				6,
+				0,
+				16,
+				13,
+				14
+			],
+			"group": "2/refund",
+			"hand": [
+				6.0,
+				0.0,
+				3.0
+			],
+			"seed": 200018.0,
+			"turn": 2
+		},
+		{
+			"continuation": [
+				6,
+				16,
+				13,
+				14
+			],
+			"group": "2/refund",
+			"hand": [
+				6.0,
+				3.0
+			],
+			"seed": 200018.0,
+			"turn": 2
+		}
+	],
+	"failures": 0,
+	"groups": {
+		"1/draw_only": {
+			"feasible_hands": 0,
+			"feasible_rounds": 0,
+			"games": 20,
+			"hands": 298,
+			"rounds": 76
+		},
+		"1/no_cloud": {
+			"feasible_hands": 0,
+			"feasible_rounds": 0,
+			"games": 20,
+			"hands": 294,
+			"rounds": 72
+		},
+		"1/refund": {
+			"feasible_hands": 0,
+			"feasible_rounds": 0,
+			"games": 20,
+			"hands": 299,
+			"rounds": 76
+		},
+		"2/draw_only": {
+			"feasible_hands": 0,
+			"feasible_rounds": 0,
+			"games": 20,
+			"hands": 321,
+			"rounds": 79
+		},
+		"2/no_cloud": {
+			"feasible_hands": 0,
+			"feasible_rounds": 0,
+			"games": 20,
+			"hands": 287,
+			"rounds": 69
+		},
+		"2/refund": {
+			"feasible_hands": 7,
+			"feasible_rounds": 2,
+			"games": 20,
+			"hands": 304,
+			"rounds": 74
+		}
+	},
+	"meaning": "resource upper bound; exhaustive card orders and possible draws, ignores enemy death and damage; not actual hidden draw-order oracle",
+	"structural_without_wind_recycling": {
+		"1/draw_only": {
+			"feasible": false,
+			"witness": []
+		},
+		"1/refund": {
+			"feasible": true,
+			"witness": [
+				0,
+				0,
+				6,
+				16,
+				13,
+				14
+			]
+		},
+		"2/draw_only": {
+			"feasible": true,
+			"witness": [
+				0,
+				6,
+				16,
+				16,
+				13,
+				14
+			]
+		},
+		"2/refund": {
+			"feasible": true,
+			"witness": [
+				0,
+				0,
+				0,
+				16,
+				16,
+				13,
+				14
+			]
+		}
+	}
+}

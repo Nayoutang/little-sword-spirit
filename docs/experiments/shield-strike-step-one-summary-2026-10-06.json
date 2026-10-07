@@ -1,0 +1,212 @@
+{
+  "Groups": [
+    {
+      "Copies": 0,
+      "Games": 20,
+      "Wins": 20,
+      "Deaths": 0,
+      "Cutoffs": 0,
+      "HpMin": 8,
+      "HpMedian": 45.5,
+      "HpMax": 65,
+      "MeanHp": 41.8,
+      "MeanObservedPlayerTurns": 11.15,
+      "MeanWinningPlayerTurns": 11.15,
+      "MeanFirstFiveDamage": 82.35,
+      "HandDamage": 2081.0,
+      "BrillianceDamage": 1518.0,
+      "CompanionDamage": 1.0,
+      "ShieldDamage": 0.0,
+      "StrikePlays": 0,
+      "MultiplyStrikes": 0,
+      "AddStrikes": 0,
+      "Exposures": 0,
+      "Played": 0,
+      "Discarded": 0,
+      "BattleEndHeld": 0
+    },
+    {
+      "Copies": 2,
+      "Games": 20,
+      "Wins": 17,
+      "Deaths": 3,
+      "Cutoffs": 0,
+      "HpMin": 0,
+      "HpMedian": 19,
+      "HpMax": 49,
+      "MeanHp": 20.85,
+      "MeanObservedPlayerTurns": 13.35,
+      "MeanWinningPlayerTurns": 12.647058823529411,
+      "MeanFirstFiveDamage": 68.35,
+      "HandDamage": 2527.0,
+      "BrillianceDamage": 983.0,
+      "CompanionDamage": 15.0,
+      "ShieldDamage": 1334.0,
+      "StrikePlays": 71,
+      "MultiplyStrikes": 68,
+      "AddStrikes": 0,
+      "Exposures": 173,
+      "Played": 71,
+      "Discarded": 93,
+      "BattleEndHeld": 9
+    }
+  ],
+  "Holding": [
+    {
+      "Range": "zero",
+      "Exposures": 96,
+      "Played": 0,
+      "Unused": 96,
+      "UnusedRate": 1,
+      "UnusedAffordableAtLastDecision": 92,
+      "UnusedNeverAffordable": 1,
+      "Discarded": 87,
+      "BattleEnd": 9
+    },
+    {
+      "Range": "low",
+      "Exposures": 7,
+      "Played": 7,
+      "Unused": 0,
+      "UnusedRate": 0,
+      "UnusedAffordableAtLastDecision": 0,
+      "UnusedNeverAffordable": 0,
+      "Discarded": 0,
+      "BattleEnd": 0
+    },
+    {
+      "Range": "above_low",
+      "Exposures": 70,
+      "Played": 64,
+      "Unused": 6,
+      "UnusedRate": 0.08571428571428572,
+      "UnusedAffordableAtLastDecision": 0,
+      "UnusedNeverAffordable": 0,
+      "Discarded": 6,
+      "BattleEnd": 0
+    }
+  ],
+  "Pairs": [
+    {
+      "Seed": 400001,
+      "HpDifference": -18,
+      "FirstFiveDamageDifference": 14.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400002,
+      "HpDifference": -46,
+      "FirstFiveDamageDifference": -18.0,
+      "BothWon": false
+    },
+    {
+      "Seed": 400003,
+      "HpDifference": -14,
+      "FirstFiveDamageDifference": 27.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400004,
+      "HpDifference": -5,
+      "FirstFiveDamageDifference": 22.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400005,
+      "HpDifference": -36,
+      "FirstFiveDamageDifference": -35.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400006,
+      "HpDifference": -30,
+      "FirstFiveDamageDifference": 81.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400007,
+      "HpDifference": -18,
+      "FirstFiveDamageDifference": -49.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400008,
+      "HpDifference": -50,
+      "FirstFiveDamageDifference": -114.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400009,
+      "HpDifference": 1,
+      "FirstFiveDamageDifference": 16.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400010,
+      "HpDifference": -51,
+      "FirstFiveDamageDifference": -71.0,
+      "BothWon": false
+    },
+    {
+      "Seed": 400011,
+      "HpDifference": -12,
+      "FirstFiveDamageDifference": 4.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400012,
+      "HpDifference": 14,
+      "FirstFiveDamageDifference": 16.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400013,
+      "HpDifference": -34,
+      "FirstFiveDamageDifference": 10.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400014,
+      "HpDifference": -19,
+      "FirstFiveDamageDifference": 18.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400015,
+      "HpDifference": -48,
+      "FirstFiveDamageDifference": -13.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400016,
+      "HpDifference": -45,
+      "FirstFiveDamageDifference": -69.0,
+      "BothWon": false
+    },
+    {
+      "Seed": 400017,
+      "HpDifference": -12,
+      "FirstFiveDamageDifference": -16.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400018,
+      "HpDifference": 9,
+      "FirstFiveDamageDifference": -81.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400019,
+      "HpDifference": -1,
+      "FirstFiveDamageDifference": -18.0,
+      "BothWon": true
+    },
+    {
+      "Seed": 400020,
+      "HpDifference": -4,
+      "FirstFiveDamageDifference": -4.0,
+      "BothWon": true
+    }
+  ],
+  "MeanPairedFirstFiveDamageDifference": -14.0
+}

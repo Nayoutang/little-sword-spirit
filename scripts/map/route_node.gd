@@ -6,6 +6,7 @@ signal selected(route_node: RouteNode)
 enum NodeType { HOME, BATTLE, ELITE, TREASURE, UNKNOWN, ADVENTURE, BOSS }
 
 const NODE_RADIUS := 30.0
+const NODE_ATLAS := preload("res://art/ui/map/node_atlas_v1.png")
 const COLORS := {
 	NodeType.HOME: Color("#416d77"),
 	NodeType.BATTLE: Color("#a44f43"),
@@ -44,19 +45,22 @@ func set_map_state(selectable: bool, visited: bool, current: bool) -> void:
 
 
 func _draw() -> void:
-	var fill_color: Color = COLORS[node_type]
-	if not is_selectable and not is_visited and not is_current:
-		fill_color = Color("#5c615b")
-	draw_circle(Vector2.ZERO, NODE_RADIUS + 5.0, Color("#d6c39e"))
-	draw_circle(Vector2.ZERO, NODE_RADIUS, fill_color)
+	var cell := NODE_ATLAS.get_size() / Vector2(4, 2)
+	var origin := Vector2(int(node_type) % 4, int(node_type) / 4) * cell
+	var tint := Color.WHITE if is_selectable or is_visited or is_current or layer_index < 0 else Color(0.74, 0.72, 0.66, 0.75)
+	draw_texture_rect_region(NODE_ATLAS, Rect2(-37, -37, 74, 74), Rect2(origin, cell), tint)
+	if is_selectable or is_current:
+		draw_arc(Vector2.ZERO, 38.0, 0.0, TAU, 64, Color("#368e86") if is_selectable else Color("#ae7936"), 2.8, true)
 
-	var outline_color := Color("#42c5ba") if is_selectable else Color("#af9d7c")
-	var outline_width := 5.0 if is_selectable else 2.0
-	if is_current:
-		outline_color = Color.WHITE
-		outline_width = 6.0
-	draw_arc(Vector2.ZERO, NODE_RADIUS, 0.0, TAU, 48, outline_color, outline_width, true)
-	_draw_icon(Color("#f5e8ce"))
+
+func _ready() -> void:
+	mouse_entered.connect(_hover.bind(true))
+	mouse_exited.connect(_hover.bind(false))
+
+
+func _hover(hovered: bool) -> void:
+	if layer_index >= 0:
+		scale = Vector2.ONE * (1.08 if hovered and is_selectable else 1.0)
 
 
 func _draw_icon(ink: Color) -> void:

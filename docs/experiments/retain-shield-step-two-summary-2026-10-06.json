@@ -1,0 +1,1552 @@
+{
+  "Groups": [
+    {
+      "Group": "baseline",
+      "Wins": 20,
+      "Deaths": 0,
+      "Cutoffs": 0,
+      "HpMin": 8,
+      "HpMedian": 45.5,
+      "HpMax": 65,
+      "MeanHp": 41.8,
+      "MeanObservedTurns": 11.15,
+      "MeanWinningTurns": 11.15,
+      "ActivationCount": 0,
+      "ActivationTurnMedian": null,
+      "ThreeIncreaseGames": 0,
+      "UnderFourCycleGames": 20,
+      "HighStrikeGames": 0,
+      "HighStrikeHits": 0.0,
+      "PotentialHighHits": 0.0,
+      "MaxStartingShield": 0.0,
+      "PlayerNewShield": 1384.0,
+      "CompanionNewShield": 592.0,
+      "CompanionShare": 0.29959514170040485,
+      "ResolvedEnemyTurns": 203,
+      "ExecutedIncoming": 2940,
+      "IncomingToNewShield": 1.4878542510121457,
+      "ShieldDamage": 0.0
+    },
+    {
+      "Group": "retain_only",
+      "Wins": 14,
+      "Deaths": 0,
+      "Cutoffs": 6,
+      "HpMin": 57,
+      "HpMedian": 82,
+      "HpMax": 90,
+      "MeanHp": 79.8,
+      "MeanObservedTurns": 20.6,
+      "MeanWinningTurns": 19.142857142857142,
+      "ActivationCount": 20,
+      "ActivationTurnMedian": 2,
+      "ThreeIncreaseGames": 12,
+      "UnderFourCycleGames": 0,
+      "HighStrikeGames": 0,
+      "HighStrikeHits": 0.0,
+      "PotentialHighHits": 0.0,
+      "MaxStartingShield": 48.0,
+      "PlayerNewShield": 5483.0,
+      "CompanionNewShield": 744.0,
+      "CompanionShare": 0.11947968524168942,
+      "ResolvedEnemyTurns": 398,
+      "ExecutedIncoming": 5850,
+      "IncomingToNewShield": 0.9394572025052192,
+      "ShieldDamage": 0.0
+    },
+    {
+      "Group": "retain_strike",
+      "Wins": 20,
+      "Deaths": 0,
+      "Cutoffs": 0,
+      "HpMin": 56,
+      "HpMedian": 76.5,
+      "HpMax": 90,
+      "MeanHp": 75.6,
+      "MeanObservedTurns": 9.6,
+      "MeanWinningTurns": 9.6,
+      "ActivationCount": 20,
+      "ActivationTurnMedian": 2,
+      "ThreeIncreaseGames": 0,
+      "UnderFourCycleGames": 13,
+      "HighStrikeGames": 2,
+      "HighStrikeHits": 3.0,
+      "PotentialHighHits": 4.0,
+      "MaxStartingShield": 24.0,
+      "PlayerNewShield": 1985.0,
+      "CompanionNewShield": 468.0,
+      "CompanionShare": 0.19078679168365267,
+      "ResolvedEnemyTurns": 172,
+      "ExecutedIncoming": 2340,
+      "IncomingToNewShield": 0.9539339584182633,
+      "ShieldDamage": 2860.0
+    }
+  ],
+  "StrikeBoons": [
+    {
+      "Boon": "multiply",
+      "Hits": 54,
+      "MeanShield": 21.51851851851852,
+      "MeanDamage": 36.574074074074076,
+      "TotalDamage": 1975.0,
+      "MaxDamage": 64.0,
+      "HighHits": 3
+    },
+    {
+      "Boon": "add",
+      "Hits": 43,
+      "MeanShield": 12.976744186046512,
+      "MeanDamage": 16.41860465116279,
+      "TotalDamage": 706.0,
+      "MaxDamage": 26.0,
+      "HighHits": 0
+    },
+    {
+      "Boon": "none",
+      "Hits": 17,
+      "MeanShield": 11.764705882352942,
+      "MeanDamage": 10.529411764705882,
+      "TotalDamage": 179.0,
+      "MaxDamage": 21.0,
+      "HighHits": 0
+    }
+  ],
+  "GrowthChecks": [
+    {
+      "Group": "baseline",
+      "Seed": 400001,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400002,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400003,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400004,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400005,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400006,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400007,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400008,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400009,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400010,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400011,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400012,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400013,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400014,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400015,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400016,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400017,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400018,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400019,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "baseline",
+      "Seed": 400020,
+      "ActivatedTurn": -1,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        null
+      ],
+      "CycleTurns": [
+        null
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400001,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 12,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 3,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        12,
+        10,
+        21,
+        8,
+        13,
+        17,
+        22,
+        20,
+        18
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400002,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 10,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 3,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        5,
+        4,
+        0,
+        5,
+        8,
+        13,
+        12,
+        22,
+        21
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400003,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 6,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 2,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        5,
+        4,
+        10,
+        15,
+        14
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400004,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 9,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        11,
+        9,
+        19,
+        13,
+        18,
+        15,
+        20
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400005,
+      "ActivatedTurn": 3,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 2,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        5,
+        3,
+        7,
+        11
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9,
+        11
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400006,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 9,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 2,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        6,
+        16,
+        15,
+        13,
+        11,
+        14,
+        13,
+        12
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400007,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 9,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 2,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        9,
+        7,
+        12,
+        23,
+        16,
+        14,
+        18
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400008,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        6,
+        3,
+        9,
+        7
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400009,
+      "ActivatedTurn": 3,
+      "EligibleCycles": 11,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 3,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        11,
+        16,
+        21,
+        19,
+        17,
+        21,
+        25,
+        17,
+        22
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400010,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 12,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 6,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        5,
+        15,
+        20,
+        24,
+        29,
+        32,
+        19,
+        22,
+        15,
+        15,
+        6
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400011,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 12,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 5,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        10,
+        16,
+        20,
+        26,
+        29,
+        16,
+        21,
+        20,
+        13,
+        23
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400012,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 12,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 3,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        11,
+        20,
+        20,
+        17,
+        21,
+        27,
+        30,
+        29,
+        26
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400013,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 10,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 2,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        4,
+        9,
+        7,
+        17,
+        16,
+        21,
+        20,
+        20,
+        20
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400014,
+      "ActivatedTurn": 3,
+      "EligibleCycles": 9,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 3,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        5,
+        4,
+        8,
+        13,
+        18,
+        17,
+        20
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400015,
+      "ActivatedTurn": 4,
+      "EligibleCycles": 9,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 3,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        12,
+        15,
+        19,
+        16,
+        22,
+        15,
+        19
+      ],
+      "CycleTurns": [
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400016,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 7,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 3,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        10,
+        8,
+        11,
+        16,
+        20
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400017,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 9,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 2,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        10,
+        21,
+        13,
+        10,
+        15,
+        13,
+        1,
+        5
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400018,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 12,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 5,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        5,
+        9,
+        15,
+        17,
+        23,
+        23,
+        25,
+        18,
+        17,
+        22
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400019,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 10,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 3,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        11,
+        22,
+        8,
+        13,
+        18,
+        21,
+        13
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ]
+    },
+    {
+      "Group": "retain_only",
+      "Seed": 400020,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 5,
+      "ThreeIncreases": true,
+      "MaxConsecutiveIncreases": 3,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        4,
+        8,
+        18,
+        10
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9,
+        11
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400001,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        0
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400002,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0
+      ],
+      "CycleTurns": [
+        3,
+        5
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400003,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        0
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400004,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 1,
+      "PotentialHighHits": 1,
+      "StartShields": [
+        0,
+        9,
+        8
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400005,
+      "ActivatedTurn": 3,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        0
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400006,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0
+      ],
+      "CycleTurns": [
+        3,
+        5
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400007,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400008,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        6,
+        4
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400009,
+      "ActivatedTurn": 3,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7,
+        9
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400010,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        5,
+        5,
+        10
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400011,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        10,
+        4,
+        8
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400012,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        0
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400013,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        4,
+        4
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400014,
+      "ActivatedTurn": 3,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0
+      ],
+      "CycleTurns": [
+        3,
+        5
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400015,
+      "ActivatedTurn": 4,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0
+      ],
+      "CycleTurns": [
+        5,
+        7
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400016,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 2,
+      "PotentialHighHits": 2,
+      "StartShields": [
+        0,
+        0,
+        10,
+        8
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400017,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        5
+      ],
+      "CycleTurns": [
+        3,
+        5
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400018,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 6,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        0,
+        5,
+        4,
+        3,
+        0
+      ],
+      "CycleTurns": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400019,
+      "ActivatedTurn": 1,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 0,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 1,
+      "StartShields": [
+        0,
+        0
+      ],
+      "CycleTurns": [
+        1,
+        3
+      ]
+    },
+    {
+      "Group": "retain_strike",
+      "Seed": 400020,
+      "ActivatedTurn": 2,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "MaxConsecutiveIncreases": 1,
+      "HighStrikeHits": 0,
+      "PotentialHighHits": 0,
+      "StartShields": [
+        0,
+        4,
+        3
+      ],
+      "CycleTurns": [
+        3,
+        5,
+        7
+      ]
+    }
+  ],
+  "IntentFrequencies": [
+    {
+      "Group": "baseline",
+      "Intent": "escort",
+      "Count": 97
+    },
+    {
+      "Group": "baseline",
+      "Intent": "follow_up",
+      "Count": 1
+    },
+    {
+      "Group": "baseline",
+      "Intent": "lead_momentum",
+      "Count": 105
+    },
+    {
+      "Group": "baseline",
+      "Intent": "oath_guard",
+      "Count": 1
+    },
+    {
+      "Group": "retain_only",
+      "Intent": "clean_cut",
+      "Count": 1
+    },
+    {
+      "Group": "retain_only",
+      "Intent": "escort",
+      "Count": 124
+    },
+    {
+      "Group": "retain_only",
+      "Intent": "follow_up",
+      "Count": 2
+    },
+    {
+      "Group": "retain_only",
+      "Intent": "lead_momentum",
+      "Count": 272
+    },
+    {
+      "Group": "retain_strike",
+      "Intent": "clean_cut",
+      "Count": 1
+    },
+    {
+      "Group": "retain_strike",
+      "Intent": "escort",
+      "Count": 78
+    },
+    {
+      "Group": "retain_strike",
+      "Intent": "lead_momentum",
+      "Count": 94
+    }
+  ],
+  "ShieldConservationTurns": 773
+}

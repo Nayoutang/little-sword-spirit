@@ -52,38 +52,115 @@ var current_adventure: Dictionary
 var resolved := false
 var pending_choice: Dictionary = {}
 var pending_effect_text := ""
+@export_range(-1, 4) var adventure_index := -1
+@export var force_offline := false
+const COMIC_ART := ["rain_pavilion", "sword_trace", "lost_lantern", "broken_bridge", "old_waystation"]
+var showing_choices := false
+var response_ready := false
+var story_page_index := 0
+var selected_adventure_index := 0
+const MIDDLE_STORIES := [
+	"雨水沿檐角落下来。小墨挪了挪剑鞘，给身旁留出一小块干燥的位置。",
+	"她沿着剑痕看到尽头，又退开半步。深浅之外，原来还藏着出剑时的力道。",
+	"灯灵又绕回那棵松树。小墨认准山祠的方向，回头确认你还在身后。",
+	"她先试了试松动的桥板，指给你看能落脚的地方，等你站稳才往前。",
+	"炉火慢慢旺起来。她看过墙上的旧刻痕，又把目光落回你添的那根柴上。",
+]
+const MIDDLE_LINES := [
+	"这里还干着。坐下，雨停了再走。",
+	"看这里。末尾这一下，和前面不一样。",
+	"山祠在前面。慢些走，不用急着追它。",
+	"跟着我指出的地方走。先站稳，别急。",
+	"火总算起来了。赶路的事，暖和一点再说。",
+]
 
 @onready var title_label: Label = $AdventureUI/Title
-@onready var bond_label: Label = $AdventureUI/Bond
-@onready var story_label: Label = $AdventureUI/Story
-@onready var dialogue_label: Label = $AdventureUI/Dialogue
+@onready var bond_label: Label = $AdventureUI/Progress
+@onready var story_label: RichTextLabel = $AdventureUI/Caption
 @onready var choices: VBoxContainer = $AdventureUI/Choices
-@onready var result_label: Label = $AdventureUI/Result
-@onready var continue_button: Button = $AdventureUI/Continue
+@onready var result_label: RichTextLabel = $AdventureUI/Speech/Text
+@onready var continue_button: Button = $AdventureUI/Next
 @onready var http_request: HTTPRequest = $HTTPRequest
 
 
 func _ready() -> void:
-	current_adventure = ADVENTURES[randi_range(0, ADVENTURES.size() - 1)]
+	var index := adventure_index if adventure_index >= 0 else randi_range(0, ADVENTURES.size() - 1)
+	selected_adventure_index = index
+	current_adventure = ADVENTURES[index]
 	title_label.text = "奇遇 · %s" % current_adventure["title"]
-	story_label.text = current_adventure["story"]
-	dialogue_label.text = current_adventure["dialogue"]
-	result_label.hide()
+	$AdventureUI/Page.begin(load("res://art/story/adventures/" + COMIC_ART[index] + "_v1.png"))
+	$AdventureUI/Page.sequence_completed.connect(_show_dialogue)
+	story_label.text = str(current_adventure["story"])
+	choices.hide()
+	$AdventureUI/Previous.hide()
+	$AdventureUI/Skip.hide()
+	$AdventureUI/Title.hide()
+	$AdventureUI/Progress.hide()
+	continue_button.text = "继续"
+	continue_button.pressed.connect(_advance)
+	$ResultUI/Card/Continue.pressed.connect(_advance)
 	continue_button.hide()
-	continue_button.pressed.connect(_return_to_map)
 	http_request.request_completed.connect(_on_request_completed)
-	for index in range(choices.get_child_count()):
-		var button := choices.get_child(index) as Button
-		var choice: Dictionary = current_adventure["choices"][index]
+	for choice_index in range(choices.get_child_count()):
+		var button := choices.get_child(choice_index) as Button
+		var choice: Dictionary = current_adventure["choices"][choice_index]
 		button.text = choice["text"]
 		button.pressed.connect(_resolve_choice.bind(choice))
+		button.mouse_entered.connect(_set_choice_hover.bind(button, true))
+		button.mouse_exited.connect(_set_choice_hover.bind(button, false))
+		button.focus_entered.connect(_set_choice_hover.bind(button, true))
+		button.focus_exited.connect(_set_choice_hover.bind(button, false))
 	_refresh_bond()
+
+func _set_choice_hover(button: Button, active: bool) -> void:
+	var previous: Tween = button.get_meta("hover_tween", null)
+	if previous != null:
+		previous.kill()
+	button.pivot_offset = button.size * 0.5
+	var tween := button.create_tween()
+	button.set_meta("hover_tween", tween)
+	tween.tween_property(button, "scale", Vector2.ONE * (1.04 if active else 1.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _advance() -> void:
+	if $AdventureUI/Page.reveal_next():
+		return
+	if resolved:
+		if response_ready:
+			_return_to_map()
+		return
+	if story_page_index == 0:
+		story_page_index = 1
+		$AdventureUI/Speech.hide()
+		story_label.text = MIDDLE_STORIES[selected_adventure_index]
+		$AdventureUI/Page.begin(load("res://art/story/adventures/" + COMIC_ART[selected_adventure_index] + "_middle_v2.png"))
+		return
+	showing_choices = true
+	choices.show()
+	continue_button.hide()
+
+func _show_dialogue() -> void:
+	if resolved:
+		_show_result_card()
+		return
+	$AdventureUI/Speech.show()
+	result_label.text = str(current_adventure["dialogue"]).trim_prefix("小墨：") if story_page_index == 0 else MIDDLE_LINES[selected_adventure_index]
+
+func _unhandled_input(event: InputEvent) -> void:
+	if showing_choices and not resolved:
+		return
+	var clicked: bool = event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed
+	if clicked or event.is_action_pressed("ui_accept"):
+		get_viewport().set_input_as_handled()
+		_advance()
 
 
 func _resolve_choice(choice: Dictionary) -> void:
 	if resolved:
 		return
 	resolved = true
+	showing_choices = false
+	continue_button.hide()
 	var old_hp := RunState.player_hp
 	var heal := int(choice.get("heal", 0))
 	if heal > 0:
@@ -95,17 +172,22 @@ func _resolve_choice(choice: Dictionary) -> void:
 	], 2)
 	pending_choice = choice
 	choices.hide()
+	story_page_index = 2
+	story_label.hide()
+	$AdventureUI/Speech.hide()
+	$AdventureUI/Page.begin(load("res://art/story/adventures/" + COMIC_ART[selected_adventure_index] + "_ending_v2.png"))
 	var healed := RunState.player_hp - old_hp
-	pending_effect_text = "羁绊 +%d" % bond_gain
+	pending_effect_text = "这段经历会留在你们的记忆里"
 	if healed > 0:
-		pending_effect_text += "，恢复 %d HP" % healed
+		pending_effect_text += "；生命恢复 +%d（%d/%d）" % [healed, RunState.player_hp, RunState.player_max_hp]
 	RunState.record_run_fact("adventure", "奇遇「%s」：玩家选择“%s”；确定结果为“%s”；实际效果：%s。" % [
 		str(current_adventure["title"]),
 		str(choice["text"]),
 		str(choice["result"]),
 		pending_effect_text,
 	])
-	result_label.text = "小墨正在斟酌如何回应……\n\n%s" % pending_effect_text
+	story_label.text = "%s\n%s" % [choice["result"], pending_effect_text]
+	result_label.text = "……"
 	result_label.show()
 	_refresh_bond()
 	_request_llm_response()
@@ -113,7 +195,7 @@ func _resolve_choice(choice: Dictionary) -> void:
 
 func _request_llm_response() -> void:
 	var api_key := LLMConfig.get_api_key()
-	if LLMConfig.API_URL.is_empty() or LLMConfig.MODEL_NAME.is_empty() or api_key.is_empty():
+	if force_offline or LLMConfig.API_URL.is_empty() or LLMConfig.MODEL_NAME.is_empty() or api_key.is_empty():
 		_show_fallback_response()
 		return
 	var system_prompt := LLMConfig.load_system_prompt()
@@ -210,27 +292,38 @@ func _parse_generated_response(content: String) -> Dictionary:
 
 func _show_generated_response(narration: String, reply: String) -> void:
 	RunState.record_spoken_line(reply)
-	result_label.text = "%s\n\n小墨：%s\n\n%s" % [narration, reply, pending_effect_text]
-	continue_button.show()
+	story_label.text = "%s\n%s" % [narration, pending_effect_text]
+	result_label.text = reply
+	continue_button.text = "继续赶路"
+	response_ready = true
+	_show_result_card()
 
 
 func _show_fallback_response() -> void:
-	result_label.text = "%s\n\n%s\n\n%s" % [
+	story_label.text = "%s\n%s" % [
 		pending_choice.get("result", "你们继续向前。"),
-		"小墨：%s" % pending_choice.get("reply", "走吧。"),
 		pending_effect_text,
 	]
+	result_label.text = str(pending_choice.get("reply", "走吧。"))
 	RunState.record_spoken_line(str(pending_choice.get("reply", "走吧。")))
-	continue_button.show()
+	continue_button.text = "继续赶路"
+	response_ready = true
+	_show_result_card()
+
+
+func _show_result_card() -> void:
+	if not $AdventureUI/Page.is_complete():
+		return
+	$ResultUI/Card/Title.text = "奇遇 · %s" % current_adventure["title"]
+	$ResultUI/Card/Story.text = str(pending_choice.get("result", ""))
+	$ResultUI/Card/Reply.text = "小墨：" + result_label.text
+	$ResultUI/Card/Effect.text = pending_effect_text
+	$ResultUI/Card/Continue.disabled = not response_ready
+	$ResultUI/Card.show()
 
 
 func _refresh_bond() -> void:
-	bond_label.text = "HP: %d/%d　羁绊: %d/100　%s" % [
-		RunState.player_hp,
-		RunState.player_max_hp,
-		RunState.bond_value,
-		RunState.get_bond_stage_name(),
-	]
+	bond_label.text = "生命：%d/%d" % [RunState.player_hp, RunState.player_max_hp]
 
 
 func _return_to_map() -> void:

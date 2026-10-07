@@ -15,6 +15,17 @@ var pending_delete_slot := 0
 
 
 func _ready() -> void:
+	var card_library = preload("res://scripts/ui/card_library.gd").new()
+	card_library.name = "CardLibrary"
+	add_child(card_library)
+	var library_button := Button.new()
+	library_button.name = "CardLibraryButton"
+	library_button.text = "剑谱 · 卡牌图鉴"
+	library_button.position = Vector2(1560, 45)
+	library_button.size = Vector2(300, 58)
+	preload("res://scripts/ui/ink_ui_skin.gd").style_button(library_button)
+	$SaveUI.add_child(library_button)
+	library_button.pressed.connect(card_library.open)
 	for index in range(RunState.SAVE_SLOT_COUNT):
 		slot_buttons[index].pressed.connect(_open_slot.bind(index + 1))
 		delete_buttons[index].pressed.connect(_request_delete.bind(index + 1))
@@ -42,7 +53,7 @@ func _refresh_slots() -> void:
 		var slot := index + 1
 		var summary: Dictionary = RunState.get_save_slot_summary(slot)
 		if summary["exists"]:
-			slot_buttons[index].text = "存档 %d\n羁绊 %d/100　%s" % [slot, summary["bond"], summary["stage"]]
+			slot_buttons[index].text = "存档 %d\n继续与小墨的旅途" % slot
 			delete_buttons[index].disabled = false
 		else:
 			slot_buttons[index].text = "存档 %d\n新游戏" % slot

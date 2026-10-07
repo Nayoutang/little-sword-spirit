@@ -1,0 +1,65 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="4_skin"]
+
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="unified_paper"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="unified_font"]
+[sub_resource type="Theme" id="UnifiedTheme"]
+default_font = ExtResource("unified_font")
+Label/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+RichTextLabel/colors/default_color = Color(0.12, 0.22, 0.19, 1)
+
+[node name="PromiseUI" type="CanvasLayer"]
+script = ExtResource("4_skin")
+
+[node name="TextBackdrop" type="TextureRect" parent="."]
+offset_left = 360.0
+offset_top = 130.0
+offset_right = 1560.0
+offset_bottom = 870.0
+mouse_filter = 2
+
+texture = ExtResource("unified_paper")
+expand_mode = 1
+[node name="Title" type="Label" parent="."]
+offset_left = 560.0
+offset_top = 180.0
+offset_right = 1360.0
+offset_bottom = 250.0
+theme_override_font_sizes/font_size = 40
+text = "出门前的约定"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Line" type="Label" parent="."]
+offset_left = 410.0
+offset_top = 280.0
+offset_right = 1510.0
+offset_bottom = 390.0
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 26
+text = "“喂……这次也别乱来。你准备怎么保证？”"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Choices" type="VBoxContainer" parent="."]
+offset_left = 560.0
+offset_top = 410.0
+offset_right = 1360.0
+offset_bottom = 760.0
+theme_override_constants/separation = 24
+
+[node name="Protect" type="Button" parent="Choices"]
+custom_minimum_size = Vector2(800, 90)
+layout_mode = 2
+text = "我会护好自己（每层不降至 25% HP）"
+
+[node name="Finish" type="Button" parent="Choices"]
+custom_minimum_size = Vector2(800, 90)
+layout_mode = 2
+text = "我一定走到最后（击败本层 Boss）"
+
+[node name="None" type="Button" parent="Choices"]
+custom_minimum_size = Vector2(800, 90)
+layout_mode = 2
+text = "不立约，直接出发"

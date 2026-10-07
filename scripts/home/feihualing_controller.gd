@@ -94,6 +94,11 @@ func _send_round(next_action: String, next_player_text: String, retry: bool = fa
 		closure_retries = 0
 		retry_suffix = ""
 		_prepare_intent_cue()
+		if action == "turn":
+			var immediate := game.incomplete_preflight(player_text)
+			if not immediate.is_empty():
+				_apply_outcome(immediate)
+				return
 	var prompt := game.round_request(action, player_text, {
 		"intent_hint": intent_hint,
 		"local_verdict": local_result,
@@ -164,10 +169,19 @@ func _on_request_completed(result: int, status: int, _headers: PackedStringArray
 		if line_retries == 0:
 			line_retries = 1
 			retry_suffix = "\n只输出 JSON。my_line 必须是含令字、不重复、无省略号的完整一联（上下两句）。"
+			if outcome.get("reason", "") == "partial_completion":
+				retry_suffix += "玩家只答了半联；必须补全玩家这句所属的原联，保留玩家原句作为上句或下句。comment 自然问另一半是否想不起来，prompt_next 明确这一轮归你并让玩家继续；give_up=false，不结束整局。"
 			_send_round(action, player_text, true)
 		else:
-			_send_round("concede", player_text)
+			if outcome.get("reason", "") == "partial_completion":
+				_apply_outcome(game.incomplete_fallback(player_text))
+			else:
+				_send_round("concede", player_text)
 		return
+	_apply_outcome(outcome)
+
+
+func _apply_outcome(outcome: Dictionary) -> void:
 	var speech := str(outcome.get("speech", ""))
 	if not speech.is_empty():
 		spoken.emit(speech)
@@ -217,6 +231,11 @@ func _on_bad_reply(reason: String, raw: String) -> void:
 	# 状态不推进；下一次玩家输入仍在同一轮。
 	json_retries = 0
 	retry_suffix = ""
+	if game != null and action == "turn":
+		var fallback := game.incomplete_fallback(player_text)
+		if not fallback.is_empty():
+			_apply_outcome(fallback)
+			return
 	_update_hud(true)
 
 
@@ -224,7 +243,7 @@ func _update_hud(failed: bool = false) -> void:
 	if game == null:
 		hud_changed.emit("", false)
 		return
-	var label := "令·%s ｜ 第%d轮" % [game.keyword, game.player_rounds + 1]
+	var label := "令·%s ｜ 第%d轮" % [game.keyword, game.player_rounds + game.completed_partial_rounds + 1]
 	if failed:
 		label += " ｜ 请重试"
 	hud_changed.emit(label, true)

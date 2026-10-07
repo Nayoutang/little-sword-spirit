@@ -1,0 +1,72 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="3_skin"]
+
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="unified_paper"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="unified_font"]
+[sub_resource type="Theme" id="UnifiedTheme"]
+default_font = ExtResource("unified_font")
+Label/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+RichTextLabel/colors/default_color = Color(0.12, 0.22, 0.19, 1)
+
+[node name="RewardUI" type="CanvasLayer"]
+script = ExtResource("3_skin")
+
+[node name="TextBackdrop" type="TextureRect" parent="."]
+offset_left = 340.0
+offset_top = 95.0
+offset_right = 1580.0
+offset_bottom = 840.0
+mouse_filter = 2
+
+texture = ExtResource("unified_paper")
+expand_mode = 1
+[node name="Title" type="Label" parent="."]
+offset_left = 610.0
+offset_top = 140.0
+offset_right = 1310.0
+offset_bottom = 210.0
+theme_override_font_sizes/font_size = 42
+text = "战斗胜利"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Status" type="Label" parent="."]
+offset_left = 510.0
+offset_top = 230.0
+offset_right = 1410.0
+offset_bottom = 280.0
+theme_override_font_sizes/font_size = 25
+text = "生命：90/90"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Message" type="Label" parent="."]
+offset_left = 360.0
+offset_top = 310.0
+offset_right = 1560.0
+offset_bottom = 370.0
+theme_override_font_sizes/font_size = 24
+text = "选择一张卡牌，或跳过"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="CardChoices" type="HBoxContainer" parent="."]
+offset_left = 390.0
+offset_top = 400.0
+offset_right = 1530.0
+offset_bottom = 750.0
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="Choice1" type="Button" parent="CardChoices"]
+custom_minimum_size = Vector2(260, 310)
+layout_mode = 2
+
+[node name="Choice2" type="Button" parent="CardChoices"]
+custom_minimum_size = Vector2(260, 310)
+layout_mode = 2
+
+[node name="Choice3" type="Button" parent="CardChoices"]
+custom_minimum_size = Vector2(260, 310)
+layout_mode = 2

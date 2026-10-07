@@ -1,0 +1,614 @@
+[
+  {
+    "path": "art/cards/companion/behead_loulan_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      25,
+      8,
+      487,
+      434
+    ],
+    "sha256": "d082b51a9354fdb066096f4a8351989d67724852cf279923f0672a7b4bfe1ad6"
+  },
+  {
+    "path": "art/cards/companion/clean_cut_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      488,
+      434
+    ],
+    "sha256": "ec5b5ebdef5cb6b72dd77f43039edfed7ccf2905f3abaff737722de5015bcc7a"
+  },
+  {
+    "path": "art/cards/companion/cut_water_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      503,
+      434
+    ],
+    "sha256": "53a2dec4ade56f15fc888e7425d64ccd534fd7f413c4403e192729626a33c4fc"
+  },
+  {
+    "path": "art/cards/companion/escort_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      488,
+      434
+    ],
+    "sha256": "963883515b0a383eb476079082b6f7ce91dda8c3cc98da2cfbfa6c01d3223d75"
+  },
+  {
+    "path": "art/cards/companion/few_return_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      24,
+      8,
+      488,
+      434
+    ],
+    "sha256": "959fea08d49fc29f068f8a8ff84c57970a5ea01f0fab51485b99d642cb1ee654"
+  },
+  {
+    "path": "art/cards/companion/follow_up_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      24,
+      8,
+      488,
+      434
+    ],
+    "sha256": "82de72b0901c46cbaa136cceef07cf3f27aaea72367f77e265539722526ab38e"
+  },
+  {
+    "path": "art/cards/companion/frost_cold_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      488,
+      434
+    ],
+    "sha256": "e2109e22c792b87b36b0ca53d1ea2bc2cd2609e9fd33420f2a2a2e990d1c9ba4"
+  },
+  {
+    "path": "art/cards/companion/grind_sword_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      502,
+      434
+    ],
+    "sha256": "e5ffe625aa8a629abb912c15885cb281a7b401943bafb96f3c52f9a0a601c657"
+  },
+  {
+    "path": "art/cards/companion/guard_echo_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      502,
+      434
+    ],
+    "sha256": "8967b3cc48ba798060901a94dc146c6c7ee7c1bb280c533dc5147e6a2c60feb2"
+  },
+  {
+    "path": "art/cards/companion/heart_resonance_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      24,
+      8,
+      487,
+      434
+    ],
+    "sha256": "a7108d7c72583547cb66c6385feb2edcd1336646d05beb1410373779e0e898bf"
+  },
+  {
+    "path": "art/cards/companion/lead_momentum_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      489,
+      434
+    ],
+    "sha256": "5443a2264dd929290322a03868879f648441607ca138c9aa775d5b7874b50169"
+  },
+  {
+    "path": "art/cards/companion/lone_judgment_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      43,
+      8,
+      469,
+      434
+    ],
+    "sha256": "5df0af02cdb5bf4d6aa25e0af0e9284b9a7fe2d09be77c813dad0eeebfd34ba2"
+  },
+  {
+    "path": "art/cards/companion/long_wind_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      503,
+      434
+    ],
+    "sha256": "ac2a458f8064017158f8a7f2cdebb00b6cb793ff755d094c16a03e59435ed9ce"
+  },
+  {
+    "path": "art/cards/companion/oath_guard_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      488,
+      434
+    ],
+    "sha256": "3a3007353c97875c256b52e92d702eb67dc74e4f6551bdf68787116f0ed644f6"
+  },
+  {
+    "path": "art/cards/companion/quick_slash_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      503,
+      434
+    ],
+    "sha256": "4ef7edc9720832f8e6b3c6c4c0e6ad4d1769454cff29490d7af3831e1b85fba4"
+  },
+  {
+    "path": "art/cards/companion/return_guard_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      489,
+      434
+    ],
+    "sha256": "7572d9f21ffa0681c201a94b0870383815613784ffe6bc9b46989c60810c6f03"
+  },
+  {
+    "path": "art/cards/companion/ten_steps_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      502,
+      434
+    ],
+    "sha256": "478a1a078cc4b16c1789a1251faf121fa56f0335e47b195efe78114ba654ad60"
+  },
+  {
+    "path": "art/cards/companion/yin_mountain_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      253
+    ],
+    "bbox": [
+      11,
+      8,
+      501,
+      434
+    ],
+    "sha256": "538be7289880f1297c735b349f95ecab484c26528f11159b97f093b27f9a42b2"
+  },
+  {
+    "path": "art/cards/player/03_mountain_cleave_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      489,
+      434
+    ],
+    "sha256": "04fc43fdbe58c2f340696072cfd3b81ffbceaf54259db4400dc6f9bb4b60d113"
+  },
+  {
+    "path": "art/cards/player/04_iron_gate_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      489,
+      434
+    ],
+    "sha256": "cba3cdc982f1cd8bb6073dec3e9df8f30b14a29166a6ddf79c0425f6629882e3"
+  },
+  {
+    "path": "art/cards/player/05_sweep_leaves_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      29,
+      8,
+      482,
+      434
+    ],
+    "sha256": "972c2b604b5d7d31200724cc83d0ae145526770c460b54b98b7f6a561de2a32c"
+  },
+  {
+    "path": "art/cards/player/07_inner_demon_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      503,
+      434
+    ],
+    "sha256": "90c6b3abbc054a76bbf46e9289d9c40ea4692da46cd8b080461dfc1a8ee51683"
+  },
+  {
+    "path": "art/cards/player/08_breath_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      502,
+      434
+    ],
+    "sha256": "b68cf83420578646b3f2f021349485cf27d569ca28e0f3ca448c183b5c5a7bb1"
+  },
+  {
+    "path": "art/cards/player/09_shadow_step_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      489,
+      434
+    ],
+    "sha256": "79543d964551edaabba2dc47657992a8b24a1148910d2a8ff6c397d28d746fe3"
+  },
+  {
+    "path": "art/cards/player/10_break_edge_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      502,
+      434
+    ],
+    "sha256": "4c144e1fae26fe3645a2137369d231fa7adda40564addff3996d1b74c890181d"
+  },
+  {
+    "path": "art/cards/player/11_deflect_force_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      488,
+      434
+    ],
+    "sha256": "11c0d5ee06809a0761379fb9b9ea8014a27994e561d18f36fbc109107b1e9b13"
+  },
+  {
+    "path": "art/cards/player/12_hidden_edge_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      24,
+      8,
+      487,
+      434
+    ],
+    "sha256": "7343be635c69053a9b0e57ca0483189accaaead6876be55aaed0dab7b135aafc"
+  },
+  {
+    "path": "art/cards/player/13_flowing_light_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      488,
+      434
+    ],
+    "sha256": "5f7fa5988ae3d77207cbe93c19ac8d4ca0d56255252f4c1405a776765114ff43"
+  },
+  {
+    "path": "art/cards/player/14_brilliance_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      43,
+      8,
+      469,
+      434
+    ],
+    "sha256": "1638eb8e2d1378b3254ef08323c843e19b574f15ce4d7a8394902a39fc7a9122"
+  },
+  {
+    "path": "art/cards/player/15_flowing_cloud_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      489,
+      434
+    ],
+    "sha256": "d1a5b5baeb3796df07078f0788c105396402d377c2484e5014ddb7d05b23cf66"
+  },
+  {
+    "path": "art/cards/player/16_chase_wind_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      503,
+      434
+    ],
+    "sha256": "6ddba81161c4b7fd2d87bdd17278d4013ffe1b8164c524487a4568feff9d69db"
+  },
+  {
+    "path": "art/cards/player/17_shield_strike_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      43,
+      8,
+      469,
+      434
+    ],
+    "sha256": "323679a074405f16669cb3e887febf253e128f6665a10fbad15f98e06915d5f3"
+  },
+  {
+    "path": "art/cards/player/18_retain_shield_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      23,
+      8,
+      489,
+      434
+    ],
+    "sha256": "fe86f0de81f5fb3883d1fb2c0b4bb1123f8a9180b62f422d7a0a1bccc5b01894"
+  },
+  {
+    "path": "art/cards/player/19_parry_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      24,
+      8,
+      488,
+      434
+    ],
+    "sha256": "3e7e0a04583292224a58c8fbe0125fcb366144c89ecca1b1aef91fc19b00c2e7"
+  }
+]

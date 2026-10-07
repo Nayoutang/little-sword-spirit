@@ -1,0 +1,1436 @@
+{
+  "Groups": [
+    {
+      "Group": "interval_one",
+      "Wins": 20,
+      "Deaths": 0,
+      "Cutoffs": 0,
+      "HpMin": 57,
+      "HpMedian": 79.5,
+      "HpMax": 90,
+      "MeanObservedTurns": 11.55,
+      "MeanWinningTurns": 11.55,
+      "ResolvedEnemyTurns": 211,
+      "ExecutedIncoming": 2970,
+      "NewShield": 3264.0,
+      "IncomingToNewShield": 0.9099264705882353,
+      "CompleteCycles": 99,
+      "CompleteCycleIncomingToNewShield": 0.9624108878807518,
+      "MaxStartingShield": 38.0,
+      "ThreeIncreaseGames": 1,
+      "UnderFourCycleGames": 5,
+      "StrikeHits": 77,
+      "MeanStrikesPerBattle": 3.85,
+      "MeanStrikeDamage": 33.142857142857146,
+      "MaxStrikeDamage": 80.0,
+      "MaxPotential": 96.0,
+      "HighStrikeGames": 8,
+      "HighStrikeHits": 10.0,
+      "PotentialHighHits": 17.0
+    },
+    {
+      "Group": "interval_two",
+      "Wins": 20,
+      "Deaths": 0,
+      "Cutoffs": 0,
+      "HpMin": 56,
+      "HpMedian": 76.5,
+      "HpMax": 90,
+      "MeanObservedTurns": 9.6,
+      "MeanWinningTurns": 9.6,
+      "ResolvedEnemyTurns": 172,
+      "ExecutedIncoming": 2340,
+      "NewShield": 2453.0,
+      "IncomingToNewShield": 0.9539339584182633,
+      "CompleteCycles": 78,
+      "CompleteCycleIncomingToNewShield": 1.0335689045936396,
+      "MaxStartingShield": 24.0,
+      "ThreeIncreaseGames": 0,
+      "UnderFourCycleGames": 13,
+      "StrikeHits": 114,
+      "MeanStrikesPerBattle": 5.7,
+      "MeanStrikeDamage": 25.087719298245613,
+      "MaxStrikeDamage": 64.0,
+      "MaxPotential": 64.0,
+      "HighStrikeGames": 2,
+      "HighStrikeHits": 3.0,
+      "PotentialHighHits": 4.0
+    },
+    {
+      "Group": "continuous_baseline",
+      "Wins": 9,
+      "Deaths": 1,
+      "Cutoffs": 10,
+      "HpMin": 0,
+      "HpMedian": 12.5,
+      "HpMax": 36,
+      "MeanObservedTurns": 22.2,
+      "MeanWinningTurns": 20.22222222222222,
+      "ResolvedEnemyTurns": 435,
+      "ExecutedIncoming": 10440,
+      "NewShield": 8929.0,
+      "IncomingToNewShield": 1.1692238772538919,
+      "CompleteCycles": 215,
+      "CompleteCycleIncomingToNewShield": 1.1691401382123032,
+      "MaxStartingShield": 0.0,
+      "ThreeIncreaseGames": 0,
+      "UnderFourCycleGames": 20,
+      "StrikeHits": 0,
+      "MeanStrikesPerBattle": 0,
+      "MeanStrikeDamage": null,
+      "MaxStrikeDamage": null,
+      "MaxPotential": null,
+      "HighStrikeGames": 0,
+      "HighStrikeHits": 0.0,
+      "PotentialHighHits": 0.0
+    },
+    {
+      "Group": "continuous_two",
+      "Wins": 13,
+      "Deaths": 7,
+      "Cutoffs": 0,
+      "HpMin": 0,
+      "HpMedian": 1,
+      "HpMax": 34,
+      "MeanObservedTurns": 14.55,
+      "MeanWinningTurns": 14.153846153846153,
+      "ResolvedEnemyTurns": 278,
+      "ExecutedIncoming": 6672,
+      "NewShield": 4971.0,
+      "IncomingToNewShield": 1.3421846710923355,
+      "CompleteCycles": 130,
+      "CompleteCycleIncomingToNewShield": 1.3422241342224135,
+      "MaxStartingShield": 4.0,
+      "ThreeIncreaseGames": 0,
+      "UnderFourCycleGames": 0,
+      "StrikeHits": 169,
+      "MeanStrikesPerBattle": 8.45,
+      "MeanStrikeDamage": 11.911242603550296,
+      "MaxStrikeDamage": 16.0,
+      "MaxPotential": 16.0,
+      "HighStrikeGames": 0,
+      "HighStrikeHits": 0.0,
+      "PotentialHighHits": 0.0
+    }
+  ],
+  "Boons": [
+    {
+      "Group": "interval_one",
+      "Boon": "multiply",
+      "Hits": 41,
+      "MeanShield": 26.609756097560975,
+      "MeanDamage": 46.51219512195122,
+      "MaxDamage": 80.0
+    },
+    {
+      "Group": "interval_one",
+      "Boon": "add",
+      "Hits": 30,
+      "MeanShield": 16.433333333333334,
+      "MeanDamage": 19.866666666666667,
+      "MaxDamage": 36.0
+    },
+    {
+      "Group": "interval_one",
+      "Boon": "none",
+      "Hits": 6,
+      "MeanShield": 8.166666666666666,
+      "MeanDamage": 8.166666666666666,
+      "MaxDamage": 11.0
+    },
+    {
+      "Group": "interval_two",
+      "Boon": "multiply",
+      "Hits": 54,
+      "MeanShield": 21.51851851851852,
+      "MeanDamage": 36.574074074074076,
+      "MaxDamage": 64.0
+    },
+    {
+      "Group": "interval_two",
+      "Boon": "add",
+      "Hits": 43,
+      "MeanShield": 12.976744186046512,
+      "MeanDamage": 16.41860465116279,
+      "MaxDamage": 26.0
+    },
+    {
+      "Group": "interval_two",
+      "Boon": "none",
+      "Hits": 17,
+      "MeanShield": 11.764705882352942,
+      "MeanDamage": 10.529411764705882,
+      "MaxDamage": 21.0
+    },
+    {
+      "Group": "continuous_two",
+      "Boon": "multiply",
+      "Hits": 0,
+      "MeanShield": null,
+      "MeanDamage": null,
+      "MaxDamage": null
+    },
+    {
+      "Group": "continuous_two",
+      "Boon": "add",
+      "Hits": 119,
+      "MeanShield": 9.647058823529411,
+      "MeanDamage": 13.571428571428571,
+      "MaxDamage": 16.0
+    },
+    {
+      "Group": "continuous_two",
+      "Boon": "none",
+      "Hits": 50,
+      "MeanShield": 7.96,
+      "MeanDamage": 7.96,
+      "MaxDamage": 15.0
+    }
+  ],
+  "GrowthChecks": [
+    {
+      "Group": "interval_one",
+      "Seed": 400001,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 48.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        4
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400002,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 58.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        5
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400003,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 46.0,
+      "StartShields": [
+        0,
+        5,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400004,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "HighHits": 1,
+      "PotentialHighHits": 2,
+      "MaxPotential": 76.0,
+      "StartShields": [
+        0,
+        0,
+        6,
+        4
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400005,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 1,
+      "MaxPotential": 60.0,
+      "StartShields": [
+        0,
+        0,
+        5,
+        16
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400006,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "HighHits": 2,
+      "PotentialHighHits": 2,
+      "MaxPotential": 70.0,
+      "StartShields": [
+        0,
+        6
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400007,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 42.0,
+      "StartShields": [
+        0,
+        0,
+        4,
+        0,
+        5
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400008,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 1,
+      "PotentialHighHits": 1,
+      "MaxPotential": 62.0,
+      "StartShields": [
+        0,
+        6,
+        3,
+        9,
+        7
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400009,
+      "EligibleCycles": 6,
+      "ThreeIncreases": true,
+      "HighHits": 0,
+      "PotentialHighHits": 1,
+      "MaxPotential": 68.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        5,
+        9,
+        14
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400010,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 1,
+      "PotentialHighHits": 2,
+      "MaxPotential": 96.0,
+      "StartShields": [
+        0,
+        0,
+        10,
+        10,
+        20
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400011,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 58.0,
+      "StartShields": [
+        0,
+        0,
+        10,
+        4,
+        8
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400012,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 1,
+      "PotentialHighHits": 2,
+      "MaxPotential": 78.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        11,
+        15
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400013,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 56.0,
+      "StartShields": [
+        0,
+        4
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400014,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 58.0,
+      "StartShields": [
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400015,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "HighHits": 1,
+      "PotentialHighHits": 1,
+      "MaxPotential": 88.0,
+      "StartShields": [
+        0,
+        0,
+        12
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400016,
+      "EligibleCycles": 6,
+      "ThreeIncreases": false,
+      "HighHits": 2,
+      "PotentialHighHits": 2,
+      "MaxPotential": 80.0,
+      "StartShields": [
+        0,
+        0,
+        10,
+        8,
+        11,
+        16
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400017,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "HighHits": 1,
+      "PotentialHighHits": 1,
+      "MaxPotential": 62.0,
+      "StartShields": [
+        0,
+        10,
+        9,
+        7
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400018,
+      "EligibleCycles": 7,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 1,
+      "MaxPotential": 64.0,
+      "StartShields": [
+        0,
+        0,
+        5,
+        9,
+        8,
+        18,
+        17
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400019,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 1,
+      "MaxPotential": 68.0,
+      "StartShields": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_one",
+      "Seed": 400020,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 48.0,
+      "StartShields": [
+        0,
+        4,
+        3,
+        8,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400001,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 48.0,
+      "StartShields": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400002,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 34.0,
+      "StartShields": [
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400003,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 56.0,
+      "StartShields": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400004,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "HighHits": 1,
+      "PotentialHighHits": 1,
+      "MaxPotential": 64.0,
+      "StartShields": [
+        0,
+        9,
+        8
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400005,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 54.0,
+      "StartShields": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400006,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 54.0,
+      "StartShields": [
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400007,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 46.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400008,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 56.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        6,
+        4
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400009,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 46.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400010,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 58.0,
+      "StartShields": [
+        0,
+        0,
+        5,
+        5,
+        10
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400011,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 58.0,
+      "StartShields": [
+        0,
+        0,
+        10,
+        4,
+        8
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400012,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 56.0,
+      "StartShields": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400013,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 58.0,
+      "StartShields": [
+        0,
+        4,
+        4
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400014,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 58.0,
+      "StartShields": [
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400015,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 58.0,
+      "StartShields": [
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400016,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "HighHits": 2,
+      "PotentialHighHits": 2,
+      "MaxPotential": 64.0,
+      "StartShields": [
+        0,
+        0,
+        10,
+        8
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400017,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 58.0,
+      "StartShields": [
+        0,
+        5
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400018,
+      "EligibleCycles": 6,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 44.0,
+      "StartShields": [
+        0,
+        0,
+        5,
+        4,
+        3,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400019,
+      "EligibleCycles": 2,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 1,
+      "MaxPotential": 60.0,
+      "StartShields": [
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "interval_two",
+      "Seed": 400020,
+      "EligibleCycles": 3,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 54.0,
+      "StartShields": [
+        0,
+        4,
+        3
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400001,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400002,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400003,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400004,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400005,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400006,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400007,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400008,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400009,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400010,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400011,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400012,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400013,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400014,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400015,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400016,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400017,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400018,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400019,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_baseline",
+      "Seed": 400020,
+      "EligibleCycles": 0,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": null,
+      "StartShields": [
+        null
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400001,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400002,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 15.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400003,
+      "EligibleCycles": 6,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400004,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400005,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400006,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400007,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400008,
+      "EligibleCycles": 7,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400009,
+      "EligibleCycles": 6,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400010,
+      "EligibleCycles": 9,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400011,
+      "EligibleCycles": 9,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400012,
+      "EligibleCycles": 8,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400013,
+      "EligibleCycles": 7,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400014,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400015,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400016,
+      "EligibleCycles": 7,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400017,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 15.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400018,
+      "EligibleCycles": 7,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400019,
+      "EligibleCycles": 4,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Group": "continuous_two",
+      "Seed": 400020,
+      "EligibleCycles": 5,
+      "ThreeIncreases": false,
+      "HighHits": 0,
+      "PotentialHighHits": 0,
+      "MaxPotential": 16.0,
+      "StartShields": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "IntentFrequencies": [
+    {
+      "Group": "continuous_baseline",
+      "Intent": "clean_cut",
+      "Count": 1
+    },
+    {
+      "Group": "continuous_baseline",
+      "Intent": "escort",
+      "Count": 388
+    },
+    {
+      "Group": "continuous_baseline",
+      "Intent": "follow_up",
+      "Count": 1
+    },
+    {
+      "Group": "continuous_baseline",
+      "Intent": "guard_echo",
+      "Count": 22
+    },
+    {
+      "Group": "continuous_baseline",
+      "Intent": "oath_guard",
+      "Count": 25
+    },
+    {
+      "Group": "continuous_two",
+      "Intent": "escort",
+      "Count": 224
+    },
+    {
+      "Group": "continuous_two",
+      "Intent": "follow_up",
+      "Count": 4
+    },
+    {
+      "Group": "continuous_two",
+      "Intent": "guard_echo",
+      "Count": 31
+    },
+    {
+      "Group": "continuous_two",
+      "Intent": "oath_guard",
+      "Count": 23
+    },
+    {
+      "Group": "interval_one",
+      "Intent": "escort",
+      "Count": 95
+    },
+    {
+      "Group": "interval_one",
+      "Intent": "lead_momentum",
+      "Count": 116
+    },
+    {
+      "Group": "interval_two",
+      "Intent": "clean_cut",
+      "Count": 1
+    },
+    {
+      "Group": "interval_two",
+      "Intent": "escort",
+      "Count": 78
+    },
+    {
+      "Group": "interval_two",
+      "Intent": "lead_momentum",
+      "Count": 94
+    }
+  ],
+  "MatchedOriginalGames": 20
+}

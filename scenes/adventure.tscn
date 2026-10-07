@@ -1,114 +1,93 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/map/adventure.gd" id="1"]
+[ext_resource type="PackedScene" path="res://ui/shared/comic_reader.tscn" id="2"]
 
-[ext_resource type="Script" path="res://scripts/map/adventure.gd" id="1_adventure"]
-[ext_resource type="Texture2D" path="res://art/backgrounds/adventure_path.png" id="3_path"]
-[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="4_skin"]
+[ext_resource type="Texture2D" path="res://art/ui/comic/bubble_v1.png" id="BubbleArt"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="ComicFont"]
+
+[ext_resource type="PackedScene" path="res://ui/adventure/adventure_result.tscn" id="ResultUI"]
+[sub_resource type="StyleBoxTexture" id="SpeechStyle"]
+texture = ExtResource("BubbleArt")
 
 [node name="Adventure" type="Node2D"]
-script = ExtResource("1_adventure")
-
+script = ExtResource("1")
 [node name="HTTPRequest" type="HTTPRequest" parent="."]
 timeout = 20.0
+[node name="AdventureUI" parent="." instance=ExtResource("2")]
 
-[node name="Background" type="TextureRect" parent="."]
-offset_right = 1920.0
-offset_bottom = 1080.0
-texture = ExtResource("3_path")
-expand_mode = 1
-stretch_mode = 6
+[node name="Page" parent="AdventureUI" index="1"]
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+fill_frame = true
+
+[node name="Caption" parent="AdventureUI" index="3"]
+offset_left = 60.0
+offset_top = 45.0
+offset_right = 850.0
+offset_bottom = 205.0
+theme_override_font_sizes/normal_font_size = 26
+theme_override_colors/default_color = Color(0.99, 0.97, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.07, 0.06, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/normal_font = ExtResource("ComicFont")
+
+[node name="Choices" parent="AdventureUI" index="4"]
+offset_left = 1250.0
+offset_top = 650.0
+offset_right = 1880.0
+offset_bottom = 870.0
+theme_override_constants/separation = 12
+
+[node name="First" parent="AdventureUI/Choices" index="0"]
+custom_minimum_size = Vector2(0, 64)
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("SpeechStyle")
+theme_override_styles/hover = SubResource("SpeechStyle")
+theme_override_styles/pressed = SubResource("SpeechStyle")
+theme_override_styles/hover_pressed = SubResource("SpeechStyle")
+theme_override_styles/focus = SubResource("SpeechStyle")
+theme_override_colors/font_hover_color = Color(0.01, 0.01, 0.01, 1)
+theme_override_colors/font_pressed_color = Color(0.01, 0.01, 0.01, 1)
+theme_override_colors/font_focus_color = Color(0.01, 0.01, 0.01, 1)
+theme_override_fonts/font = ExtResource("ComicFont")
+
+[node name="Second" parent="AdventureUI/Choices" index="1"]
+custom_minimum_size = Vector2(0, 64)
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("SpeechStyle")
+theme_override_styles/hover = SubResource("SpeechStyle")
+theme_override_styles/pressed = SubResource("SpeechStyle")
+theme_override_styles/hover_pressed = SubResource("SpeechStyle")
+theme_override_styles/focus = SubResource("SpeechStyle")
+theme_override_colors/font_hover_color = Color(0.01, 0.01, 0.01, 1)
+theme_override_colors/font_pressed_color = Color(0.01, 0.01, 0.01, 1)
+theme_override_colors/font_focus_color = Color(0.01, 0.01, 0.01, 1)
+theme_override_fonts/font = ExtResource("ComicFont")
+
+[node name="Speech" type="Panel" parent="AdventureUI"]
+visible = false
+offset_left = 1250.0
+offset_top = 390.0
+offset_right = 1880.0
+offset_bottom = 620.0
+theme_override_styles/panel = SubResource("SpeechStyle")
 mouse_filter = 2
 
-[node name="AdventureUI" type="CanvasLayer" parent="."]
-script = ExtResource("4_skin")
-
-[node name="StoryBackdrop" type="ColorRect" parent="AdventureUI"]
-offset_left = 220.0
-offset_top = 52.0
-offset_right = 1700.0
-offset_bottom = 470.0
-color = Color(0.025, 0.045, 0.055, 0.62)
+[node name="Text" type="RichTextLabel" parent="AdventureUI/Speech"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 80.0
+offset_top = 60.0
+offset_right = -65.0
+offset_bottom = -55.0
+theme_override_colors/default_color = Color(0.08, 0.1, 0.09, 1)
+theme_override_font_sizes/normal_font_size = 27
+theme_override_fonts/normal_font = ExtResource("ComicFont")
 mouse_filter = 2
 
-[node name="Title" type="Label" parent="AdventureUI"]
-offset_left = 300.0
-offset_top = 82.0
-offset_right = 1620.0
-offset_bottom = 142.0
-theme_override_colors/font_color = Color(0.45, 0.9, 0.84, 1)
-theme_override_font_sizes/font_size = 40
-text = "奇遇"
-horizontal_alignment = 1
+[editable path="AdventureUI"]
 
-[node name="Bond" type="Label" parent="AdventureUI"]
-offset_left = 300.0
-offset_top = 155.0
-offset_right = 1620.0
-offset_bottom = 195.0
-theme_override_font_sizes/font_size = 22
-text = "HP: 90/90　羁绊: 0/100　初遇"
-horizontal_alignment = 1
-
-[node name="Story" type="Label" parent="AdventureUI"]
-offset_left = 300.0
-offset_top = 224.0
-offset_right = 1620.0
-offset_bottom = 326.0
-theme_override_font_sizes/font_size = 25
-text = "奇遇描述"
-autowrap_mode = 2
-vertical_alignment = 1
-
-[node name="Dialogue" type="Label" parent="AdventureUI"]
-offset_left = 300.0
-offset_top = 342.0
-offset_right = 1620.0
-offset_bottom = 443.0
-theme_override_colors/font_color = Color(0.93, 0.82, 0.66, 1)
-theme_override_font_sizes/font_size = 25
-text = "小墨：……"
-autowrap_mode = 2
-vertical_alignment = 1
-
-[node name="ChoiceBackdrop" type="ColorRect" parent="AdventureUI"]
-offset_left = 305.0
-offset_top = 724.0
-offset_right = 1615.0
-offset_bottom = 1040.0
-color = Color(0.025, 0.045, 0.055, 0.58)
-mouse_filter = 2
-
-[node name="Choices" type="VBoxContainer" parent="AdventureUI"]
-offset_left = 360.0
-offset_top = 783.0
-offset_right = 1560.0
-offset_bottom = 956.0
-theme_override_constants/separation = 20
-
-[node name="Choice1" type="Button" parent="AdventureUI/Choices"]
-custom_minimum_size = Vector2(0, 76)
-layout_mode = 2
-theme_override_font_sizes/font_size = 23
-
-[node name="Choice2" type="Button" parent="AdventureUI/Choices"]
-custom_minimum_size = Vector2(0, 76)
-layout_mode = 2
-theme_override_font_sizes/font_size = 23
-
-[node name="Result" type="Label" parent="AdventureUI"]
-offset_left = 370.0
-offset_top = 740.0
-offset_right = 1550.0
-offset_bottom = 928.0
-theme_override_font_sizes/font_size = 25
-text = "结果"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
-
-[node name="Continue" type="Button" parent="AdventureUI"]
-offset_left = 760.0
-offset_top = 947.0
-offset_right = 1160.0
-offset_bottom = 1020.0
-theme_override_font_sizes/font_size = 24
-text = "继续前行"
+[node name="ResultUI" parent="." instance=ExtResource("ResultUI")]

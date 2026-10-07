@@ -1,0 +1,183 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/comic_panels.gd" id="Panels"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="ComicFont"]
+[ext_resource type="Texture2D" path="res://art/ui/comic/name_card_v1.png" id="NameArt"]
+
+
+[ext_resource type="Texture2D" path="res://art/ui/battle/button.png" id="PaintedButton"]
+
+[sub_resource type="StyleBoxTexture" id="ButtonStyle"]
+texture = ExtResource("PaintedButton")
+content_margin_left = 28.0
+content_margin_right = 28.0
+
+[sub_resource type="StyleBoxTexture" id="NamePaper"]
+texture = ExtResource("NameArt")
+
+[sub_resource type="StyleBoxEmpty" id="NameField"]
+content_margin_left = 16.0
+content_margin_right = 16.0
+
+[sub_resource type="StyleBoxEmpty" id="NameButton"]
+
+[sub_resource type="StyleBoxEmpty" id="NameHover"]
+
+[node name="ComicUI" type="CanvasLayer"]
+
+[node name="Paper" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.13, 0.16, 0.17, 1)
+mouse_filter = 2
+
+[node name="Page" type="TextureRect" parent="."]
+script = ExtResource("Panels")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 24.0
+offset_right = -40.0
+offset_bottom = -250.0
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="."]
+offset_left = 60.0
+offset_top = 820.0
+offset_right = 450.0
+offset_bottom = 860.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.94, 0.9, 0.8, 1)
+
+[node name="Caption" type="RichTextLabel" parent="."]
+mouse_filter = 2
+offset_left = 300.0
+offset_top = 870.0
+offset_right = 1500.0
+offset_bottom = 958.0
+theme_override_font_sizes/normal_font_size = 22
+scroll_active = true
+
+[node name="Choices" type="VBoxContainer" parent="."]
+visible = false
+offset_left = 300.0
+offset_top = 980.0
+offset_right = 1500.0
+offset_bottom = 1040.0
+theme_override_constants/separation = 24
+
+[node name="First" type="Button" parent="Choices"]
+custom_minimum_size = Vector2(588, 60)
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.14, 0.18, 0.19, 1)
+theme_override_styles/normal = SubResource("ButtonStyle")
+
+[node name="Second" type="Button" parent="Choices"]
+custom_minimum_size = Vector2(588, 60)
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.14, 0.18, 0.19, 1)
+theme_override_styles/normal = SubResource("ButtonStyle")
+
+[node name="NameRow" type="Control" parent="."]
+visible = false
+z_index = 10
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = -445.0
+offset_top = 130.0
+offset_right = 445.0
+offset_bottom = 265.0
+mouse_filter = 2
+
+[node name="Paper" type="TextureRect" parent="NameRow"]
+layout_mode = 1
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 922.0
+offset_bottom = 258.0
+mouse_filter = 2
+texture = ExtResource("NameArt")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="NameRow"]
+layout_mode = 1
+offset_right = 890.0
+offset_left = 30.0
+offset_top = 50.0
+offset_bottom = 110.0
+text = "你呢？我该怎么叫你？"
+theme_override_fonts/font = ExtResource("ComicFont")
+theme_override_colors/font_color = Color(0.15, 0.23, 0.21, 1)
+theme_override_font_sizes/font_size = 32
+
+[node name="NameInput" type="LineEdit" parent="NameRow"]
+layout_mode = 1
+offset_top = 128.0
+offset_left = 30.0
+offset_right = 650.0
+offset_bottom = 176.0
+placeholder_text = "写下你的名字"
+max_length = 12
+theme_override_fonts/font = ExtResource("ComicFont")
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.01, 0.01, 0.01, 1)
+theme_override_colors/font_outline_color = Color(0.01, 0.01, 0.01, 1)
+theme_override_constants/outline_size = 1
+theme_override_colors/font_placeholder_color = Color(0.42, 0.45, 0.37, 0.8)
+theme_override_colors/caret_color = Color(0.15, 0.3, 0.25, 1)
+theme_override_styles/normal = SubResource("NameField")
+theme_override_styles/focus = SubResource("NameField")
+
+[node name="Confirm" type="Button" parent="NameRow"]
+layout_mode = 1
+offset_left = 680.0
+offset_top = 128.0
+offset_right = 870.0
+offset_bottom = 176.0
+text = "告诉小墨"
+theme_override_fonts/font = ExtResource("ComicFont")
+theme_override_font_sizes/font_size = 27
+theme_override_colors/font_color = Color(0.99, 0.96, 0.86, 1)
+theme_override_styles/normal = SubResource("NameButton")
+theme_override_styles/hover = SubResource("NameHover")
+theme_override_styles/pressed = SubResource("NameHover")
+theme_override_styles/focus = SubResource("NameHover")
+
+[node name="Previous" type="Button" parent="."]
+offset_left = 60.0
+offset_top = 975.0
+offset_right = 230.0
+offset_bottom = 1035.0
+text = "上一页"
+theme_override_font_sizes/font_size = 22
+
+[node name="Next" type="Button" parent="."]
+offset_left = 1570.0
+offset_top = 975.0
+offset_right = 1860.0
+offset_bottom = 1035.0
+text = "继续"
+theme_override_font_sizes/font_size = 24
+
+[node name="Progress" type="Label" parent="."]
+offset_left = 1570.0
+offset_top = 915.0
+offset_right = 1860.0
+offset_bottom = 955.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+
+[node name="Skip" type="Button" parent="."]
+offset_left = 1720.0
+offset_top = 24.0
+offset_right = 1860.0
+offset_bottom = 72.0
+text = "跳过"
+theme_override_font_sizes/font_size = 20

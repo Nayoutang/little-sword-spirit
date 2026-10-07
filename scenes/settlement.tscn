@@ -1,8 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/settlement.gd" id="1_settlement"]
 [ext_resource type="Texture2D" path="res://art/backgrounds/battle_arena.png" id="2_arena"]
-[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="3_skin"]
+[ext_resource type="PackedScene" path="res://ui/settlement/settlement_ui.tscn" id="ui_SettlementUI"]
 
 [node name="Settlement" type="Node2D"]
 script = ExtResource("1_settlement")
@@ -15,66 +15,4 @@ expand_mode = 1
 stretch_mode = 6
 mouse_filter = 2
 
-[node name="SettlementUI" type="CanvasLayer" parent="."]
-script = ExtResource("3_skin")
-
-[node name="TextBackdrop" type="ColorRect" parent="SettlementUI"]
-offset_left = 350.0
-offset_top = 125.0
-offset_right = 1570.0
-offset_bottom = 880.0
-color = Color(0.025, 0.045, 0.055, 0.86)
-mouse_filter = 2
-
-[node name="Title" type="Label" parent="SettlementUI"]
-offset_left = 610.0
-offset_top = 170.0
-offset_right = 1310.0
-offset_bottom = 235.0
-theme_override_font_sizes/font_size = 40
-text = "战后结算"
-horizontal_alignment = 1
-
-[node name="RunResult" type="Label" parent="SettlementUI"]
-offset_left = 660.0
-offset_top = 270.0
-offset_right = 1260.0
-offset_bottom = 325.0
-theme_override_font_sizes/font_size = 30
-text = "远征结束"
-horizontal_alignment = 1
-
-[node name="Result" type="Label" parent="SettlementUI"]
-offset_left = 560.0
-offset_top = 370.0
-offset_right = 1360.0
-offset_bottom = 430.0
-theme_override_font_sizes/font_size = 32
-text = "约定结算"
-horizontal_alignment = 1
-
-[node name="Reaction" type="Label" parent="SettlementUI"]
-offset_left = 410.0
-offset_top = 465.0
-offset_right = 1510.0
-offset_bottom = 600.0
-theme_override_font_sizes/font_size = 25
-text = "羁绊变化"
-horizontal_alignment = 1
-
-[node name="Bond" type="Label" parent="SettlementUI"]
-offset_left = 610.0
-offset_top = 615.0
-offset_right = 1310.0
-offset_bottom = 670.0
-theme_override_font_sizes/font_size = 26
-text = "当前羁绊：0/100　初遇"
-horizontal_alignment = 1
-
-[node name="HomeButton" type="Button" parent="SettlementUI"]
-offset_left = 760.0
-offset_top = 750.0
-offset_right = 1160.0
-offset_bottom = 830.0
-theme_override_font_sizes/font_size = 24
-text = "返回 Home"
+[node name="SettlementUI" parent="." instance=ExtResource("ui_SettlementUI")]

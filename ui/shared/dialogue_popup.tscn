@@ -1,0 +1,42 @@
+[gd_scene format=3]
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="paper"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="font"]
+[ext_resource type="Texture2D" path="res://art/ui/battle/button.png" id="button"]
+[sub_resource type="StyleBoxTexture" id="Paper"]
+texture = ExtResource("paper")
+[sub_resource type="StyleBoxTexture" id="Button"]
+texture = ExtResource("button")
+[sub_resource type="Theme" id="Theme"]
+default_font = ExtResource("font")
+default_font_size = 24
+Label/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+RichTextLabel/colors/default_color = Color(0.12, 0.22, 0.19, 1)
+Button/styles/normal = SubResource("Button")
+Button/styles/hover = SubResource("Button")
+Button/styles/pressed = SubResource("Button")
+[node name="DialoguePopup" type="PopupPanel"]
+theme = SubResource("Theme")
+theme_override_styles/panel = SubResource("Paper")
+[node name="Margin" type="MarginContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 45.0
+offset_top = 30.0
+offset_right = -45.0
+offset_bottom = -30.0
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+[node name="Title" type="Label" parent="Margin/Column"]
+layout_mode = 2
+text = "小墨 · 战局对话"
+horizontal_alignment = 1
+[node name="Reply" type="RichTextLabel" parent="Margin/Column"]
+layout_mode = 2
+custom_minimum_size = Vector2(600, 180)
+size_flags_vertical = 3
+[node name="Close" type="Button" parent="Margin/Column"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 55)
+size_flags_horizontal = 4
+text = "收起"

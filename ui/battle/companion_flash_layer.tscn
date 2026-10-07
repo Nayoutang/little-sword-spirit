@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[node name="CompanionFlashLayer" type="CanvasLayer"]
+layer = 2
+
+[node name="CompanionFlash" type="TextureRect" parent="."]
+visible = false
+anchor_right = 0.5
+anchor_top = 0.1
+anchor_bottom = 0.9
+offset_left = 24.0
+offset_right = -24.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+flip_h = true

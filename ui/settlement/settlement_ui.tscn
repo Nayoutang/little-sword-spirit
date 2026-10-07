@@ -1,0 +1,81 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="3_skin"]
+
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="unified_paper"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="unified_font"]
+[sub_resource type="Theme" id="UnifiedTheme"]
+default_font = ExtResource("unified_font")
+Label/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+RichTextLabel/colors/default_color = Color(0.12, 0.22, 0.19, 1)
+
+[node name="SettlementUI" type="CanvasLayer"]
+script = ExtResource("3_skin")
+
+[node name="TextBackdrop" type="TextureRect" parent="."]
+offset_left = 350.0
+offset_top = 125.0
+offset_right = 1570.0
+offset_bottom = 880.0
+mouse_filter = 2
+
+texture = ExtResource("unified_paper")
+expand_mode = 1
+[node name="Title" type="Label" parent="."]
+offset_left = 610.0
+offset_top = 170.0
+offset_right = 1310.0
+offset_bottom = 235.0
+theme_override_font_sizes/font_size = 40
+text = "战后结算"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="RunResult" type="Label" parent="."]
+offset_left = 660.0
+offset_top = 270.0
+offset_right = 1260.0
+offset_bottom = 325.0
+theme_override_font_sizes/font_size = 30
+text = "远征结束"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Result" type="Label" parent="."]
+offset_left = 560.0
+offset_top = 370.0
+offset_right = 1360.0
+offset_bottom = 430.0
+theme_override_font_sizes/font_size = 32
+text = "约定结算"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Reaction" type="Label" parent="."]
+offset_left = 410.0
+offset_top = 465.0
+offset_right = 1510.0
+offset_bottom = 600.0
+theme_override_font_sizes/font_size = 25
+text = "羁绊变化"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Bond" type="Label" parent="."]
+visible = false
+offset_left = 610.0
+offset_top = 615.0
+offset_right = 1310.0
+offset_bottom = 670.0
+theme_override_font_sizes/font_size = 26
+text = "当前羁绊：0/100　初遇"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="HomeButton" type="Button" parent="."]
+offset_left = 760.0
+offset_top = 750.0
+offset_right = 1160.0
+offset_bottom = 830.0
+theme_override_font_sizes/font_size = 24
+text = "归家"

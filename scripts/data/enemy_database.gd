@@ -1,5 +1,8 @@
 extends Node
 
+# 仅用于随机消耗差分检查，不改变抽样。
+var role_random_calls := 0
+
 # 敌人基础数值与行动权重。战斗脚本只负责使用这些配置。
 const NORMAL := {
 	"count_min": 2,
@@ -56,6 +59,7 @@ func get_encounter_roles(layer: int, count: int, elite: bool) -> Array[String]:
 			result.append(role)
 	else:
 		var pairs := [[SWORDSMAN, GUARDIAN], [GUARDIAN, HEXER], [SWORDSMAN, HEXER]]
+		role_random_calls += 1
 		var pair: Array = pairs[randi_range(0, pairs.size() - 1)]
 		for index in range(count):
 			result.append(pair[index % pair.size()])

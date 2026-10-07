@@ -9,6 +9,9 @@ var energy := 3
 var max_energy := 3
 var shield := 0
 var combo := 0
+var attack_chain := 0
+var cloud_active := false
+var cloud_triggered := false
 var boon := ""
 var hit_flash := 0.0:
 	set(value):
@@ -16,7 +19,7 @@ var hit_flash := 0.0:
 		queue_redraw()
 var flash_tween: Tween
 
-const BOXES := [Rect2(0, 0, 280, 88), Rect2(292, 0, 220, 88), Rect2(524, 0, 200, 88), Rect2(736, 0, 220, 88)]
+const BOXES := [Rect2(45, 0, 235, 88), Rect2(292, 0, 220, 88), Rect2(524, 0, 200, 88), Rect2(736, 0, 220, 88)]
 const ACCENTS := [Color("#e89584"), Color("#9ed8ce"), Color("#74c7bd"), Color("#e6c17e")]
 
 func update_values(health: int, health_max: int, points: int, points_max: int, guard: int, chain: int, next_boon: String) -> void:
@@ -43,7 +46,13 @@ func _get_tooltip(at: Vector2) -> String:
 		return "精力：%d，基础上限%d。出牌消耗，新回合恢复；长风可额外增加。" % [energy, max_energy]
 	if BOXES[2].has_point(at):
 		return "护盾：%d。先吸收本轮敌人总伤害，敌方回合结算后清空剩余护盾。" % shield
-	return "连击：%d。普通攻击每层增加2伤害；部分牌会清空，留势可跨回合保留。" % combo
+	return "连击层数：%d，每层攻击+2。连续攻击：%d，非攻击手牌清零；特殊技保持但不增加。行云：%s。" % [combo, attack_chain, "本轮已触发" if cloud_triggered else ("生效" if cloud_active else "未生效")]
+
+func update_attack_chain(count: int, active: bool, triggered: bool) -> void:
+	attack_chain = count
+	cloud_active = active
+	cloud_triggered = triggered
+	queue_redraw()
 
 func _draw() -> void:
 	var font := ThemeDB.fallback_font
@@ -62,7 +71,7 @@ func _draw() -> void:
 		draw_string(font, rect.position + Vector2(20, 35), titles[index], HORIZONTAL_ALIGNMENT_LEFT, -1, 18, ACCENTS[index])
 		draw_string(font, rect.position + Vector2(78, 36), values[index], HORIZONTAL_ALIGNMENT_LEFT, -1, 25, Color("#fff4dd"))
 		if index == 0:
-			var bar := Rect2(20, 48, 240, 7)
+			var bar := Rect2(65, 48, 190, 7)
 			draw_rect(bar, Color("#3c2526"))
 			bar.size.x *= clampf(float(hp) / maxf(max_hp, 1), 0, 1)
 			draw_rect(bar, ACCENTS[0].lerp(Color.WHITE, hit_flash))
@@ -72,6 +81,6 @@ func _draw() -> void:
 		elif index == 2:
 			draw_string(font, rect.position + Vector2(20, 56), "敌方回合末清空", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ACCENTS[index])
 		else:
-			draw_string(font, rect.position + Vector2(20, 56), "每层攻击 +2", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ACCENTS[index])
+			draw_string(font, rect.position + Vector2(20, 56), "连续攻击 %d%s" % [attack_chain, " · 云✓" if cloud_triggered else (" · 云" if cloud_active else "")], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ACCENTS[index])
 	if not boon.is_empty():
 		draw_string(font, Vector2(20, 104), boon.strip_edges(), HORIZONTAL_ALIGNMENT_LEFT, 916, 18, Color("#f8e4bd"))

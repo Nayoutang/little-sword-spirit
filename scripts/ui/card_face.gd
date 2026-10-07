@@ -1,12 +1,8 @@
 extends Control
 
 const FRAME_ART = preload("res://art/ui/battle/frame.png")
-const FACE_ART = {
-	"thrust": preload("res://art/ui/battle/thrust.png"),
-	"guard": preload("res://art/ui/battle/guard.png"),
-	"gather": preload("res://art/ui/battle/gather.png"),
-	"waves": preload("res://art/ui/battle/waves.png"),
-}
+const Art = preload("res://scripts/ui/card_art_catalog.gd")
+const FONT = preload("res://ui/shared/comic_font.tres")
 
 const CompanionCards = preload("res://scripts/data/companion_card_database.gd")
 
@@ -14,6 +10,7 @@ const PLAYER_MOTIFS := {
 	0: "slash", 1: "shield", 2: "eye", 3: "cleave", 4: "gate",
 	5: "leaves", 6: "waves", 7: "curse", 8: "breath", 9: "shadow",
 	10: "break", 11: "deflect", 12: "sheath", 13: "beam", 14: "lotus",
+	15: "wind", 16: "slash", 17: "shield", 18: "gate", 19: "deflect",
 }
 const COMPANION_MOTIFS := {
 	"quick_slash": "slash", "guard_echo": "echo", "follow_up": "crossed",
@@ -25,16 +22,19 @@ const COMPANION_MOTIFS := {
 }
 
 var player_card_id := -1
+var effective_cost := -1
 var companion_card_id := ""
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	resized.connect(queue_redraw)
 
 
 func set_player_card(card_id: int) -> void:
 	player_card_id = card_id
+	effective_cost = -1
 	companion_card_id = ""
 	queue_redraw()
 
@@ -43,6 +43,12 @@ func set_companion_card(card_id: String) -> void:
 	companion_card_id = card_id
 	player_card_id = -1
 	queue_redraw()
+
+
+func set_effective_cost(value: int) -> void:
+	if effective_cost != value:
+		effective_cost = value
+		queue_redraw()
 
 
 func _draw() -> void:
@@ -68,11 +74,12 @@ func _card_info() -> Dictionary:
 		match card_type:
 			"防御": accent = Color("#74c7bd")
 			"技巧": accent = Color("#d9c47f")
+			"能力": accent = Color("#d9c47f")
 			"诅咒": accent = Color("#ac83bd")
 			"特殊技": accent = Color("#75d8df")
 			"终极技": accent = Color("#f1bc75")
 		var stats := _player_stats(player_card_id, definition)
-		return {"name": str(definition["name"]), "cost": str(definition["cost"]),
+		return {"name": str(definition["name"]), "cost": str(effective_cost if effective_cost >= 0 else definition["cost"]),
 			"type": card_type, "accent": accent, "motif": PLAYER_MOTIFS.get(player_card_id, "slash"),
 			"primary": stats[0], "secondary": stats[1]}
 	var definition := CompanionCards.get_definition(companion_card_id)
@@ -93,6 +100,11 @@ func _card_info() -> Dictionary:
 
 func _player_stats(card_id: int, definition: Dictionary) -> Array[String]:
 	match card_id:
+		CardDatabase.PARRY: return ["格挡5·反击4伤至多2次", "清空连击·反击积势至下回合"]
+		CardDatabase.RETAIN_SHIELD: return ["剩余护盾跨回合保留", "能力·包括小墨护盾"]
+		CardDatabase.SHIELD_STRIKE: return ["当前护盾100%伤害", "不耗盾·连击+1·不吃连击加伤"]
+		CardDatabase.FLOWING_CLOUD: return ["三连攻：抽1 / 精力+1", "能力·每回合一次"]
+		CardDatabase.CHASE_WIND: return ["基础伤害 %d" % int(definition["damage"]), "连续攻击减费·连击+1"]
 		CardDatabase.STATUS: return ["抽牌 1", "连击清零"]
 		CardDatabase.CURSE: return ["无法打出", "占据手牌"]
 		CardDatabase.TUNE_BREATH: return ["抽牌 1", "每回合限 1 次"]
@@ -115,10 +127,10 @@ func _companion_stats(card_id: String, definition: Dictionary) -> Array[String]:
 		CompanionCards.LEAD_MOMENTUM: return ["下次攻击 ×2", "让给玩家"]
 		CompanionCards.ESCORT: return ["格挡 6", "下次攻击 +4"]
 		CompanionCards.FROST_COLD: return ["全体伤害 5", "敌攻 -2"]
-		CompanionCards.GRIND_SWORD: return ["伤害 6+回合×3", "对低血敌人"]
-		CompanionCards.CUT_WATER: return ["保留连击", "下次防御/状态"]
+		CompanionCards.GRIND_SWORD: return ["本回合不造成伤害", "连击保留到下回合"]
+		CompanionCards.CUT_WATER: return ["下回合首次防御/状态", "不清空连击层数"]
 		CompanionCards.LONG_WIND: return ["下回合精力 +1", "让给玩家"]
-		CompanionCards.YIN_MOUNTAIN: return ["挡一次攻击", "最高攻击敌人"]
+		CompanionCards.YIN_MOUNTAIN: return ["拦下一个敌人的全部攻击段", "按修正后总伤害选敌"]
 		CompanionCards.FEW_RETURN: return ["格挡 5 / 16", "低血时取 16"]
 		CompanionCards.OATH_GUARD: return ["格挡 10", "守约时 +3"]
 		CompanionCards.HEART_RESONANCE: return ["伤害 12+连击×3", "保留连击"]
@@ -135,21 +147,32 @@ func _companion_stats(card_id: String, definition: Dictionary) -> Array[String]:
 
 
 func _draw_full(info: Dictionary) -> void:
-	var font := get_theme_default_font()
+	var font := FONT
 	draw_texture_rect(FRAME_ART, Rect2(0, 0, 200, 280), false)
-	var image_name := "thrust"
-	match str(info["motif"]):
-		"shield", "gate", "deflect", "sheath", "echo", "oath", "return", "escort", "banner", "yin": image_name = "guard"
-		"eye", "breath", "shadow", "lotus", "resonance", "wind", "grind": image_name = "gather"
-		"waves", "water_cut", "leaves", "frost": image_name = "waves"
-	draw_texture_rect(FACE_ART[image_name], Rect2(12, 12, 176, 152), false)
+	_draw_cover(Rect2(12, 12, 176, 152))
 	draw_circle(Vector2(25, 25), 20, Color("#163f3c"))
 	draw_arc(Vector2(25, 25), 20, 0, TAU, 36, Color("#c9a569"), 2, true)
 	draw_string(font, Vector2(6, 33), str(info["cost"]), HORIZONTAL_ALIGNMENT_CENTER, 38, 24, Color("#fff6e6"))
 	draw_string(font, Vector2(13, 190), str(info["name"]), HORIZONTAL_ALIGNMENT_CENTER, 174, 23, Color("#182826"))
-	draw_string(font, Vector2(15, 221), str(info["primary"]), HORIZONTAL_ALIGNMENT_CENTER, 170, 17, Color("#223531"))
-	draw_string(font, Vector2(15, 244), str(info["secondary"]), HORIZONTAL_ALIGNMENT_CENTER, 170, 15, Color("#304941"))
+	_draw_fitted_text(str(info["primary"]), Vector2(15, 221), 170, 17, Color("#223531"))
+	_draw_fitted_text(str(info["secondary"]), Vector2(15, 244), 170, 15, Color("#304941"))
 	draw_string(font, Vector2(15, 265), str(info["type"]), HORIZONTAL_ALIGNMENT_CENTER, 170, 11, Color("#665433"))
+
+
+func _draw_cover(rect: Rect2) -> void:
+	var cover := Art.texture_for(player_card_id, companion_card_id)
+	if cover == null:
+		return
+	var factor := minf(rect.size.x / cover.get_width(), rect.size.y / cover.get_height())
+	var cover_size := cover.get_size() * factor
+	draw_texture_rect(cover, Rect2(rect.position + (rect.size - cover_size) * 0.5, cover_size), false)
+
+
+func _draw_fitted_text(value: String, origin: Vector2, width: float, preferred_size: int, color: Color) -> void:
+	var font_size := preferred_size
+	while font_size > 10 and FONT.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > width:
+		font_size -= 1
+	draw_string(FONT, origin, value, HORIZONTAL_ALIGNMENT_CENTER, width, font_size, color)
 
 
 func _short_stat(value: String) -> String:
@@ -178,13 +201,13 @@ func _draw_stat_icon(value: String, accent: Color) -> void:
 
 func _draw_compact(info: Dictionary) -> void:
 	var accent: Color = info["accent"]
-	var font := get_theme_default_font()
+	var font := FONT
 	draw_rect(Rect2(0, 0, 300, 76), Color("#152427"))
 	draw_rect(Rect2(2, 2, 296, 72), accent, false, 2.0)
 	draw_circle(Vector2(27, 29), 20, accent.darkened(0.45))
 	draw_arc(Vector2(27, 29), 20, 0, TAU, 28, accent, 2.0)
 	draw_string(font, Vector2(7, 38), str(info["cost"]), HORIZONTAL_ALIGNMENT_CENTER, 40, 24, Color("#fff7e5"))
-	_draw_motif(str(info["motif"]), accent, Vector2(78, 38), 0.45)
+	_draw_cover(Rect2(51, 6, 60, 64))
 	draw_string(font, Vector2(112, 30), str(info["name"]), HORIZONTAL_ALIGNMENT_LEFT, 178, 20, Color("#fff4dd"))
 	draw_string(font, Vector2(112, 56), str(info["primary"]), HORIZONTAL_ALIGNMENT_LEFT, 178, 16, accent.lightened(0.3))
 

@@ -1,9 +1,9 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/map/promise.gd" id="1_promise"]
 [ext_resource type="Texture2D" path="res://art/backgrounds/home_room.png" id="2_room"]
 [ext_resource type="Texture2D" path="res://art/character/sword_spirit_dialogue_portrait.png" id="3_portrait"]
-[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="4_skin"]
+[ext_resource type="PackedScene" path="res://ui/promise/promise_ui.tscn" id="ui_PromiseUI"]
 
 [node name="Promise" type="Node2D"]
 script = ExtResource("1_promise")
@@ -24,53 +24,4 @@ expand_mode = 1
 stretch_mode = 6
 mouse_filter = 2
 
-[node name="PromiseUI" type="CanvasLayer" parent="."]
-script = ExtResource("4_skin")
-
-[node name="TextBackdrop" type="ColorRect" parent="PromiseUI"]
-offset_left = 360.0
-offset_top = 130.0
-offset_right = 1560.0
-offset_bottom = 870.0
-color = Color(0.025, 0.045, 0.055, 0.86)
-mouse_filter = 2
-
-[node name="Title" type="Label" parent="PromiseUI"]
-offset_left = 560.0
-offset_top = 180.0
-offset_right = 1360.0
-offset_bottom = 250.0
-theme_override_font_sizes/font_size = 40
-text = "出门前的约定"
-horizontal_alignment = 1
-
-[node name="Line" type="Label" parent="PromiseUI"]
-offset_left = 410.0
-offset_top = 280.0
-offset_right = 1510.0
-offset_bottom = 345.0
-theme_override_font_sizes/font_size = 26
-text = "“喂……这次也别乱来。你准备怎么保证？”"
-horizontal_alignment = 1
-
-[node name="Choices" type="VBoxContainer" parent="PromiseUI"]
-offset_left = 560.0
-offset_top = 410.0
-offset_right = 1360.0
-offset_bottom = 760.0
-theme_override_constants/separation = 24
-
-[node name="Protect" type="Button" parent="PromiseUI/Choices"]
-custom_minimum_size = Vector2(800, 90)
-layout_mode = 2
-text = "我会护好自己（每层不降至 25% HP）"
-
-[node name="Finish" type="Button" parent="PromiseUI/Choices"]
-custom_minimum_size = Vector2(800, 90)
-layout_mode = 2
-text = "我一定走到最后（击败本层 Boss）"
-
-[node name="None" type="Button" parent="PromiseUI/Choices"]
-custom_minimum_size = Vector2(800, 90)
-layout_mode = 2
-text = "不立约，直接出发"
+[node name="PromiseUI" parent="." instance=ExtResource("ui_PromiseUI")]

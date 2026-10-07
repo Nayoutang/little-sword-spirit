@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/brilliance_cut_in.gd" id="2_ink"]
+[node name="InkEventLayer" type="CanvasLayer" unique_id=2050551936]
+layer = 3
+
+[node name="InkEvent" type="Control" parent="." unique_id=1373369767]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_ink")

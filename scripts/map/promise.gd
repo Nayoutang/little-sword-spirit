@@ -35,8 +35,6 @@ func _ready() -> void:
 		return
 	var promise_type := str(concern.get("promise", "protect"))
 	title_label.text = "出门前"
-	line_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	line_label.offset_bottom = line_label.offset_top + 110.0
 	line_label.text = "小墨拉住了你的衣袖。"
 	sincere_button.text = "认真答应她\n%s" % RULE_TEXT.get(promise_type, "")
 	perfunctory_button.text = "随口应付一句"

@@ -113,7 +113,7 @@ const INTENT_DEFINITIONS := {
 		"damage": 5, "weaken": 2,
 		"poem": "满堂花醉三千客，一剑霜寒十四州", "source": "贯休《献钱尚父》", "trigger": "一剑霜寒十四州",
 		"hint": "这句写一剑之寒压住十四州。",
-		"description": "对全体敌人各造成5点伤害，并令它们本回合的攻击 -2。",
+		"description": "对全体敌人各造成5点伤害，并令它们本回合每段攻击伤害 -2。",
 	},
 	TEN_STEPS: {
 		"name": "十步", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,
@@ -153,7 +153,7 @@ const INTENT_DEFINITIONS := {
 		"name": "阴山", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,
 		"poem": "但使龙城飞将在，不教胡马度阴山", "source": "王昌龄《出塞·其一》", "trigger": "不教胡马度阴山",
 		"hint": "这句写只要有人守着，就不让敌骑越过阴山。",
-		"description": "挡下本回合攻击最高的那一个敌人的攻击。",
+		"description": "比较修正后的本回合总攻击伤害，挡下最高敌人的全部攻击段。",
 	},
 	FEW_RETURN: {
 		"name": "几人回", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,

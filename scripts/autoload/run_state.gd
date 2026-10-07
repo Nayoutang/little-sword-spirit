@@ -5,6 +5,7 @@ enum EventType { TREASURE, UNKNOWN }
 enum CardType {
 	ATTACK, DEFENSE, STATUS, HEAVY_ATTACK, HEAVY_DEFENSE, SWEEP, COMBO_BOOST, CURSE,
 	TUNE_BREATH, SHADOW_STEP, BREAK_EDGE, UNLOAD_FORCE, HIDE_EDGE,
+	FLOWING_CLOUD = 15, CHASE_WIND = 16, SHIELD_STRIKE = 17, RETAIN_SHIELD = 18, PARRY = 19,
 }
 
 const LEGACY_SAVE_PATH := "user://relationship_save.cfg"
@@ -57,6 +58,8 @@ var pending_concern: Dictionary = {}
 var promise_sincere := true
 var run_min_hp := 0
 # 初遇剧情：玩家名字与是否已经播过。
+var finale_state := "locked"
+var finale_mode := "arrival"
 var player_name := ""
 var intro_done := false
 # 防止台词重复：跨场景记住她最近说过的话；每次说话随机给一点此刻的心情。
@@ -140,7 +143,7 @@ func add_bond(amount: int) -> void:
 	if amount <= 0:
 		return
 	bond_value = clampi(bond_value + amount, BOND_MIN, BOND_MAX)
-	_check_bond_milestone()
+	_advance_bond_stage()
 	_save_relationship()
 
 
@@ -152,31 +155,10 @@ func get_bond_stage_name() -> String:
 	return BOND_STAGE_NAMES[get_bond_stage_index()]
 
 
-func has_pending_bond_milestone() -> bool:
-	return pending_bond_stage > bond_stage
-
-
-func get_pending_bond_stage_name() -> String:
-	if not has_pending_bond_milestone():
-		return get_bond_stage_name()
-	return BOND_STAGE_NAMES[pending_bond_stage]
-
-
-func resolve_bond_milestone(success: bool) -> void:
-	if not has_pending_bond_milestone():
-		return
-	if success:
-		bond_stage = pending_bond_stage
+func _advance_bond_stage() -> void:
+	# 经历积累后自然推进；阶段用于语气与配合，不再等待答题确认。
+	bond_stage = maxi(bond_stage, _stage_index_for_value(bond_value))
 	pending_bond_stage = -1
-	_save_relationship()
-
-
-func _check_bond_milestone() -> void:
-	if has_pending_bond_milestone():
-		return
-	var next_stage := bond_stage + 1
-	if next_stage < BOND_STAGE_THRESHOLDS.size() and bond_value >= BOND_STAGE_THRESHOLDS[next_stage]:
-		pending_bond_stage = next_stage
 
 
 func select_save_slot(slot: int) -> void:
@@ -202,6 +184,7 @@ func get_save_slot_summary(slot: int) -> Dictionary:
 		0,
 		BOND_STAGE_NAMES.size() - 1
 	)
+	saved_stage = maxi(saved_stage, _stage_index_for_value(saved_bond))
 	return {
 		"exists": true,
 		"bond": saved_bond,
@@ -326,13 +309,13 @@ func complete_intro(name: String, summary: String) -> void:
 func _stage_prompt() -> String:
 	match get_bond_stage_index():
 		0:
-			return "当前关系阶段：初遇。她认生、设防、嘴硬，不轻易承认关心玩家。"
+			return "当前关系阶段：初遇。她认生、设防，愿意回应眼前的话，但不会假装早已熟悉。关心多通过提醒和实际的事表达，不主动追问私事。"
 		1:
-			return "当前关系阶段：相识。她愿意搭理玩家，仍爱逞强，但偶尔会露出在意。"
+			return "当前关系阶段：相识。她开始习惯与玩家相处，偶尔主动接着以前的话题说，或自然提起记录里的一件共同经历；仍有自己的脾气，不必每次都强调关心。"
 		2:
-			return "当前关系阶段：交心。她明显信任玩家，嘴硬之后常会很快流露真心。"
+			return "当前关系阶段：交心。她信任玩家，愿意说眼前真实的烦恼、请他一起想办法，也可以自然邀他对诗。能安心地换话题或安静相处，不要求玩家表态证明信任。"
 		_:
-			return "当前关系阶段：生死之交。她非常信任和珍视玩家，仍保留嘴硬习惯，但不会掩饰关键时刻的关心。"
+			return "当前关系阶段：生死之交。她把并肩相处当成自然的日常，关键时刻会直接关心，也保留独立意见。亲近体现在熟悉和默契里，不用反复确认承诺；不得编造记录里没有的习惯或往事。"
 
 
 func get_relationship_archive() -> String:
@@ -646,6 +629,7 @@ func _save_relationship() -> void:
 	if suppress_persistence:
 		return
 	var config := ConfigFile.new()
+	config.set_value("relationship", "version", 2)
 	config.set_value("relationship", "bond_value", bond_value)
 	config.set_value("relationship", "bond_stage", bond_stage)
 	config.set_value("relationship", "pending_bond_stage", pending_bond_stage)
@@ -654,6 +638,8 @@ func _save_relationship() -> void:
 	config.set_value("progress", "pending_concern", pending_concern)
 	config.set_value("progress", "intro_done", intro_done)
 	config.set_value("profile", "player_name", player_name)
+	config.set_value("finale", "state", finale_state)
+	config.set_value("finale", "mode", finale_mode)
 	config.set_value("memory", "recent_lines", recent_lines)
 	config.set_value("memory", "sword_intents", learned_sword_intents)
 	config.set_value("memory", "cooperation", relationship_facts.get("cooperation", {}))
@@ -701,15 +687,14 @@ func _load_relationship() -> void:
 		0,
 		BOND_STAGE_NAMES.size() - 1
 	)
-	pending_bond_stage = clampi(
-		int(config.get_value("relationship", "pending_bond_stage", -1)),
-		-1,
-		BOND_STAGE_NAMES.size() - 1
-	)
+	# 旧档达到阈值但未通过突破选择，也按已发生的经历恢复关系。
+	_advance_bond_stage()
 	consecutive_run_failures = maxi(int(config.get_value("progress", "consecutive_run_failures", 0)), 0)
 	expedition_count = maxi(int(config.get_value("progress", "expedition_count", 0)), 0)
 	intro_done = bool(config.get_value("progress", "intro_done", false))
 	player_name = str(config.get_value("profile", "player_name", ""))
+	finale_state = str(config.get_value("finale", "state", "locked"))
+	finale_mode = str(config.get_value("finale", "mode", "arrival"))
 	var saved_lines: Variant = config.get_value("memory", "recent_lines", [])
 	if saved_lines is Array:
 		for line in saved_lines:
@@ -765,6 +750,8 @@ func _reset_relationship_facts() -> void:
 	expedition_count = 0
 	pending_concern = {}
 	player_name = ""
+	finale_state = "locked"
+	finale_mode = "arrival"
 	intro_done = false
 	recent_lines.clear()
 	learned_sword_intents.clear()
@@ -799,3 +786,16 @@ func _migrate_legacy_save() -> void:
 	var error := slot_one.save(_save_path_for_slot(1))
 	if error != OK:
 		push_warning("旧羁绊存档迁移失败，错误码：%s" % error)
+
+
+func set_finale_state(next_state: String, mode := "arrival") -> void:
+	assert(next_state in ["locked", "invited", "accepted", "story", "battle", "ended"])
+	assert(mode in ["arrival", "refusal", "victory", "sacrifice"])
+	finale_state = next_state
+	finale_mode = mode
+	save_persistent_state()
+
+func prepare_finale_battle() -> void:
+	pending_encounter = EncounterType.BOSS
+	player_hp = player_max_hp
+	set_finale_state("battle")

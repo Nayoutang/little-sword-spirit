@@ -1,0 +1,213 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://art/ui/battle/intent.png" id="1_kj58d"]
+[ext_resource type="Texture2D" path="res://art/enemies/ink_puppet.png" id="2_np746"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_a4ju7"]
+content_margin_left = 10.0
+content_margin_top = 2.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("1_kj58d")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg4e4"]
+bg_color = Color(0.08, 0.11, 0.12, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.77254903, 0.6666667, 0.49019608, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8xn8k"]
+bg_color = Color(0.6666667, 0.3254902, 0.29803923, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r3xfw"]
+bg_color = Color(0.77, 0.83, 0.73, 0.1)
+corner_radius_top_left = 85
+corner_radius_top_right = 85
+corner_radius_bottom_right = 85
+corner_radius_bottom_left = 85
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s43tu"]
+bg_color = Color(0.025, 0.045, 0.055, 0.83)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6qks0"]
+content_margin_left = 5.0
+content_margin_right = 5.0
+bg_color = Color(0.078431375, 0.13725491, 0.14901961, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.45490196, 0.78039217, 0.7411765, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_upq68"]
+content_margin_left = 5.0
+content_margin_right = 5.0
+bg_color = Color(0.078431375, 0.13725491, 0.14901961, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9098039, 0.58431375, 0.5176471, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="EnemyDisplay" type="Control" unique_id=814221977]
+custom_minimum_size = Vector2(235, 375)
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="Intent" type="Label" parent="." unique_id=1041077699]
+layout_mode = 0
+offset_left = -20.0
+offset_top = -10.0
+offset_right = 255.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(1, 0.9647059, 0.9019608, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_a4ju7")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HPBar" type="ProgressBar" parent="." unique_id=1675209678]
+layout_mode = 0
+offset_left = 13.0
+offset_top = 33.0
+offset_right = 222.0
+offset_bottom = 62.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_bg4e4")
+theme_override_styles/fill = SubResource("StyleBoxFlat_8xn8k")
+show_percentage = false
+
+[node name="HPLabel" type="Label" parent="." unique_id=395531624]
+layout_mode = 0
+offset_left = 13.0
+offset_top = 33.0
+offset_right = 222.0
+offset_bottom = 62.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Target" type="ColorRect" parent="." unique_id=1126196336]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 68.0
+offset_right = 227.0
+offset_bottom = 278.0
+mouse_default_cursor_shape = 2
+color = Color(1, 1, 1, 0)
+
+[node name="Halo" type="Panel" parent="Target" unique_id=162869516]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 28.0
+offset_right = 204.0
+offset_bottom = 198.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_r3xfw")
+
+[node name="Sprite" type="TextureRect" parent="Target" unique_id=402084935]
+texture_filter = 4
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+pivot_offset = Vector2(109.5, 210)
+mouse_filter = 2
+texture = ExtResource("2_np746")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Frame" type="Panel" parent="Target" unique_id=1825813068]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="NameBackdrop" type="Panel" parent="." unique_id=1337698913]
+layout_mode = 0
+offset_left = 19.0
+offset_top = 279.0
+offset_right = 216.0
+offset_bottom = 311.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_s43tu")
+
+[node name="NameLabel" type="Label" parent="." unique_id=957767866]
+layout_mode = 0
+offset_left = 19.0
+offset_top = 279.0
+offset_right = 216.0
+offset_bottom = 311.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 19
+text = "敌人"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Status" type="Label" parent="." unique_id=1694853304]
+layout_mode = 0
+offset_top = 350.0
+offset_right = 235.0
+offset_bottom = 398.0
+theme_override_colors/font_color = Color(0.8509804, 0.9098039, 0.89411765, 1)
+theme_override_font_sizes/font_size = 17
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Guard" type="PanelContainer" parent="." unique_id=176791202]
+layout_mode = 0
+offset_top = 313.0
+offset_right = 115.0
+offset_bottom = 345.0
+tooltip_text = "护盾：先吸收伤害；敌方回合开始时旧护盾清空，新护盾持续到下一玩家回合。"
+theme_override_styles/panel = SubResource("StyleBoxFlat_6qks0")
+
+[node name="Value" type="Label" parent="Guard" unique_id=1925956537]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45490196, 0.78039217, 0.7411765, 1)
+theme_override_font_sizes/font_size = 19
+horizontal_alignment = 1
+
+[node name="Vulnerable" type="PanelContainer" parent="." unique_id=1253129811]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 313.0
+offset_right = 235.0
+offset_bottom = 345.0
+tooltip_text = "易伤：每次命中额外增加等于层数的伤害；敌方回合结算后减少1层。"
+theme_override_styles/panel = SubResource("StyleBoxFlat_upq68")
+
+[node name="Value" type="Label" parent="Vulnerable" unique_id=2111832342]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9098039, 0.58431375, 0.5176471, 1)
+theme_override_font_sizes/font_size = 19
+horizontal_alignment = 1

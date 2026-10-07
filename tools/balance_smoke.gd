@@ -32,7 +32,7 @@ func run() -> void:
 	state.suppress_persistence = true
 	state.start_new_run()
 	check(state.deck.size() == 15, "起始牌组不变")
-	check(cards.get_reward_card_ids().size() == 9, "奖励池九张")
+	check(cards.get_reward_card_ids().size() == 11, "奖励池十一张，含行云与追风")
 	for id in [cards.ATTACK, cards.DEFENSE, cards.STATUS]:
 		check(id not in cards.get_reward_card_ids(), "基础牌不进入奖励池")
 	check(enemies.get_normal_config(1)["hp_min"] == 34, "首战生命下界")

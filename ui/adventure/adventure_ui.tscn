@@ -1,0 +1,110 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ink_ui_skin.gd" id="4_skin"]
+
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="unified_paper"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="unified_font"]
+[sub_resource type="Theme" id="UnifiedTheme"]
+default_font = ExtResource("unified_font")
+Label/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+RichTextLabel/colors/default_color = Color(0.12, 0.22, 0.19, 1)
+
+[node name="AdventureUI" type="CanvasLayer"]
+script = ExtResource("4_skin")
+
+[node name="StoryBackdrop" type="TextureRect" parent="."]
+offset_left = 220.0
+offset_top = 52.0
+offset_right = 1700.0
+offset_bottom = 470.0
+mouse_filter = 2
+
+texture = ExtResource("unified_paper")
+expand_mode = 1
+[node name="Title" type="Label" parent="."]
+offset_left = 300.0
+offset_top = 82.0
+offset_right = 1620.0
+offset_bottom = 142.0
+theme_override_font_sizes/font_size = 40
+text = "奇遇"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Bond" type="Label" parent="."]
+offset_left = 300.0
+offset_top = 155.0
+offset_right = 1620.0
+offset_bottom = 195.0
+theme_override_font_sizes/font_size = 22
+text = "生命：90/90"
+horizontal_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Story" type="Label" parent="."]
+offset_left = 300.0
+offset_top = 224.0
+offset_right = 1620.0
+offset_bottom = 326.0
+theme_override_font_sizes/font_size = 25
+text = "奇遇描述"
+autowrap_mode = 2
+vertical_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="Dialogue" type="Label" parent="."]
+offset_left = 300.0
+offset_top = 342.0
+offset_right = 1620.0
+offset_bottom = 443.0
+theme_override_font_sizes/font_size = 25
+text = "小墨：……"
+autowrap_mode = 2
+vertical_alignment = 1
+
+theme = SubResource("UnifiedTheme")
+[node name="ChoiceBackdrop" type="TextureRect" parent="."]
+offset_left = 305.0
+offset_top = 724.0
+offset_right = 1615.0
+offset_bottom = 1040.0
+mouse_filter = 2
+
+texture = ExtResource("unified_paper")
+expand_mode = 1
+[node name="Choices" type="VBoxContainer" parent="."]
+offset_left = 360.0
+offset_top = 783.0
+offset_right = 1560.0
+offset_bottom = 956.0
+theme_override_constants/separation = 20
+
+[node name="Choice1" type="Button" parent="Choices"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+theme_override_font_sizes/font_size = 23
+
+[node name="Choice2" type="Button" parent="Choices"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+theme_override_font_sizes/font_size = 23
+
+[node name="Result" type="Label" parent="."]
+offset_left = 370.0
+offset_top = 740.0
+offset_right = 1550.0
+offset_bottom = 928.0
+theme_override_font_sizes/font_size = 25
+text = "结果"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+theme = SubResource("UnifiedTheme")
+[node name="Continue" type="Button" parent="."]
+offset_left = 760.0
+offset_top = 947.0
+offset_right = 1160.0
+offset_bottom = 1020.0
+theme_override_font_sizes/font_size = 24
+text = "继续前行"

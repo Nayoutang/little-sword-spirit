@@ -1,0 +1,600 @@
+[gd_scene format=3 uid="uid://bw7rpm23xjhcp"]
+
+[ext_resource type="Script" uid="uid://ucasvui6d6oh" path="res://scripts/ui/player_combat_status.gd" id="4_66ngm"]
+[ext_resource type="Script" uid="uid://ck3wagfo4b4xf" path="res://scripts/ui/ink_ui_skin.gd" id="4_skin"]
+[ext_resource type="Texture2D" uid="uid://c2vtav2vo270s" path="res://art/ui/battle/speech.png" id="5_03edq"]
+[ext_resource type="Texture2D" uid="uid://drf2imhcvk24u" path="res://art/character/sword_spirit_chibi_cutout.png" id="5_chibi"]
+[ext_resource type="Texture2D" uid="uid://ccuvkotjqiewt" path="res://art/ui/battle/deck.png" id="7_22uqi"]
+[ext_resource type="Texture2D" uid="uid://cldc7cb0ik5g4" path="res://art/ui/battle/discard.png" id="8_6ni85"]
+[ext_resource type="Texture2D" uid="uid://md3gfrilpf4f" path="res://art/ui/battle/button.png" id="9_vceff"]
+[ext_resource type="Texture2D" uid="uid://c0vhoe1vlvcqe" path="res://art/ui/battle/intent.png" id="10_ekamt"]
+
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="pile_paper"]
+
+[sub_resource type="StyleBoxTexture" id="PilePaper"]
+texture = ExtResource("pile_paper")
+texture_margin_left = 70.0
+texture_margin_right = 70.0
+texture_margin_top = 50.0
+texture_margin_bottom = 50.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_djc8l"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("5_03edq")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_h4dll"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_p0caf"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_61i1y"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_saiin"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dd63g"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_fpf3k"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bi5l8"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_jt4d8"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kl6ie"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1m01a"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lv4so"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_eivww"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("9_vceff")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rwtbh"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = ExtResource("10_ekamt")
+texture_margin_left = 18.0
+texture_margin_top = 14.0
+texture_margin_right = 18.0
+texture_margin_bottom = 14.0
+
+[node name="BattleUI" type="CanvasLayer" unique_id=1367422104]
+script = ExtResource("4_skin")
+preserve_scene_styles = true
+
+[node name="EnemyArea" type="Control" parent="." unique_id=1980910487]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 425.0
+
+[node name="EnemyBackdrop" type="ColorRect" parent="EnemyArea" unique_id=1050569435]
+visible = false
+layout_mode = 0
+offset_left = 340.0
+offset_top = 10.0
+offset_right = 1580.0
+offset_bottom = 410.0
+mouse_filter = 2
+color = Color(0.025, 0.04, 0.05, 0.16)
+
+[node name="EnemyRow" type="HBoxContainer" parent="EnemyArea" unique_id=1336716755]
+layout_mode = 0
+offset_left = 850.0
+offset_top = 180.0
+offset_right = 1800.0
+offset_bottom = 555.0
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="InfoArea" type="Control" parent="." unique_id=382927149]
+layout_mode = 3
+anchors_preset = 0
+offset_top = 640.0
+offset_right = 1920.0
+offset_bottom = 750.0
+
+[node name="InfoBackdrop" type="ColorRect" parent="InfoArea" unique_id=576006212]
+visible = false
+layout_mode = 0
+offset_left = 490.0
+offset_top = 12.0
+offset_right = 1500.0
+offset_bottom = 104.0
+mouse_filter = 2
+color = Color(0.025, 0.04, 0.05, 0.82)
+
+[node name="ComboLabel" type="Label" parent="InfoArea" unique_id=1661501873]
+visible = false
+layout_mode = 0
+offset_left = 1260.0
+offset_top = 26.0
+offset_right = 1480.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0.95, 0.79, 0.49, 1)
+theme_override_font_sizes/font_size = 30
+text = "连击  0"
+horizontal_alignment = 1
+
+[node name="PlayerHP" type="Label" parent="InfoArea" unique_id=1073876345]
+visible = false
+layout_mode = 0
+offset_left = 510.0
+offset_top = 28.0
+offset_right = 820.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0.98, 0.73, 0.67, 1)
+theme_override_font_sizes/font_size = 27
+text = "生命  90 / 90"
+horizontal_alignment = 1
+
+[node name="Energy" type="Label" parent="InfoArea" unique_id=1056307538]
+visible = false
+layout_mode = 0
+offset_left = 810.0
+offset_top = 28.0
+offset_right = 1060.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0.65, 0.94, 0.91, 1)
+theme_override_font_sizes/font_size = 27
+text = "精力: 3/3"
+horizontal_alignment = 1
+
+[node name="Block" type="Label" parent="InfoArea" unique_id=256580337]
+visible = false
+layout_mode = 0
+offset_left = 1055.0
+offset_top = 28.0
+offset_right = 1260.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 24
+text = "格挡: 0"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="InfoArea" unique_id=1947306888]
+visible = false
+layout_mode = 0
+offset_left = 650.0
+offset_top = -51.0
+offset_right = 1330.0
+offset_bottom = -11.0
+theme_override_colors/font_color = Color(0.98, 0.83, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0.01, 0.02, 0.02, 0.95)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 22
+text = "战斗开始"
+horizontal_alignment = 1
+
+[node name="PlayerStatus" type="Control" parent="InfoArea" unique_id=1467587378]
+anchors_preset = 0
+offset_left = 80.0
+offset_top = 12.0
+offset_right = 1036.0
+offset_bottom = 142.0
+script = ExtResource("4_66ngm")
+
+[node name="CompanionPanel" type="ColorRect" parent="." unique_id=265287038]
+offset_left = 80.0
+offset_top = 65.0
+offset_right = 800.0
+offset_bottom = 555.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="DialogueBackdrop" type="Panel" parent="CompanionPanel" unique_id=74687135]
+show_behind_parent = true
+layout_mode = 0
+offset_left = 320.0
+offset_top = 80.0
+offset_right = 710.0
+offset_bottom = 430.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_djc8l")
+
+[node name="Portrait" type="TextureRect" parent="CompanionPanel" unique_id=1648817049]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 115.0
+offset_right = 330.0
+offset_bottom = 475.0
+mouse_filter = 2
+texture = ExtResource("5_chibi")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="CompanionPanel" unique_id=2003569473]
+visible = false
+layout_mode = 0
+offset_left = 70.0
+offset_top = 465.0
+offset_right = 330.0
+offset_bottom = 503.0
+theme_override_colors/font_shadow_color = Color(0.01, 0.02, 0.02, 0.95)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 27
+text = "小墨 · 第二牌手"
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="CompanionPanel" unique_id=164472022]
+layout_mode = 0
+offset_left = 413.0
+offset_top = 110.0
+offset_right = 698.0
+offset_bottom = 150.0
+theme_override_colors/font_color = Color(0.39607844, 0.3137255, 0.19215687, 1)
+theme_override_colors/font_shadow_color = Color(1, 1, 1, 0)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 19
+text = "小墨在观察战局"
+autowrap_mode = 2
+
+[node name="Reason" type="Label" parent="CompanionPanel" unique_id=486892189]
+layout_mode = 0
+offset_left = 370.0
+offset_top = 150.0
+offset_right = 655.0
+offset_bottom = 198.0
+theme_override_colors/font_color = Color(0.13725491, 0.23137255, 0.22352941, 1)
+theme_override_colors/font_shadow_color = Color(1, 1, 1, 0)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 17
+text = "回合结束时，她会从自己的牌池中选择一张牌。"
+autowrap_mode = 2
+text_overrun_behavior = 3
+max_lines_visible = 3
+
+[node name="Effect" type="Label" parent="CompanionPanel" unique_id=2082390558]
+layout_mode = 0
+offset_left = 370.0
+offset_top = 202.0
+offset_right = 655.0
+offset_bottom = 308.0
+theme_override_colors/font_color = Color(0.13725491, 0.23137255, 0.22352941, 1)
+theme_override_colors/font_shadow_color = Color(1, 1, 1, 0)
+theme_override_font_sizes/font_size = 17
+text = "协作招式效果"
+autowrap_mode = 2
+
+[node name="ExpandDialogue" type="Button" parent="CompanionPanel" unique_id=471618721]
+visible = false
+layout_mode = 0
+offset_left = 622.0
+offset_top = 240.0
+offset_right = 690.0
+offset_bottom = 268.0
+theme_override_font_sizes/font_size = 17
+text = "展开 ›"
+flat = true
+
+[node name="HandBackdrop" type="ColorRect" parent="." unique_id=391660742]
+visible = false
+offset_left = 46.0
+offset_top = 715.0
+offset_right = 1874.0
+offset_bottom = 960.0
+mouse_filter = 2
+color = Color(0.025, 0.04, 0.05, 0.65)
+
+[node name="HandViewport" type="ScrollContainer" parent="." unique_id=1046056927]
+clip_contents = false
+offset_left = 290.0
+offset_top = 750.0
+offset_right = 1410.0
+offset_bottom = 1060.0
+vertical_scroll_mode = 0
+
+[node name="HandArea" type="HBoxContainer" parent="HandViewport" unique_id=1853871565]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="Card1" type="Button" parent="HandViewport/HandArea" unique_id=2122485108]
+custom_minimum_size = Vector2(195, 210)
+layout_mode = 2
+
+[node name="Card2" type="Button" parent="HandViewport/HandArea" unique_id=1247835176]
+custom_minimum_size = Vector2(195, 210)
+layout_mode = 2
+
+[node name="Card3" type="Button" parent="HandViewport/HandArea" unique_id=1629180276]
+custom_minimum_size = Vector2(195, 210)
+layout_mode = 2
+
+[node name="Card4" type="Button" parent="HandViewport/HandArea" unique_id=1358369744]
+custom_minimum_size = Vector2(195, 210)
+layout_mode = 2
+
+[node name="DrawPile" type="ColorRect" parent="." unique_id=1441167178]
+offset_left = 70.0
+offset_top = 790.0
+offset_right = 210.0
+offset_bottom = 1020.0
+mouse_default_cursor_shape = 2
+color = Color(1, 1, 1, 0)
+
+[node name="@TextureRect@22" type="TextureRect" parent="DrawPile" unique_id=2037794083]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("7_22uqi")
+expand_mode = 1
+
+[node name="Count" type="Label" parent="DrawPile" unique_id=1844769881]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 24
+text = "牌堆
+9"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="DiscardPile" type="ColorRect" parent="." unique_id=961300335]
+offset_left = 1750.0
+offset_top = 790.0
+offset_right = 1890.0
+offset_bottom = 1020.0
+mouse_default_cursor_shape = 2
+color = Color(1, 1, 1, 0)
+
+[node name="@TextureRect@23" type="TextureRect" parent="DiscardPile" unique_id=221543427]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("8_6ni85")
+expand_mode = 1
+
+[node name="Count" type="Label" parent="DiscardPile" unique_id=1293199026]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 24
+text = "弃牌堆
+0"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="ActionArea" type="VBoxContainer" parent="." unique_id=1039114142]
+offset_left = 1450.0
+offset_top = 780.0
+offset_right = 1710.0
+offset_bottom = 1045.0
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Special" type="Button" parent="ActionArea" unique_id=231074535]
+custom_minimum_size = Vector2(260, 70)
+layout_mode = 2
+tooltip_text = "[特殊技·流光]
+费1 基础伤害15
+需2连击 / 消耗2连击 / 相识解锁"
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.4509804, 0.5568628, 0.52156866, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_h4dll")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_p0caf")
+theme_override_styles/hover = SubResource("StyleBoxTexture_61i1y")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_saiin")
+disabled = true
+text = "流光"
+
+[node name="Ultimate" type="Button" parent="ActionArea" unique_id=863123688]
+custom_minimum_size = Vector2(260, 70)
+layout_mode = 2
+tooltip_text = "[终极技·华彩]
+费0 基础伤害35
+需3连击 / 连击清零 / 交心解锁"
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.4509804, 0.5568628, 0.52156866, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_dd63g")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_fpf3k")
+theme_override_styles/hover = SubResource("StyleBoxTexture_bi5l8")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_jt4d8")
+disabled = true
+text = "华彩"
+
+[node name="EndTurn" type="Button" parent="ActionArea" unique_id=937476787]
+custom_minimum_size = Vector2(260, 70)
+layout_mode = 2
+tooltip_text = "结束玩家回合，执行小墨意向与敌人行动。"
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.4509804, 0.5568628, 0.52156866, 1)
+theme_override_font_sizes/font_size = 23
+theme_override_styles/normal = SubResource("StyleBoxTexture_kl6ie")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_1m01a")
+theme_override_styles/hover = SubResource("StyleBoxTexture_lv4so")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_eivww")
+text = "结束回合"
+
+[node name="RouteCaption" type="Label" parent="." unique_id=2144446840]
+offset_left = 35.0
+offset_top = 22.0
+offset_right = 360.0
+offset_bottom = 67.0
+theme_override_colors/font_color = Color(1, 0.9411765, 0.81960785, 1)
+theme_override_font_sizes/font_size = 21
+theme_override_styles/normal = SubResource("StyleBoxTexture_rwtbh")
+text = "山门试炼 · 第 1 层"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PilePopup" type="PopupPanel" parent="." unique_id=639336065]
+theme_override_styles/panel = SubResource("PilePaper")
+theme_override_colors/font_color = Color(0.12, 0.19, 0.17, 1)
+
+[node name="Margin" type="MarginContainer" parent="PilePopup" unique_id=364582481]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 35.0
+offset_top = 30.0
+offset_right = -35.0
+offset_bottom = -30.0
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="Column" type="VBoxContainer" parent="PilePopup/Margin" unique_id=1017924657]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="PilePopup/Margin/Column" unique_id=2026464061]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.12, 0.19, 0.17, 1)
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+
+[node name="Empty" type="Label" parent="PilePopup/Margin/Column"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Contents" type="ScrollContainer" parent="PilePopup/Margin/Column"]
+custom_minimum_size = Vector2(1080, 565)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Cards" type="GridContainer" parent="PilePopup/Margin/Column/Contents"]
+layout_mode = 2
+columns = 5
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 20
+
+[node name="Close" type="Button" parent="PilePopup/Margin/Column" unique_id=906231419]
+custom_minimum_size = Vector2(220, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "收起牌卷"

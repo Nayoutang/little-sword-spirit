@@ -1,0 +1,85 @@
+[gd_scene format=3]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="font"]
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="paper"]
+[ext_resource type="Texture2D" path="res://art/ui/home/input_strip_v1.png" id="button_art"]
+[sub_resource type="AtlasTexture" id="button_crop"]
+atlas = ExtResource("button_art")
+region = Rect2(1700, 260, 470, 205)
+[sub_resource type="StyleBoxTexture" id="button_style"]
+texture = ExtResource("paper")
+[sub_resource type="StyleBoxEmpty" id="empty"]
+[node name="MapUI" type="CanvasLayer"]
+
+
+[node name="Header" type="ColorRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 108.0
+color = Color(0, 0, 0, 0)
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="."]
+offset_left = 32.0
+offset_top = 24.0
+offset_right = 300.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 28
+text = "山行图卷"
+theme_override_fonts/font = ExtResource("font")
+theme_override_colors/font_color = Color(0.25, 0.21, 0.16, 1)
+
+[node name="Hint" type="Label" parent="."]
+offset_left = 32.0
+offset_top = 70.0
+offset_right = 500.0
+offset_bottom = 104.0
+text = "青色标记可前往"
+theme_override_fonts/font = ExtResource("font")
+theme_override_colors/font_color = Color(0.3, 0.25, 0.19, 1)
+
+[node name="Bond" type="Label" parent="."]
+visible = false
+offset_left = 1370.0
+offset_top = 31.0
+offset_right = 1715.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 23
+text = "羁绊: 0/100　初遇"
+horizontal_alignment = 2
+
+[node name="ReturnButton" type="Button" parent="."]
+offset_left = 1744.0
+offset_top = 24.0
+offset_right = 1888.0
+offset_bottom = 72.0
+text = "归家"
+theme_override_fonts/font = ExtResource("font")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.25, 0.21, 0.16, 1)
+theme_override_colors/font_hover_color = Color(0.25, 0.21, 0.16, 1)
+theme_override_styles/normal = SubResource("button_style")
+theme_override_styles/hover = SubResource("button_style")
+theme_override_styles/pressed = SubResource("button_style")
+theme_override_styles/focus = SubResource("empty")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.25, 0.21, 0.16, 1)
+theme_override_colors/font_hover_color = Color(0.25, 0.21, 0.16, 1)
+theme_override_styles/normal = SubResource("button_style")
+theme_override_styles/hover = SubResource("button_style")
+theme_override_styles/pressed = SubResource("button_style")
+theme_override_styles/focus = SubResource("empty")
+
+[node name="LegendBar" type="ColorRect" parent="."]
+offset_left = 35.0
+offset_top = 260.0
+offset_right = 195.0
+offset_bottom = 785.0
+color = Color(0, 0, 0, 0)
+mouse_filter = 2
+
+[node name="Paper" type="TextureRect" parent="LegendBar"]
+show_behind_parent = true
+offset_right = 160.0
+offset_bottom = 525.0
+texture = ExtResource("paper")
+expand_mode = 1
+mouse_filter = 2

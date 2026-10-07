@@ -16,6 +16,8 @@ const REQUIRED_KEYS := [
 var keyword := ""
 var lines: Array[Dictionary] = []
 var player_rounds := 0
+var completed_partial_rounds := 0
+var incomplete_answer_count := 0
 var surrender_count := 0
 var recent_turns: Array[Dictionary] = []
 var last_my_line := ""
@@ -52,6 +54,8 @@ func validate_round_reply(reply: Dictionary) -> bool:
 
 
 func classify_input(player_text: String) -> String:
+	if is_title_only(player_text):
+		return "title"
 	if _looks_like_line(player_text) and player_text.contains(keyword):
 		return "line"
 	for phrase in ["认输", "投降", "我不会", "不会", "想不出", "算了", "放弃", "接不上"]:
@@ -79,7 +83,7 @@ func round_request(action: String, player_text: String, context: Dictionary = {}
 		task = "玩家输入的意图本地分类：%s；unknown 时由你在同一次回复判断。若意图是 line，本地判定为【%s】，不得推翻。若不是 line，该判定不适用。" % [hint, verdict]
 	elif action == "concede":
 		task = "你的出句连续两次未通过本地完整性校验，确实接不上。此轮必须 give_up=true、my_line 为空；comment 由你亲口嘴硬认输，不要提校验或规则。玩家此轮的句子已判有效。"
-	return "%s\n【本轮任务】%s\n只输出 JSON，不要任何其它文字。" % [state_block(player_text), task]
+	return "%s\n【本轮任务】%s\n本局未完整作答已宽限%d次，半联与诗名/词牌名共用一次宽限；第二次本地结算玩家输。\n只输出 JSON，不要任何其它文字。" % [state_block(player_text), task, incomplete_answer_count]
 
 
 func state_block(pending_player_text: String = "") -> String:
@@ -128,6 +132,28 @@ func has_line(line: String) -> bool:
 func process_reply(action: String, player_text: String, intent_hint: String, reply: Dictionary) -> Dictionary:
 	var intent := intent_hint if intent_hint != "unknown" else str(reply["intent"])
 	var my_line := str(reply["my_line"]).strip_edges()
+	var local_outcome := incomplete_preflight(player_text) if action == "turn" else {}
+	if not local_outcome.is_empty():
+		return local_outcome
+	# 模型说“不是诗句”不能绕过第一次宽限，收局对白也不直接采用。
+	if action == "turn" and intent == "line" and local_verdict(player_text) == "合规" and not reply["player_line_valid"]:
+		return _incomplete_warning("这还没接成诗句呢。先让你一次，想一句完整的再来。")
+	# 半联由小墨补全：只拿下这一轮，不触发整局胜负，也不算玩家独立接成功。
+	if action == "turn" and intent == "line" and local_verdict(player_text) == "合规" and reply["player_line_valid"] and is_partial_line(player_text):
+		if reply["give_up"] or not check_my_line(my_line).is_empty() or not completes_player_line(player_text, my_line):
+			return {"retry_line": true, "reason": "partial_completion"}
+		var speech_context := str(reply["comment"]) + str(reply["prompt_next"])
+		if not speech_context.contains("半") or not speech_context.contains("轮") or not (speech_context.contains("拿下") or speech_context.contains("算我") or speech_context.contains("归我") or speech_context.contains("我赢")):
+			return {"retry_line": true, "reason": "partial_completion"}
+		for closure in ["这局归我", "这局我拿下", "你输了", "下回再比", "游戏结束"]:
+			if speech_context.contains(closure):
+				return {"retry_line": true, "reason": "partial_completion"}
+		_accept_line("小墨", my_line)
+		last_my_line = my_line
+		completed_partial_rounds += 1
+		incomplete_answer_count += 1
+		surrender_count = 0
+		return _continue_reply(reply, my_line, "合规")
 	var winner := _predicted_winner(action, player_text, intent, reply, my_line)
 	if not winner.is_empty() and not _has_clear_closure(reply, winner):
 		return {"retry_closure": true}
@@ -197,6 +223,62 @@ func _predicted_winner(action: String, player_text: String, intent: String, repl
 			if not last_my_line.is_empty() and (not reply["player_line_valid"] or not _has_source(str(reply["player_line_source"]))):
 				return "player"
 	return ""
+
+
+func is_partial_line(text: String) -> bool:
+	var clauses := text.strip_edges().replace(",", "，").split("，", false)
+	return clauses.size() == 1 and _normalize_line(text).length() >= 3 and _normalize_line(text).length() <= 12
+
+
+func is_title_only(text: String) -> bool:
+	var clean := _normalize_line(text).trim_prefix("《").trim_suffix("》")
+	return clean in ["如梦令", "浣溪沙", "水调歌头", "满江红", "念奴娇", "沁园春", "蝶恋花", "鹧鸪天", "临江仙", "西江月", "虞美人", "声声慢", "一剪梅", "卜算子", "清平乐", "浪淘沙", "破阵子", "静夜思", "春晓", "登鹳雀楼", "望庐山瀑布", "江雪", "咏柳", "悯农"]
+
+
+func incomplete_preflight(text: String) -> Dictionary:
+	var title := is_title_only(text)
+	var half := classify_input(text) == "line" and is_partial_line(text) and local_verdict(text) == "合规"
+	var short_answer := text.contains(keyword) and _normalize_line(text).length() <= 2 and not text.contains("?") and not text.contains("？") and classify_input(text) == "unknown"
+	if not title and not half and not short_answer:
+		return {}
+	if short_answer:
+		return _incomplete_warning("只有这几个字，还没接成诗句呢。先让你一次，想一句完整的再来。")
+	if incomplete_answer_count >= 1:
+		incomplete_answer_count += 1
+		return {"speech": "这次也没接出完整的诗句。已经让过你一次了，这局归我。歇一会儿，想玩再来。", "finished": true, "player_won": false, "reason": "incomplete_answer_twice"}
+	if title:
+		incomplete_answer_count += 1
+		completed_partial_rounds += 1
+		return {"speech": "这是诗名或词牌名，可还没念出诗句呢。先让你一次，想想里面的句子，再接。", "finished": false}
+	return {}
+
+
+func _incomplete_warning(reminder: String) -> Dictionary:
+	if incomplete_answer_count >= 1:
+		incomplete_answer_count += 1
+		return {"speech": "这次也没接出完整的诗句。已经让过你一次了，这局归我。歇一会儿，想玩再来。", "finished": true, "player_won": false, "reason": "incomplete_answer_twice"}
+	incomplete_answer_count += 1
+	completed_partial_rounds += 1
+	return {"speech": reminder, "finished": false}
+
+
+func incomplete_fallback(text: String) -> Dictionary:
+	var outcome := incomplete_preflight(text)
+	if not outcome.is_empty():
+		return outcome
+	if classify_input(text) == "line" and is_partial_line(text) and local_verdict(text) == "合规":
+		incomplete_answer_count += 1
+		completed_partial_rounds += 1
+		return {"speech": "怎么只回了半句，另一半想不起来了吗？先让你一次，再想一句完整的来。", "finished": false}
+	return {}
+
+
+func completes_player_line(player_text: String, completed: String) -> bool:
+	var fragment := _normalize_line(player_text)
+	for clause in completed.replace(",", "，").split("，"):
+		if _normalize_line(clause) == fragment:
+			return true
+	return false
 
 
 func _has_clear_closure(reply: Dictionary, winner: String) -> bool:

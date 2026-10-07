@@ -8,7 +8,7 @@ var heal_amount := BalanceConfig.EVENT_HEAL_AMOUNT
 var max_hp_increase := BalanceConfig.EVENT_MAX_HP_INCREASE
 var card_choice_count := 3
 var finishing := false
-var skip_button: Button
+@onready var skip_button: Button = $EventUI/SkipCard
 
 @onready var hp_label: Label = $EventUI/HPLabel
 @onready var message_label: Label = $EventUI/Message
@@ -20,13 +20,6 @@ func _ready() -> void:
 	$EventUI/MainChoices/MaxHP.pressed.connect(_choose_max_hp)
 	$EventUI/MainChoices/Card.pressed.connect(_show_card_choices)
 	card_choices.hide()
-	skip_button = Button.new()
-	skip_button.text = "跳过选卡"
-	skip_button.position = Vector2(710, 760)
-	skip_button.size = Vector2(500, 60)
-	$EventUI.add_child(skip_button)
-	RewardSkin.style_button(skip_button)
-	skip_button.hide()
 	skip_button.pressed.connect(_finish_event.bind("跳过选卡"))
 	_refresh_hp()
 	if RunState.pending_event == RunState.EventType.UNKNOWN:
@@ -79,7 +72,7 @@ func _show_card_choices() -> void:
 	skip_button.show()
 	message_label.text = "选择一张加入牌组"
 	var candidates: Array[int] = []
-	for card_type in CardDatabase.get_reward_card_ids():
+	for card_type in CardDatabase.get_reward_card_ids(RunState.deck):
 		candidates.append(card_type)
 	candidates.shuffle()
 	for index in range(card_choices.get_child_count()):

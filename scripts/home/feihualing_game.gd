@@ -76,7 +76,7 @@ func local_verdict(player_text: String) -> String:
 
 
 func round_request(action: String, player_text: String, context: Dictionary = {}) -> String:
-	var task := "开场。你先出完整一联；所有说出口的话由 comment 和 prompt_next 承担。"
+	var task := "开场。你先出完整一联；所有说出口的话由 comment 和 prompt_next 承担。my_line 诗句正文必须实际包含汉字「%s」，只在诗名、出处或 comment 出现不算。提交前逐字核对；不能用与令字主题相关但不含该字的诗联。" % keyword
 	if action == "turn":
 		var hint := str(context.get("intent_hint", "unknown"))
 		var verdict := str(context.get("local_verdict", "不适用"))
@@ -132,6 +132,9 @@ func has_line(line: String) -> bool:
 func process_reply(action: String, player_text: String, intent_hint: String, reply: Dictionary, skip_closure_check: bool = false) -> Dictionary:
 	var intent := intent_hint if intent_hint != "unknown" else str(reply["intent"])
 	var my_line := str(reply["my_line"]).strip_edges()
+	# 开场尚无玩家应答，模型空句或认输属于开场故障，不结算胜负。
+	if action == "opening" and (reply["give_up"] or my_line.is_empty()):
+		return {"retry_line": true, "reason": "opening_no_line"}
 	var local_outcome := incomplete_preflight(player_text) if action == "turn" else {}
 	if not local_outcome.is_empty():
 		return local_outcome

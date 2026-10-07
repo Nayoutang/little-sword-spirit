@@ -167,8 +167,7 @@ static func request_online_choice(
 	allowed_ids: Array[String],
 	debug_output: bool = false
 ) -> Dictionary:
-	var api_key := LLMConfig.get_api_key()
-	if LLMConfig.API_URL.is_empty() or LLMConfig.MODEL_NAME.is_empty() or api_key.is_empty():
+	if not LLMConfig.is_available():
 		return {}
 	var request := HTTPRequest.new()
 	request.timeout = 8.0
@@ -189,10 +188,7 @@ static func request_online_choice(
 		"max_tokens": 120,
 		"response_format": {"type": "json_object"},
 	})
-	var headers := PackedStringArray([
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % api_key,
-	])
+	var headers := LLMConfig.request_headers()
 	var error := request.request(
 		LLMConfig.API_URL,
 		headers,

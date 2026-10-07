@@ -58,8 +58,7 @@ func _choose(response: String) -> void:
 
 
 func _request_line() -> void:
-	var api_key := LLMConfig.get_api_key()
-	if LLMConfig.API_URL.is_empty() or LLMConfig.MODEL_NAME.is_empty() or api_key.is_empty():
+	if not LLMConfig.is_available():
 		_show_line("")
 		return
 	var promise_type := str(concern.get("promise", "protect"))
@@ -80,7 +79,7 @@ func _request_line() -> void:
 	http_request.request_completed.connect(_on_request_completed)
 	var error := http_request.request(
 		LLMConfig.API_URL,
-		PackedStringArray(["Content-Type: application/json", "Authorization: Bearer %s" % api_key]),
+		LLMConfig.request_headers(),
 		HTTPClient.METHOD_POST,
 		JSON.stringify({
 			"model": LLMConfig.MODEL_NAME,

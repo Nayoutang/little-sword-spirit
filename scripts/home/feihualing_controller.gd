@@ -5,6 +5,7 @@ signal spoken(text: String)
 signal hud_changed(text: String, visible: bool)
 signal busy_changed(busy: bool)
 signal finished(summary: String)
+signal opening_failed(keyword: String)
 signal intent_learned(card_id: String, player_line: String)
 
 const DEBUG_LOG := "user://feihualing_debug.log"
@@ -120,10 +121,7 @@ func _send_round(next_action: String, next_player_text: String, retry: bool = fa
 			{"role": "user", "content": prompt},
 		],
 	}
-	var headers := PackedStringArray([
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % LLMConfig.get_api_key(),
-	])
+	var headers := LLMConfig.request_headers()
 	_set_busy(true)
 	var error := request.request(LLMConfig.API_URL, headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
 	if error != OK:
@@ -174,13 +172,15 @@ func _on_request_completed(result: int, status: int, _headers: PackedStringArray
 		_log("invalid_my_line_%s" % outcome.get("reason", ""), raw)
 		if line_retries == 0:
 			line_retries = 1
-			retry_suffix = "\n只输出 JSON。my_line 必须是含令字、不重复、无省略号的完整一联（上下两句）。"
+			retry_suffix = "\n上一版 my_line 为「%s」，本地拒绝原因是 %s。请改正这项错误，不要重复提交原句。my_line 诗句正文必须实际含汉字「%s」，诗名、出处、comment 里的字不算。必须是无省略号的完整一联（上下两句）。只输出 JSON。" % [str(reply.get("my_line", "")), str(outcome.get("reason", "")), game.keyword]
 			if outcome.get("reason", "") == "partial_completion":
 				retry_suffix += "玩家只答了半联；必须补全玩家这句所属的原联，保留玩家原句作为上句或下句。comment 自然问另一半是否想不起来，prompt_next 明确这一轮归你并让玩家继续；give_up=false，不结束整局。"
 			_send_round(action, player_text, true)
 		else:
 			if outcome.get("reason", "") == "partial_completion":
 				_apply_outcome(game.incomplete_fallback(player_text))
+			elif action == "opening":
+				_abort_opening()
 			else:
 				_send_round("concede", player_text)
 		return
@@ -234,6 +234,9 @@ func _on_bad_reply(reason: String, raw: String) -> void:
 		retry_suffix = "\n只输出 JSON，不要任何其它文字。"
 		_send_round(action, player_text, true)
 		return
+	if action == "opening":
+		_abort_opening()
+		return
 	# 状态不推进；下一次玩家输入仍在同一轮。
 	json_retries = 0
 	retry_suffix = ""
@@ -243,6 +246,12 @@ func _on_bad_reply(reason: String, raw: String) -> void:
 			_apply_outcome(fallback)
 			return
 	_update_hud(true)
+
+
+func _abort_opening() -> void:
+	var keyword := game.keyword
+	cancel()
+	opening_failed.emit(keyword)
 
 
 func _update_hud(failed: bool = false) -> void:

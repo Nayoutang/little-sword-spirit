@@ -73,6 +73,7 @@ func _ready() -> void:
 	game_controller.hud_changed.connect(_on_game_hud_changed)
 	game_controller.busy_changed.connect(_on_game_busy_changed)
 	game_controller.finished.connect(_on_game_finished)
+	game_controller.opening_failed.connect(_on_game_opening_failed)
 	game_controller.intent_learned.connect(_on_intent_learned)
 	_refresh_bond_display()
 	if SpecialEventManager.has_active_event():
@@ -86,17 +87,13 @@ func _ready() -> void:
 
 # 远征归来后，小墨先就着这一趟里某件具体的事开口；失败时静默跳过，不用代码替她说话。
 func _request_homecoming_greeting() -> void:
-	var api_key := LLMConfig.get_api_key()
-	if preview_offline or LLMConfig.API_URL.is_empty() or api_key.is_empty() or LLMConfig.MODEL_NAME.is_empty():
+	if preview_offline or not LLMConfig.is_available():
 		return
 	var cue := "【旁白，不是持剑人说的话】持剑人刚结束第%d趟远征回到家，还没开口。你可以先随口说一两句，接着本趟某件真实的事，也可以只是轻轻招呼他休息。让熟悉程度自然体现在语气里，不报血量和羁绊数字，不宣布关系升级，不复述流水账，不要求他回答、道歉或作出承诺。不是每件经历都需要当场谈清楚，也不要把每次回家都写成严肃谈心。" % RunState.expedition_count
 	if SpecialEventManager.has_active_event():
 		cue += "如果当前特殊事件正好是你最想说的那件事，就从它开口。这一轮是你先开口，event_result.resolved 必须为 false。"
 	messages.append({"role": "user", "content": cue})
-	var headers := PackedStringArray([
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % api_key,
-	])
+	var headers := LLMConfig.request_headers()
 	greeting_in_flight = true
 	_set_request_in_flight(true)
 	var error := http_request.request(
@@ -153,11 +150,7 @@ func _chat_payload(strict: bool = false) -> Dictionary:
 
 
 func _retry_for_variety() -> bool:
-	var api_key := LLMConfig.get_api_key()
-	var headers := PackedStringArray([
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % api_key,
-	])
+	var headers := LLMConfig.request_headers()
 	_set_request_in_flight(true)
 	var error := http_request.request(LLMConfig.API_URL, headers, HTTPClient.METHOD_POST, JSON.stringify(_chat_payload(true)))
 	if error != OK:
@@ -215,7 +208,7 @@ func _start_feihualing(chosen_keyword: String = "") -> void:
 	game_input.clear()
 	game_screen.show()
 	$ChatUI/ChatPanel.hide()
-	if preview_offline or LLMConfig.API_URL.is_empty() or LLMConfig.get_api_key().is_empty() or LLMConfig.MODEL_NAME.is_empty():
+	if preview_offline or not LLMConfig.is_available():
 		game_status.text = "暂时无法开始"
 		game_log.text = "飞花令需要配置对话服务，配置完成后再来对诗吧。"
 		_refresh_game_controls()
@@ -286,6 +279,13 @@ func _refresh_game_controls() -> void:
 		game_input.grab_focus()
 
 
+func _on_game_opening_failed(_keyword: String) -> void:
+	game_status.text = "开场出句失败 · 不计胜负"
+	game_log.add_text("\n[开场失败] 未收到合规的开场诗句，可以重新开始或退出。本次不计胜负。\n")
+	game_again_button.show()
+	_refresh_game_controls()
+
+
 func _on_game_finished(summary: String) -> void:
 	messages.append({"role": "system", "content": "刚结束的小游戏结果（可信事实）：%s" % summary})
 	game_log.append_text("[对局结束] %s\n" % summary)
@@ -307,9 +307,8 @@ func _send_message() -> void:
 		_start_feihualing(_requested_feihualing_keyword(player_text))
 		return
 
-	var api_key := LLMConfig.get_api_key()
-	if preview_offline or LLMConfig.API_URL.is_empty() or api_key.is_empty() or LLMConfig.MODEL_NAME.is_empty():
-		_show_error("未配置 LLM API Key。请设置环境变量 %s。" % LLMConfig.API_KEY_ENV)
+	if preview_offline or not LLMConfig.is_available():
+		_show_error("对话服务暂时不可用，请稍后重试。")
 		return
 
 	input.clear()
@@ -320,10 +319,7 @@ func _send_message() -> void:
 	messages.append({"role": "user", "content": player_text})
 
 	var payload := _chat_payload()
-	var headers := PackedStringArray([
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % api_key,
-	])
+	var headers := LLMConfig.request_headers()
 
 	_set_request_in_flight(true)
 	var error := http_request.request(

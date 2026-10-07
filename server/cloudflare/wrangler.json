@@ -1,0 +1,32 @@
+{
+  "name": "little-sword-spirit-api",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-07",
+  "workers_dev": true,
+  "vars": {
+    "MODEL_NAME": "deepseek-chat",
+    "IP_WINDOW_LIMIT": "60",
+    "IP_DAILY_LIMIT": "400",
+    "GLOBAL_DAILY_LIMIT": "5000"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "USAGE_GATE",
+        "class_name": "UsageGate"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "UsageGate"
+      ]
+    }
+  ],
+  "observability": {
+    "enabled": false
+  },
+  "account_id": "1ca0dd3fa2b7435a75ab113161a8856c"
+}

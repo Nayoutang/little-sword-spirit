@@ -197,8 +197,7 @@ func _resolve_choice(choice: Dictionary) -> void:
 
 
 func _request_llm_response() -> void:
-	var api_key := LLMConfig.get_api_key()
-	if force_offline or LLMConfig.API_URL.is_empty() or LLMConfig.MODEL_NAME.is_empty() or api_key.is_empty():
+	if force_offline or not LLMConfig.is_available():
 		_show_fallback_response()
 		return
 	var system_prompt := LLMConfig.load_system_prompt()
@@ -235,10 +234,7 @@ func _request_llm_response() -> void:
 		"temperature": 1.1,
 		"frequency_penalty": 0.4,
 	}
-	var headers := PackedStringArray([
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % api_key,
-	])
+	var headers := LLMConfig.request_headers()
 	var error := http_request.request(
 		LLMConfig.API_URL,
 		headers,

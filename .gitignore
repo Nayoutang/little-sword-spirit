@@ -2,7 +2,7 @@
 .godot/
 /android/
 
-# 本地 LLM 密钥，绝不提交（导出时仍会随包带上）
+# 本地 LLM 密钥，绝不提交或导出
 /secrets/
 # 导出模板与构建产物
 *.tpz
@@ -10,3 +10,7 @@
 *.pck
 # 改动前的本地备份
 /_backup_*/
+
+# Cloudflare 本地状态与开发密钥
+/server/cloudflare/.wrangler/
+/server/cloudflare/.dev.vars*

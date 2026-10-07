@@ -3,12 +3,14 @@ extends Node2D
 const CHIBI_TEXTURE := preload("res://art/character/sword_spirit_chibi_cutout.png")
 const MAP_FONT := preload("res://ui/shared/comic_font.tres")
 
-# 20层路线：起点、分叉遭遇、两次整备宝箱、中途奇遇与最终Boss。
+# 20层路线：两次宝箱；第5层漫画，第10、17层飞花令，每条路线三个奇遇。
 const TOTAL_LAYERS := BalanceConfig.ROUTE_TOTAL_LAYERS
 const ROUTE_COUNT := 5
 const GUARANTEED_TREASURE_LAYER := 18
 const TREASURE_LAYERS := [8, 18]
-const RECOVERY_LAYER := 10
+const COMIC_ADVENTURE_LAYER := 5
+const POETRY_LAYERS := [10, 17]
+const ADVENTURE_LAYERS := [COMIC_ADVENTURE_LAYER, 10, 17]
 const LAYER_SPACING := 150.0
 var map_scroll := 0.0
 const SIDE_MARGIN := 300.0
@@ -175,14 +177,14 @@ func _build_node_type_plan() -> void:
 				types.append(RouteNode.NodeType.BOSS)
 			elif layer_index in TREASURE_LAYERS:
 				types.append(RouteNode.NodeType.TREASURE)
-			elif layer_index == RECOVERY_LAYER:
+			elif layer_index in ADVENTURE_LAYERS:
 				types.append(RouteNode.NodeType.ADVENTURE)
 			else:
 				types.append(RouteNode.NodeType.BATTLE)
 		layer_node_types.append(types)
 
 	# 前后两段各两层可选精英，不相邻；宝箱与中途奇遇独立。
-	var elite_layer_pairs := [[4, 6], [4, 7], [5, 7]]
+	var elite_layer_pairs := [[4, 6], [4, 7]]
 	var elite_layers: Array = elite_layer_pairs[map_rng.randi_range(0, elite_layer_pairs.size() - 1)].duplicate()
 	var late_pairs := [[12, 15], [12, 16], [13, 16]]
 	elite_layers.append_array(late_pairs[map_rng.randi_range(0, late_pairs.size() - 1)])
@@ -192,7 +194,7 @@ func _build_node_type_plan() -> void:
 
 	var unknown_layers: Array = []
 	for layer in range(2, GUARANTEED_TREASURE_LAYER):
-		if layer not in TREASURE_LAYERS and layer != RECOVERY_LAYER:
+		if layer not in TREASURE_LAYERS and layer not in ADVENTURE_LAYERS:
 			unknown_layers.append(layer)
 	_shuffle_with_map_rng(unknown_layers)
 	unknown_layers.resize(10)
@@ -201,16 +203,6 @@ func _build_node_type_plan() -> void:
 		var route_index := _pick_column_avoiding_adjacent_type(layer_index, RouteNode.NodeType.UNKNOWN)
 		layer_node_types[layer_index][route_index] = RouteNode.NodeType.UNKNOWN
 
-	var adventure_layers: Array = []
-	for layer in range(2, GUARANTEED_TREASURE_LAYER):
-		if layer not in TREASURE_LAYERS and layer != RECOVERY_LAYER:
-			adventure_layers.append(layer)
-	_shuffle_with_map_rng(adventure_layers)
-	adventure_layers.resize(10)
-	adventure_layers.sort()
-	for layer_index: int in adventure_layers:
-		var route_index := _pick_column_avoiding_adjacent_type(layer_index, RouteNode.NodeType.ADVENTURE)
-		layer_node_types[layer_index][route_index] = RouteNode.NodeType.ADVENTURE
 
 
 func _pick_column_avoiding_adjacent_type(layer_index: int, node_type: RouteNode.NodeType) -> int:
@@ -369,7 +361,8 @@ func enter_node(node_type: RouteNode.NodeType) -> void:
 			else:
 				start_event(RunState.EventType.UNKNOWN)
 		RouteNode.NodeType.ADVENTURE:
-			get_tree().change_scene_to_file("res://scenes/adventure.tscn")
+			var destination := "res://scenes/expedition_poetry.tscn" if RunState.route_layer in POETRY_LAYERS else "res://scenes/adventure.tscn"
+			get_tree().change_scene_to_file(destination)
 
 
 # 所有战斗节点共用入口，通过 RunState 把遭遇类型传给战斗场景。

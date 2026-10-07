@@ -84,7 +84,10 @@ const MIDDLE_LINES := [
 
 
 func _ready() -> void:
-	var index := adventure_index if adventure_index >= 0 else randi_range(0, ADVENTURES.size() - 1)
+	var index := adventure_index if adventure_index >= 0 else RunState.draw_comic_adventure(ADVENTURES.size())
+	if index == -1:
+		get_tree().change_scene_to_file.call_deferred("res://scenes/expedition_poetry.tscn")
+		return
 	selected_adventure_index = index
 	current_adventure = ADVENTURES[index]
 	title_label.text = "奇遇 · %s" % current_adventure["title"]

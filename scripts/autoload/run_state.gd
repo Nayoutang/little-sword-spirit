@@ -22,6 +22,9 @@ var route_layer := 1
 var pending_event := EventType.TREASURE
 var deck: Array[int] = []
 var run_id := 0
+# 漫画每趟只安排一个；记录近期内容，跨趟、跨启动轮换。
+var run_adventures: Array[int] = []
+var recent_adventures: Array[int] = []
 var bond_value := 0
 var bond_stage := 0
 var pending_bond_stage := -1
@@ -98,6 +101,7 @@ func _ready() -> void:
 func start_new_run() -> void:
 	route_layer = 1
 	run_id += 1
+	run_adventures.clear()
 	player_max_hp = BalanceConfig.PLAYER_START_MAX_HP
 	player_hp = player_max_hp
 	pending_encounter = EncounterType.NORMAL
@@ -122,6 +126,32 @@ func start_new_run() -> void:
 		get_bond_stage_name(),
 	])
 	_reset_deck()
+
+
+func draw_comic_adventure(comic_count: int) -> int:
+	var candidates: Array[int] = []
+	var fresh: Array[int] = []
+	for index in range(comic_count):
+		if not run_adventures.has(index):
+			candidates.append(index)
+			if not recent_adventures.has(index):
+				fresh.append(index)
+	# 优先跨趟没见过的；都见过时排除最近一个，仍保持单趟不重复。
+	if not fresh.is_empty():
+		candidates = fresh
+	elif candidates.size() > 1 and not recent_adventures.is_empty():
+		candidates.erase(recent_adventures.back())
+	if candidates.is_empty():
+		return -1
+	var selected := candidates[randi_range(0, candidates.size() - 1)]
+	if selected >= 0:
+		run_adventures.append(selected)
+		recent_adventures.erase(selected)
+		recent_adventures.append(selected)
+		while recent_adventures.size() > 5:
+			recent_adventures.pop_front()
+		save_persistent_state()
+	return selected
 
 
 func _reset_deck() -> void:
@@ -641,6 +671,7 @@ func _save_relationship() -> void:
 	config.set_value("finale", "state", finale_state)
 	config.set_value("finale", "mode", finale_mode)
 	config.set_value("memory", "recent_lines", recent_lines)
+	config.set_value("memory", "recent_adventures", recent_adventures)
 	config.set_value("memory", "sword_intents", learned_sword_intents)
 	config.set_value("memory", "cooperation", relationship_facts.get("cooperation", {}))
 	config.set_value("memory", "shared_history", shared_history)
@@ -695,6 +726,11 @@ func _load_relationship() -> void:
 	player_name = str(config.get_value("profile", "player_name", ""))
 	finale_state = str(config.get_value("finale", "state", "locked"))
 	finale_mode = str(config.get_value("finale", "mode", "arrival"))
+	var saved_adventures: Variant = config.get_value("memory", "recent_adventures", [])
+	if saved_adventures is Array:
+		for index in saved_adventures:
+			if index is int and index >= 0 and index < 5 and not recent_adventures.has(index):
+				recent_adventures.append(index)
 	var saved_lines: Variant = config.get_value("memory", "recent_lines", [])
 	if saved_lines is Array:
 		for line in saved_lines:
@@ -746,6 +782,8 @@ func save_persistent_state() -> void:
 
 
 func _reset_relationship_facts() -> void:
+	run_adventures.clear()
+	recent_adventures.clear()
 	shared_history.clear()
 	expedition_count = 0
 	pending_concern = {}

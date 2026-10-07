@@ -9,6 +9,7 @@ signal intent_learned(card_id: String, player_line: String)
 
 const DEBUG_LOG := "user://feihualing_debug.log"
 
+var scene_context := ""
 var game: FeihualingGame
 var busy := false
 var request: HTTPRequest
@@ -109,6 +110,7 @@ func _send_round(next_action: String, next_player_text: String, retry: bool = fa
 		"messages": [
 			{"role": "system", "content": game.system_prompt([
 				LLMConfig.load_system_prompt(),
+				scene_context,
 				RunState.get_relationship_prompt(),
 				AbilityManager.get_prompt_context(),
 				RunState.get_run_journal_prompt(),

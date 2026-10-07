@@ -56,7 +56,7 @@ func validate_round_reply(reply: Dictionary) -> bool:
 func classify_input(player_text: String) -> String:
 	if is_title_only(player_text):
 		return "title"
-	if _looks_like_line(player_text) and player_text.contains(keyword):
+	if _looks_like_line(player_text):
 		return "line"
 	for phrase in ["认输", "投降", "我不会", "不会", "想不出", "算了", "放弃", "接不上"]:
 		if player_text.contains(phrase):
@@ -129,7 +129,7 @@ func has_line(line: String) -> bool:
 	return false
 
 
-func process_reply(action: String, player_text: String, intent_hint: String, reply: Dictionary) -> Dictionary:
+func process_reply(action: String, player_text: String, intent_hint: String, reply: Dictionary, skip_closure_check: bool = false) -> Dictionary:
 	var intent := intent_hint if intent_hint != "unknown" else str(reply["intent"])
 	var my_line := str(reply["my_line"]).strip_edges()
 	var local_outcome := incomplete_preflight(player_text) if action == "turn" else {}
@@ -155,7 +155,7 @@ func process_reply(action: String, player_text: String, intent_hint: String, rep
 		surrender_count = 0
 		return _continue_reply(reply, my_line, "合规")
 	var winner := _predicted_winner(action, player_text, intent, reply, my_line)
-	if not winner.is_empty() and not _has_clear_closure(reply, winner):
+	if not skip_closure_check and not winner.is_empty() and not _has_clear_closure(reply, winner):
 		return {"retry_closure": true}
 	var outcome := {"retry_line": false, "speech": "", "finished": false, "player_won": false, "reason": ""}
 	if action == "opening":
@@ -297,6 +297,23 @@ func _has_clear_closure(reply: Dictionary, winner: String) -> bool:
 		if spoken.contains(phrase):
 			return true
 	return false
+
+
+func closure_fallback(action: String, player_text: String, intent_hint: String, reply: Dictionary) -> Dictionary:
+	var intent := intent_hint if intent_hint != "unknown" else str(reply["intent"])
+	var winner := _predicted_winner(action, player_text, intent, reply, str(reply["my_line"]).strip_edges())
+	if winner.is_empty():
+		return {}
+	var speech := "这局算你赢。下回再比。"
+	if winner == "xiaomo":
+		speech = "这局归我。下回再来。"
+		if intent == "line":
+			var verdict := local_verdict(player_text)
+			speech = "这句没有「%s」字，这局归我。下回记得带上令字。" % keyword if verdict == "不含令字" else "这句已经用过了，这局归我。下回换一句。"
+	var repaired := reply.duplicate(true)
+	repaired["comment"] = speech
+	repaired["prompt_next"] = ""
+	return process_reply(action, player_text, intent_hint, repaired, true)
 
 
 func _continue_reply(reply: Dictionary, my_line: String, verdict: String) -> Dictionary:

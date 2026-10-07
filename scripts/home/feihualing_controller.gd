@@ -164,7 +164,11 @@ func _on_request_completed(result: int, status: int, _headers: PackedStringArray
 			retry_suffix = "\n本局会在这轮结束。comment 必须明确说出谁赢谁输，用小墨亲口说的话收住这一局；不要含糊，也不要解释机制。只输出 JSON。"
 			_send_round(action, player_text, true)
 		else:
-			_update_hud(true)
+			var fallback := game.closure_fallback(action, player_text, intent_hint, reply)
+			if not fallback.is_empty():
+				_apply_outcome(fallback)
+			else:
+				_update_hud(true)
 		return
 	if outcome.get("retry_line", false):
 		_log("invalid_my_line_%s" % outcome.get("reason", ""), raw)
@@ -247,7 +251,7 @@ func _update_hud(failed: bool = false) -> void:
 		return
 	var label := "令·%s ｜ 第%d轮" % [game.keyword, game.player_rounds + game.completed_partial_rounds + 1]
 	if failed:
-		label += " ｜ 请重试"
+		label += " ｜ 回复失败，请重新输入或退出对局"
 	hud_changed.emit(label, true)
 
 

@@ -211,3 +211,40 @@ func _assess_cooperation_window() -> void:
 	elif source in [CompanionCards.HEART_RESONANCE]:
 		available = attack and combo > 0
 	cooperation_windows["resource"]["available"] = available
+
+
+func _play_shield_strike_card(cost: int, target_index: int) -> void:
+	energy -= cost
+	var base_damage := floori(block * CardDatabase.get_number(CardDatabase.SHIELD_STRIKE, "shield_percent") / 100.0)
+	var damage := _apply_pending_boon_to_player_attack(base_damage)
+	_damage_enemy_at(target_index, damage)
+	combo += 1
+	message_label.text = "护盾攻击：以 %d 护盾攻击敌人%d，连击 +1" % [block, target_index + 1]
+	_finish_action()
+
+
+# 兼容既有战斗测试入口，仍走同一效果执行器。
+
+
+func _play_break_edge_card(target_index: int) -> void:
+	energy -= CardDatabase.get_cost(CardDatabase.BREAK_EDGE)
+	var damage := break_edge_damage + combo * attack_combo_bonus
+	damage = _apply_pending_boon_to_player_attack(damage)
+	_damage_enemy_at(target_index, damage)
+	enemy_vulnerabilities[target_index] += break_edge_vulnerable
+	_enemy_floating_text(target_index, "+%d层易伤" % break_edge_vulnerable, Color("#e89584"), 2)
+	combo += 1
+	message_label.text = "破锋攻击敌人%d，造成 %d 伤害，施加 %d 层易伤，连击 +1" % [
+		target_index + 1,
+		damage,
+		break_edge_vulnerable,
+	]
+	_finish_action()
+
+
+func _play_hide_edge() -> void:
+	energy -= CardDatabase.get_cost(CardDatabase.HIDE_EDGE)
+	_gain_block(hide_edge_block, "player")
+	preserve_combo_this_turn = true
+	message_label.text = "藏锋：获得 %d 格挡，本回合结束保留连击" % hide_edge_block
+	_finish_action()

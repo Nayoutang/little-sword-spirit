@@ -16,7 +16,12 @@ func settle(legacy: bool, source: String, combo_value: int, energy_value: int, c
 	if not fixtures.has(legacy):
 		var created = load("res://scenes/battle.tscn").instantiate()
 		if legacy:
-			created.set_script(load("res://tools/fixtures/legacy_player_card_battle.gd"))
+			var legacy_script = load("res://tools/fixtures/legacy_player_card_battle.gd")
+			if legacy_script == null or not legacy_script.can_instantiate():
+				created.free()
+				push_error("legacy fixture could not compile")
+				return {}
+			created.set_script(legacy_script)
 		created.fixed_cooperation_test = true
 		created.force_offline_companion = true
 		created.fixed_random_seed = 381
@@ -54,6 +59,9 @@ func run() -> void:
 						for lost in [false, true]:
 							var expected := settle(true, source, combo_value, energy_value, hand, pending, lost)
 							var actual := settle(false, source, combo_value, energy_value, hand, pending, lost)
+							if expected.is_empty() or actual.is_empty():
+								quit(1)
+								return
 							cases += 1
 							if expected != actual:
 								failures += 1

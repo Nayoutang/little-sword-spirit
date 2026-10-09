@@ -97,6 +97,8 @@ var parry_combo_awards := 0
 var parry_pending_combo := 0
 var parry_injected_remaining := 0
 var battle_parry_damage := 0
+var parry_reaction_damage := CardDatabase.get_number(CardDatabase.PARRY, "reaction_damage")
+var flowing_cloud_rule: Dictionary = CardDatabase.get_definition(CardDatabase.FLOWING_CLOUD).duplicate(true)
 var parry_reaction_limit := CardDatabase.get_number(CardDatabase.PARRY, "reaction_limit")
 var parry_combo_limit := CardDatabase.get_number(CardDatabase.PARRY, "combo_limit")
 var flowing_cloud_triggered := false
@@ -512,6 +514,11 @@ func _enemy_name(index: int) -> String:
 			return "影傀 %d" % (index + 1)
 
 
+func _player_card_active(definition: Dictionary) -> bool:
+	var flag := str(definition.get("active_flag", ""))
+	return not flag.is_empty() and bool(get(flag))
+
+
 func _player_once_per_turn_used(definition: Dictionary) -> bool:
 	var flag := str(definition.get("once_per_turn_flag", ""))
 	return not flag.is_empty() and bool(get(flag))
@@ -520,12 +527,12 @@ func _player_once_per_turn_used(definition: Dictionary) -> bool:
 func _play_hand_card(index: int) -> void:
 	if index < 0 or index >= hand.size() or not hand_buttons[index].visible:
 		return
-	if hand[index] == CardType.CURSE:
-		message_label.text = "心魔无法打出"
-		return
 	var played_card := hand[index]
 	var definition: Dictionary = CardDatabase.get_definition(int(played_card))
-	if (played_card == CardType.FLOWING_CLOUD and flowing_cloud_active) or (played_card == CardType.RETAIN_SHIELD and retain_shield_active) or _player_once_per_turn_used(definition):
+	if not bool(definition.get("playable", true)):
+		message_label.text = str(definition["unplayable_text"])
+		return
+	if _player_card_active(definition) or _player_once_per_turn_used(definition):
 		return
 	var cost := _card_cost(played_card)
 	if not _can_pay(cost):
@@ -541,28 +548,7 @@ func _play_hand_card(index: int) -> void:
 	pending_attack_index = -1
 	pending_skill_target = 0
 	_commit_hand_card(index)
-	if definition.has("effects"):
-		_execute_player_card(definition, cost, index)
-		return
-	match played_card:
-		CardType.STATUS:
-			_play_status_card(index, cost)
-		CardType.HIDE_EDGE:
-			_play_hide_edge()
-		CardType.FLOWING_CLOUD:
-			energy -= cost
-			flowing_cloud_active = true
-			message_label.text = "行云：本场每回合首次三连攻，抽1张并恢复1精力"
-			_finish_action()
-		CardType.RETAIN_SHIELD:
-			energy -= cost
-			retain_shield_active = true
-			message_label.text = "留盾：剩余护盾跨回合保留"
-			_finish_action()
-		CardType.PARRY:
-			parry_active = true
-			_play_defense_card(cost, CardDatabase.get_number(CardDatabase.PARRY, "block"))
-			message_label.text += "；回锋：本轮反击至多%d次" % parry_reaction_limit
+	_execute_player_card(definition, cost, index)
 
 
 func _commit_hand_card(index: int) -> void:
@@ -593,18 +579,7 @@ func _resolve_targeted_attack(enemy_index: int) -> void:
 	last_target_index = enemy_index
 	_commit_hand_card(card_index)
 	var definition: Dictionary = CardDatabase.get_definition(int(card_type))
-	if definition.has("effects"):
-		_execute_player_card(definition, cost, card_index, enemy_index)
-	elif card_type == CardType.CHASE_WIND:
-		_play_attack_card(cost, CardDatabase.get_number(CardDatabase.CHASE_WIND, "damage"), enemy_index)
-	elif card_type == CardType.SHIELD_STRIKE:
-		_play_shield_strike_card(cost, enemy_index)
-	elif card_type == CardType.BREAK_EDGE:
-		_play_break_edge_card(enemy_index)
-	elif card_type == CardType.UNLOAD_FORCE:
-		_play_unload_force_card(enemy_index)
-	else:
-		_play_attack_card(_card_cost(card_type), attack_base_damage, enemy_index)
+	_execute_player_card(definition, cost, card_index, enemy_index)
 
 
 func _resolve_targeted_skill(enemy_index: int) -> void:
@@ -738,10 +713,10 @@ func _execute_player_card(definition: Dictionary, cost: int, hand_index: int, ta
 	var once_flag := str(definition.get("once_per_turn_flag", ""))
 	if not once_flag.is_empty():
 		set(once_flag, true)
-	var result := {"target": target_index + 1, "damage": 0, "block": 0, "drawn": 0}
+	var result := {"target": target_index + 1, "damage": 0, "block": 0, "drawn": 0, "shield": block}
 	var protected := false
 	for authored in definition["effects"]:
-		var effect := PlayerEffects.resolve(authored, definition, {"combo": combo, "attack_combo_bonus": attack_combo_bonus})
+		var effect := PlayerEffects.resolve(authored, definition, {"combo": combo, "attack_combo_bonus": attack_combo_bonus, "block": block})
 		match str(effect["kind"]):
 			CardDatabase.EFFECT_DAMAGE:
 				var damage := _apply_pending_boon_to_player_attack(int(effect["amount"]))
@@ -759,10 +734,12 @@ func _execute_player_card(definition: Dictionary, cost: int, hand_index: int, ta
 			CardDatabase.EFFECT_COMBO:
 				if str(effect["mode"]) == CardDatabase.COMBO_ADD:
 					combo += int(effect["amount"])
+				elif str(effect["mode"]) == CardDatabase.COMBO_PRESERVE:
+					preserve_combo_this_turn = true
 				else:
 					protected = bool(effect.get("respect_combo_protection", false)) and cut_water_active
 					if protected:
-						if combo > 0:
+						if combo > 0 and bool(effect.get("consume_protection", false)):
 							_use_cooperation_window()
 					else:
 						_consume_parry_combo(parry_injected_remaining, str(effect.get("consume_reason", "other")))
@@ -772,97 +749,56 @@ func _execute_player_card(definition: Dictionary, cost: int, hand_index: int, ta
 					_draw_card_into_slot(hand_index)
 				else:
 					result["drawn"] = _draw_cards_into_empty_slots(int(effect["amount"]), hand_index)
+			CardDatabase.EFFECT_BATTLE_STATE:
+				set(str(effect["flag"]), true)
+				if effect.has("rule_slot"):
+					set(str(effect["rule_slot"]), definition.duplicate(true))
+			CardDatabase.EFFECT_REACTION:
+				if not parry_active:
+					parry_reaction_damage = int(effect["amount"])
+					parry_reaction_limit = int(definition[effect["reaction_limit_key"]])
+					parry_combo_limit = int(definition[effect["combo_limit_key"]])
+				parry_active = true
+				result["reaction_limit"] = parry_reaction_limit
+			CardDatabase.EFFECT_VULNERABLE:
+				enemy_vulnerabilities[target_index] += int(effect["amount"])
+				_enemy_floating_text(target_index, "+%d层易伤" % int(effect["amount"]), Color("#e89584"), 2)
+				result["vulnerable"] = int(effect["amount"])
+			CardDatabase.EFFECT_REDUCE_ATTACK:
+				if enemy_intents[target_index]["type"] == EnemyIntent.ATTACK:
+					AttackSegments.reduce_next(enemy_intents[target_index], int(effect["amount"]))
+				else:
+					enemy_attack_reductions[target_index] += int(effect["amount"])
+				result["reduction"] = int(effect["amount"])
 	var template := str(definition["protected_result_template"]) if protected else str(definition["result_template"])
 	message_label.text = template.format(result)
 	_finish_action()
+	message_label.text += str(definition.get("post_action_template", "")).format(result)
 
 
+# 以下接口保留给既有回归夹具；真实手牌只走通用入口。
 func _play_attack_card(cost: int, base_damage: int, target_index: int) -> void:
-	energy -= cost
-	var damage := base_damage + combo * attack_combo_bonus
-	damage = _apply_pending_boon_to_player_attack(damage)
-	_damage_enemy_at(target_index, damage)
-	combo += 1
-	message_label.text = "攻击敌人%d，造成 %d 伤害，连击 +1" % [target_index + 1, damage]
-	_finish_action()
+	var definition: Dictionary = CardDatabase.get_definition(CardDatabase.ATTACK).duplicate(true)
+	definition["damage"] = base_damage
+	_execute_player_card(definition, cost, -1, target_index)
 
 
-func _play_shield_strike_card(cost: int, target_index: int) -> void:
-	energy -= cost
-	var base_damage := floori(block * CardDatabase.get_number(CardDatabase.SHIELD_STRIKE, "shield_percent") / 100.0)
-	var damage := _apply_pending_boon_to_player_attack(base_damage)
-	_damage_enemy_at(target_index, damage)
-	combo += 1
-	message_label.text = "护盾攻击：以 %d 护盾攻击敌人%d，连击 +1" % [block, target_index + 1]
-	_finish_action()
-
-
-# 兼容既有战斗测试入口，仍走同一效果执行器。
 func _play_combo_boost_card(target_index: int) -> void:
 	_execute_player_card(CardDatabase.get_definition(CardDatabase.COMBO_BOOST), CardDatabase.get_cost(CardDatabase.COMBO_BOOST), -1, target_index)
 
 
-func _play_break_edge_card(target_index: int) -> void:
-	energy -= CardDatabase.get_cost(CardDatabase.BREAK_EDGE)
-	var damage := break_edge_damage + combo * attack_combo_bonus
-	damage = _apply_pending_boon_to_player_attack(damage)
-	_damage_enemy_at(target_index, damage)
-	enemy_vulnerabilities[target_index] += break_edge_vulnerable
-	_enemy_floating_text(target_index, "+%d层易伤" % break_edge_vulnerable, Color("#e89584"), 2)
-	combo += 1
-	message_label.text = "破锋攻击敌人%d，造成 %d 伤害，施加 %d 层易伤，连击 +1" % [
-		target_index + 1,
-		damage,
-		break_edge_vulnerable,
-	]
-	_finish_action()
-
-
 func _play_unload_force_card(target_index: int) -> void:
-	energy -= CardDatabase.get_cost(CardDatabase.UNLOAD_FORCE)
-	if enemy_intents[target_index]["type"] == EnemyIntent.ATTACK:
-		AttackSegments.reduce_next(enemy_intents[target_index], unload_force_reduction)
-	else:
-		enemy_attack_reductions[target_index] += unload_force_reduction
-	message_label.text = "拨千斤：敌人%d下一段攻击伤害降低 %d" % [target_index + 1, unload_force_reduction]
-	_finish_action()
-
-
-func _play_hide_edge() -> void:
-	energy -= CardDatabase.get_cost(CardDatabase.HIDE_EDGE)
-	_gain_block(hide_edge_block, "player")
-	preserve_combo_this_turn = true
-	message_label.text = "藏锋：获得 %d 格挡，本回合结束保留连击" % hide_edge_block
-	_finish_action()
+	_execute_player_card(CardDatabase.get_definition(CardDatabase.UNLOAD_FORCE), CardDatabase.get_cost(CardDatabase.UNLOAD_FORCE), -1, target_index)
 
 
 func _play_defense_card(cost: int, block_amount: int) -> void:
-	energy -= cost
-	_gain_block(block_amount, "player")
-	if cut_water_active:
-		if combo > 0:
-			_use_cooperation_window()
-		message_label.text = "获得 %d 格挡；断水生效，连击保留" % block_amount
-	else:
-		_consume_parry_combo(parry_injected_remaining, "defense")
-		combo = 0
-		message_label.text = "获得 %d 格挡，连击清零" % block_amount
-	_finish_action()
+	var definition: Dictionary = CardDatabase.get_definition(CardDatabase.DEFENSE).duplicate(true)
+	definition["block"] = block_amount
+	_execute_player_card(definition, cost, -1)
 
 
 func _play_status_card(hand_index: int, cost: int) -> void:
-	energy -= cost
-	if cut_water_active:
-		if combo > 0:
-			_use_cooperation_window()
-		_draw_card_into_slot(hand_index)
-		message_label.text = "抽取 1 张牌；断水生效，连击保留"
-	else:
-		_consume_parry_combo(parry_injected_remaining, "other")
-		combo = 0
-		_draw_card_into_slot(hand_index)
-		message_label.text = "抽取 1 张牌，连击清零"
-	_finish_action()
+	_execute_player_card(CardDatabase.get_definition(CardDatabase.STATUS), cost, hand_index)
 
 
 func _use_special() -> void:
@@ -1481,7 +1417,7 @@ func _on_parry_attack_segment(enemy_index: int, _damage: int, _absorbed: int, _l
 		return
 	parry_reactions += 1
 	var hp_before := enemy_hps[enemy_index]
-	_damage_enemy_at(enemy_index, CardDatabase.get_number(CardDatabase.PARRY, "reaction_damage"))
+	_damage_enemy_at(enemy_index, parry_reaction_damage)
 	battle_parry_damage += hp_before - enemy_hps[enemy_index]
 	var reward := 0
 	if parry_combo_awards < parry_combo_limit:
@@ -1545,9 +1481,7 @@ func _can_pay(cost: int) -> bool:
 
 
 func _card_cost(card_type: CardType) -> int:
-	if card_type == CardType.CHASE_WIND:
-		return maxi(CardDatabase.get_cost(int(card_type)) - consecutive_attacks, 0)
-	return CardDatabase.get_cost(int(card_type))
+	return PlayerEffects.cost(CardDatabase.get_definition(int(card_type)), {"consecutive_attacks": consecutive_attacks})
 
 
 func _damage_enemy_at(target_index: int, damage: int, ignore_guard: bool = false) -> void:
@@ -1738,7 +1672,7 @@ func _resolve_consecutive_attack() -> void:
 		consecutive_attacks = 0
 		return
 	consecutive_attacks += 1
-	if not flowing_cloud_active or flowing_cloud_triggered or consecutive_attacks != CardDatabase.get_number(CardDatabase.FLOWING_CLOUD, "trigger_count"):
+	if not flowing_cloud_active or flowing_cloud_triggered or consecutive_attacks != int(flowing_cloud_rule["trigger_count"]):
 		return
 	# 胜负已决定时不再抽牌或返还精力。
 	if battle_finished or _living_enemy_count() == 0:
@@ -1746,9 +1680,9 @@ func _resolve_consecutive_attack() -> void:
 	flowing_cloud_triggered = true
 	if not combo_telemetry.current.is_empty():
 		combo_telemetry.current["cloud_triggers"] += 1
-	_draw_cards_into_empty_slots(CardDatabase.get_number(CardDatabase.FLOWING_CLOUD, "draw"))
+	_draw_cards_into_empty_slots(int(flowing_cloud_rule["draw"]))
 	if flowing_cloud_refunds_energy:
-		energy += CardDatabase.get_number(CardDatabase.FLOWING_CLOUD, "energy")
+		energy += int(flowing_cloud_rule["energy"])
 	message_label.text += "；行云：抽1张%s" % ("，恢复1精力" if flowing_cloud_refunds_energy else "")
 
 
@@ -1929,10 +1863,9 @@ func _refresh_ui() -> void:
 			battle_finished
 			or companion_turn_pending
 			or index >= hand.size()
-			or hand[index] == CardType.CURSE
+			or not bool(CardDatabase.get_definition(int(hand[index])).get("playable", true))
 			or _player_once_per_turn_used(CardDatabase.get_definition(int(hand[index])))
-			or (hand[index] == CardType.FLOWING_CLOUD and flowing_cloud_active)
-			or (hand[index] == CardType.RETAIN_SHIELD and retain_shield_active)
+			or _player_card_active(CardDatabase.get_definition(int(hand[index])))
 			or energy < _card_cost(hand[index])
 		)
 		preload("res://scripts/ui/battle_art_skin.gd").select_card(hand_buttons[index], index == pending_attack_index)

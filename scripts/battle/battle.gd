@@ -1137,65 +1137,12 @@ func _apply_companion_card(choice: Dictionary) -> void:
 	if int(definition.get("damage", 0)) > 0 and grind_sword_ready:
 		companion_damage_multiplier = 2
 		grind_sword_ready = false
-	var target_index := _lowest_hp_enemy_index()
 	var result_text := ""
 	var combo_before := combo
 	var incoming_before := _enemy_intent_damage_total()
 	var block_before := block
 	_show_companion_flash(card_id)
-	if definition.has("effects"):
-		result_text = _execute_companion_effects(definition)
-	else:
-		match card_id:
-			CompanionCards.FROST_COLD:
-				for index in range(enemy_hps.size()):
-					if enemy_hps[index] <= 0:
-						continue
-					_damage_enemy_at(index, int(definition["damage"]) * companion_damage_multiplier)
-					if enemy_hps[index] > 0 and enemy_intents[index]["type"] == EnemyIntent.ATTACK:
-						AttackSegments.reduce_each(enemy_intents[index], int(definition["weaken"]))
-				last_target_index = -1
-				result_text = "对全体敌人各造成 %d 伤害，它们本回合攻击 -%d" % [int(definition["damage"]) * companion_damage_multiplier, int(definition["weaken"])]
-			CompanionCards.TEN_STEPS:
-				var damage := int(definition["damage"]) + combo * int(definition["combo_scale"])
-				damage *= companion_damage_multiplier
-				_damage_enemy_at(target_index, damage)
-				last_target_index = target_index
-				result_text = "对敌人%d造成 %d 伤害" % [target_index + 1, damage]
-				if target_index >= 0 and enemy_hps[target_index] <= 0:
-					companion_bonus_action = _living_enemy_count() > 0
-					result_text += "，击杀后立即再释放一次技能"
-			CompanionCards.GRIND_SWORD:
-				grind_sword_ready = true
-				result_text = "积蓄剑势，小墨下次伤害技能伤害翻倍（不叠加）"
-			CompanionCards.CUT_WATER:
-				cut_water_active = true
-				result_text = "玩家下回合防御或状态牌不会清空连击"
-			CompanionCards.LONG_WIND:
-				long_wind_bonus = int(definition["energy"])
-				result_text = "玩家下回合精力 +%d" % long_wind_bonus
-			CompanionCards.BEHEAD_LOULAN:
-				var highest := _highest_hp_enemy_index()
-				var damage := int(definition["damage"])
-				damage *= companion_damage_multiplier
-				_damage_enemy_at(highest, damage, true)
-				last_target_index = highest
-				result_text = "无视格挡，对生命最高的敌人%d造成 %d 伤害" % [highest + 1, damage]
-			CompanionCards.YIN_MOUNTAIN:
-				var strongest := -1
-				for index in range(enemy_intents.size()):
-					if enemy_hps[index] > 0 and enemy_intents[index]["type"] == EnemyIntent.ATTACK:
-						if strongest < 0 or AttackSegments.total(enemy_intents[index]) > AttackSegments.total(enemy_intents[strongest]):
-							strongest = index
-				if strongest >= 0:
-					var blocked := AttackSegments.total(enemy_intents[strongest])
-					AttackSegments.intercept(enemy_intents[strongest])
-					result_text = "挡下敌人%d本回合的攻击（%d）" % [strongest + 1, blocked]
-				else:
-					result_text = "本回合没有敌人要攻击，剑势落空"
-			CompanionCards.FEW_RETURN:
-				few_return_active = not few_return_used
-				result_text = "本回合受到致命伤害时保留1点生命，并免疫剩余伤害" if few_return_active else "本场战斗已救险，不能再次发动"
+	result_text = _execute_companion_effects(definition)
 	_record_companion_effect_tags(card_id, definition, combo_before, incoming_before, block_before)
 	companion_last_card_id = card_id
 	if str(choice.get("source", "")) == "llm":
@@ -1229,10 +1176,19 @@ func _record_companion_effect_tags(card_id: String, definition: Dictionary, comb
 
 # 状态的唯一写入者仍是战斗；解析器只根据显式输入计算一项效果。
 func _execute_companion_effects(definition: Dictionary) -> String:
-	var target_index := -1
-	if str(definition.get("target", CompanionCards.TARGET_NONE)) == CompanionCards.TARGET_LOWEST_HP:
-		target_index = _lowest_hp_enemy_index()
-	var result := {"target": target_index + 1, "damage": 0, "block": 0, "boon": ""}
+	var target_indices: Array[int] = []
+	var target_mode := str(definition.get("target", CompanionCards.TARGET_NONE))
+	match target_mode:
+		CompanionCards.TARGET_LOWEST_HP:
+			target_indices.append(_lowest_hp_enemy_index())
+		CompanionCards.TARGET_HIGHEST_HP:
+			target_indices.append(_highest_hp_enemy_index())
+		CompanionCards.TARGET_ALL_ENEMIES:
+			for index in range(enemy_hps.size()):
+				if enemy_hps[index] > 0:
+					target_indices.append(index)
+	var target_index := target_indices[0] if not target_indices.is_empty() else -1
+	var result := {"target": target_index + 1, "damage": 0, "block": 0, "boon": "", "recast": ""}
 	for authored_effect in definition["effects"]:
 		var effect := CompanionEffects.resolve(authored_effect, definition, {
 			"combo": combo, "promise": RunState.active_promise,
@@ -1241,8 +1197,9 @@ func _execute_companion_effects(definition: Dictionary) -> String:
 		match str(effect["kind"]):
 			CompanionCards.EFFECT_DAMAGE:
 				var damage := int(effect["amount"])
-				_damage_enemy_at(target_index, damage)
-				last_target_index = target_index
+				for index in target_indices:
+					_damage_enemy_at(index, damage, bool(effect.get("ignore_guard", false)))
+				last_target_index = -1 if target_mode == CompanionCards.TARGET_ALL_ENEMIES else target_index
 				result["damage"] = damage
 			CompanionCards.EFFECT_BLOCK:
 				var gained_block := int(effect["amount"])
@@ -1261,7 +1218,42 @@ func _execute_companion_effects(definition: Dictionary) -> String:
 			CompanionCards.EFFECT_BOON:
 				pending_boon = effect["boon"]
 				result["boon"] = "%.1f" % float(pending_boon["value"]) if pending_boon["type"] == "multiply" else str(pending_boon["value"])
+			CompanionCards.EFFECT_WEAKEN:
+				for index in target_indices:
+					if enemy_hps[index] > 0 and enemy_intents[index]["type"] == EnemyIntent.ATTACK:
+						AttackSegments.reduce_each(enemy_intents[index], int(effect["amount"]))
+				result["weaken"] = int(effect["amount"])
+			CompanionCards.EFFECT_RECAST_ON_KILL:
+				if target_index >= 0 and enemy_hps[target_index] <= 0:
+					companion_bonus_action = _living_enemy_count() > 0
+					result["recast"] = "，击杀后立即再释放一次技能"
+			CompanionCards.EFFECT_CHARGE:
+				grind_sword_ready = true
+			CompanionCards.EFFECT_COMBO_PROTECTION:
+				cut_water_active = true
+			CompanionCards.EFFECT_NEXT_TURN_ENERGY:
+				long_wind_bonus = int(effect["amount"])
+				result["energy"] = long_wind_bonus
+			CompanionCards.EFFECT_INTERCEPT_ATTACK:
+				result["interception"] = _intercept_strongest_enemy_attack()
+			CompanionCards.EFFECT_RESCUE:
+				few_return_active = not few_return_used
+				result["rescue"] = "本回合受到致命伤害时保留1点生命，并免疫剩余伤害" if few_return_active else "本场战斗已救险，不能再次发动"
 	return str(definition["result_template"]).format(result)
+
+
+# 拦截规则按修正后的总段伤害选择敌人；相同伤害保持原有索引优先。
+func _intercept_strongest_enemy_attack() -> String:
+	var strongest := -1
+	for index in range(enemy_intents.size()):
+		if enemy_hps[index] > 0 and enemy_intents[index]["type"] == EnemyIntent.ATTACK:
+			if strongest < 0 or AttackSegments.total(enemy_intents[index]) > AttackSegments.total(enemy_intents[strongest]):
+				strongest = index
+	if strongest < 0:
+		return "本回合没有敌人要攻击，剑势落空"
+	var blocked := AttackSegments.total(enemy_intents[strongest])
+	AttackSegments.intercept(enemy_intents[strongest])
+	return "挡下敌人%d本回合的攻击（%d）" % [strongest + 1, blocked]
 
 
 func _highest_hp_enemy_index() -> int:

@@ -11,7 +11,7 @@ static func resolve(authored: Dictionary, definition: Dictionary, context: Dicti
 			if effect.has("combo_scale_key"):
 				amount += int(context["combo"]) * int(definition[effect["combo_scale_key"]])
 			effect["amount"] = amount * int(context["damage_multiplier"])
-		Cards.EFFECT_BLOCK:
+		Cards.EFFECT_BLOCK, Cards.EFFECT_WEAKEN, Cards.EFFECT_NEXT_TURN_ENERGY:
 			var amount := int(definition[effect["amount_key"]])
 			if effect.has("promise") and str(context["promise"]) == str(effect["promise"]):
 				amount += int(definition[effect["bonus_key"]])

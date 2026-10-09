@@ -36,10 +36,19 @@ const TAG_OPENS_WINDOW := "opens_window"
 
 const TARGET_LOWEST_HP := "lowest_hp_enemy"
 const TARGET_NONE := "none"
+const TARGET_HIGHEST_HP := "highest_hp_enemy"
+const TARGET_ALL_ENEMIES := "all_enemies"
 const EFFECT_DAMAGE := "damage"
 const EFFECT_BLOCK := "block"
 const EFFECT_COMBO := "combo"
 const EFFECT_BOON := "boon"
+const EFFECT_WEAKEN := "weaken"
+const EFFECT_RECAST_ON_KILL := "recast_on_kill"
+const EFFECT_CHARGE := "charge"
+const EFFECT_COMBO_PROTECTION := "combo_protection"
+const EFFECT_NEXT_TURN_ENERGY := "next_turn_energy"
+const EFFECT_INTERCEPT_ATTACK := "intercept_attack"
+const EFFECT_RESCUE := "rescue"
 const COMBO_ADD := "add"
 const COMBO_CLEAR := "clear"
 const COMBO_PRESERVE := "preserve"
@@ -166,6 +175,9 @@ const DEFINITIONS := {
 
 const INTENT_DEFINITIONS := {
 	FROST_COLD: {
+		"target": TARGET_ALL_ENEMIES,
+		"effects": [{"kind": EFFECT_DAMAGE, "amount_key": "damage"}, {"kind": EFFECT_WEAKEN, "amount_key": "weaken"}],
+		"result_template": "对全体敌人各造成 {damage} 伤害，它们本回合攻击 -{weaken}",
 		"tags": [TAG_GUARD],
 		"name": "霜寒", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,
 		"damage": 5, "weaken": 2,
@@ -174,6 +186,9 @@ const INTENT_DEFINITIONS := {
 		"description": "对全体敌人各造成5点伤害，并令它们本回合每段攻击伤害 -2。",
 	},
 	TEN_STEPS: {
+		"target": TARGET_LOWEST_HP,
+		"effects": [{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scale_key": "combo_scale"}, {"kind": EFFECT_RECAST_ON_KILL}],
+		"result_template": "对敌人{target}造成 {damage} 伤害{recast}",
 		"tags": [TAG_FINISHER],
 		"name": "十步", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,
 		"damage": 4, "combo_scale": 4,
@@ -182,6 +197,9 @@ const INTENT_DEFINITIONS := {
 		"description": "对生命最低的敌人造成4+连击×4伤害；击杀后立即再释放一次技能。再次用十步击杀可继续追击，不限次数；连击不变。",
 	},
 	GRIND_SWORD: {
+		"target": TARGET_NONE,
+		"effects": [{"kind": EFFECT_CHARGE}],
+		"result_template": "积蓄剑势，小墨下次伤害技能伤害翻倍（不叠加）",
 		"tags": [],
 		"name": "磨剑", "min_bond_stage": 0, "stance": STANCE_INVEST, "requires_intent": true,
 		"charge_multiplier": 2,
@@ -190,6 +208,9 @@ const INTENT_DEFINITIONS := {
 		"description": "不造成伤害；小墨下一次伤害技能伤害翻倍，释放后消耗蓄势；重复磨剑不叠加。",
 	},
 	CUT_WATER: {
+		"target": TARGET_NONE,
+		"effects": [{"kind": EFFECT_COMBO_PROTECTION}],
+		"result_template": "玩家下回合防御或状态牌不会清空连击",
 		"tags": [TAG_OPENS_WINDOW],
 		"name": "断水", "min_bond_stage": 0, "stance": STANCE_INVEST, "requires_intent": true,
 		"poem": "抽刀断水水更流，举杯销愁愁更愁", "source": "李白《宣州谢朓楼饯别校书叔云》", "trigger": "抽刀断水水更流",
@@ -197,6 +218,9 @@ const INTENT_DEFINITIONS := {
 		"description": "不造成伤害；玩家下一回合打出的防御或状态牌均不会清空连击。",
 	},
 	LONG_WIND: {
+		"target": TARGET_NONE,
+		"effects": [{"kind": EFFECT_NEXT_TURN_ENERGY, "amount_key": "energy"}],
+		"result_template": "玩家下回合精力 +{energy}",
 		"tags": [TAG_OPENS_WINDOW],
 		"name": "长风", "min_bond_stage": 0, "stance": STANCE_INVEST, "requires_intent": true,
 		"energy": 1,
@@ -205,6 +229,9 @@ const INTENT_DEFINITIONS := {
 		"description": "不造成伤害；玩家下回合多1点精力。",
 	},
 	BEHEAD_LOULAN: {
+		"target": TARGET_HIGHEST_HP,
+		"effects": [{"kind": EFFECT_DAMAGE, "amount_key": "damage", "ignore_guard": true}],
+		"result_template": "无视格挡，对生命最高的敌人{target}造成 {damage} 伤害",
 		"tags": [],
 		"name": "斩楼兰", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,
 		"damage": 14,
@@ -213,6 +240,9 @@ const INTENT_DEFINITIONS := {
 		"description": "对生命最高的敌人造成14点伤害，无视格挡。",
 	},
 	YIN_MOUNTAIN: {
+		"target": TARGET_NONE,
+		"effects": [{"kind": EFFECT_INTERCEPT_ATTACK}],
+		"result_template": "{interception}",
 		"tags": [TAG_GUARD],
 		"name": "阴山", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,
 		"poem": "但使龙城飞将在，不教胡马度阴山", "source": "王昌龄《出塞·其一》", "trigger": "不教胡马度阴山",
@@ -220,6 +250,9 @@ const INTENT_DEFINITIONS := {
 		"description": "比较修正后的本回合总攻击伤害，挡下最高敌人的全部攻击段。",
 	},
 	FEW_RETURN: {
+		"target": TARGET_NONE,
+		"effects": [{"kind": EFFECT_RESCUE}],
+		"result_template": "{rescue}",
 		"tags": [],
 		"name": "几人回", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,
 		"rescue": true,

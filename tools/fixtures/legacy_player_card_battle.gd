@@ -1,5 +1,17 @@
 extends "res://scripts/battle/battle.gd"
 
+# 仅供冻结的旧路径使用，不是运行时调数值的入口。
+var attack_base_damage := CardDatabase.get_number(CardDatabase.ATTACK, "damage")
+var defense_block := CardDatabase.get_number(CardDatabase.DEFENSE, "block")
+var heavy_attack_base_damage := CardDatabase.get_number(CardDatabase.HEAVY_ATTACK, "damage")
+var heavy_defense_block := CardDatabase.get_number(CardDatabase.HEAVY_DEFENSE, "block")
+var sweep_damage := CardDatabase.get_number(CardDatabase.SWEEP, "damage")
+var combo_boost_damage := CardDatabase.get_number(CardDatabase.COMBO_BOOST, "damage")
+var break_edge_damage := CardDatabase.get_number(CardDatabase.BREAK_EDGE, "damage")
+var break_edge_vulnerable := CardDatabase.get_number(CardDatabase.BREAK_EDGE, "vulnerable")
+var unload_force_reduction := CardDatabase.get_number(CardDatabase.UNLOAD_FORCE, "attack_reduction")
+var hide_edge_block := CardDatabase.get_number(CardDatabase.HIDE_EDGE, "block")
+
 # Frozen before opportunity and simple player-card migration.
 
 func _play_hand_card(index: int) -> void:

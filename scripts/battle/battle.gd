@@ -61,17 +61,7 @@ var enemy_count := 3
 var player_max_hp := BalanceConfig.PLAYER_START_MAX_HP
 var max_energy := BalanceConfig.PLAYER_START_ENERGY
 
-var attack_base_damage := CardDatabase.get_number(CardDatabase.ATTACK, "damage")
 var attack_combo_bonus := BalanceConfig.ATTACK_COMBO_BONUS
-var defense_block := CardDatabase.get_number(CardDatabase.DEFENSE, "block")
-var heavy_attack_base_damage := CardDatabase.get_number(CardDatabase.HEAVY_ATTACK, "damage")
-var heavy_defense_block := CardDatabase.get_number(CardDatabase.HEAVY_DEFENSE, "block")
-var sweep_damage := CardDatabase.get_number(CardDatabase.SWEEP, "damage")
-var combo_boost_damage := CardDatabase.get_number(CardDatabase.COMBO_BOOST, "damage")
-var break_edge_damage := CardDatabase.get_number(CardDatabase.BREAK_EDGE, "damage")
-var break_edge_vulnerable := CardDatabase.get_number(CardDatabase.BREAK_EDGE, "vulnerable")
-var unload_force_reduction := CardDatabase.get_number(CardDatabase.UNLOAD_FORCE, "attack_reduction")
-var hide_edge_block := CardDatabase.get_number(CardDatabase.HIDE_EDGE, "block")
 
 var special_combo_required := CardDatabase.get_number(CardDatabase.FLOWING_LIGHT, "combo_required")
 var special_bond_stage_required := CardDatabase.get_number(CardDatabase.FLOWING_LIGHT, "bond_stage")

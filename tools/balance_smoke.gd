@@ -11,6 +11,7 @@ func _initialize() -> void:
 	call_deferred("run")
 
 func run() -> void:
+	var card_database = root.get_node("CardDatabase")
 	var animation_profiles = preload("res://scripts/ui/companion_action_effect.gd").PROFILES
 	var companion_cards = preload("res://scripts/data/companion_card_database.gd")
 	for card_id in companion_cards.DEFINITIONS.keys() + companion_cards.INTENT_DEFINITIONS.keys():
@@ -111,7 +112,7 @@ func run() -> void:
 	battle.start_battle()
 	check(battle.boss_charge_hits == 0 and battle.enemy_intents[0]["value"] == 8, "重开重置Boss机制")
 	battle.companion_turn_pending = false
-	battle._play_attack_card(2, battle.heavy_attack_base_damage, 0)
+	battle._play_attack_card(2, card_database.get_number(card_database.HEAVY_ATTACK, "damage"), 0)
 	check(battle.enemy_hps[0] == 184 and battle.energy == 1, "劈山实际16伤害且仍费2")
 	battle.enemy_vulnerabilities[0] = 2
 	battle._damage_enemy_at(0, 6)

@@ -3,21 +3,18 @@ extends Node
 const DEFINITIONS := {
 	"near_death_clear": {
 		"priority": 100,
-		"reward": AbilityManager.LIFE_GUARD,
 		"background": "玩家刚刚以不高于最大生命10%的状态击败了Boss。小墨非常担心。",
 		"resolved_when": "玩家承认危险、表示以后会注意，或以符合关系的方式接受小墨的关心。",
 		"unresolved_when": "玩家明显敷衍、嘲讽、转移话题，或表示以后仍会故意冒险。",
 	},
 	"bond_skill_comeback": {
 		"priority": 50,
-		"reward": AbilityManager.RESONANCE,
 		"background": "玩家在低生命状态下发动流光或华彩，并依靠这次配合赢下Boss战。",
 		"resolved_when": "玩家认可双方的配合、信任小墨，或正面回应这次共同作战。",
 		"unresolved_when": "玩家否认小墨的作用、明显敷衍或转移话题。",
 	},
 	"repeated_failure_clear": {
 		"priority": 40,
-		"reward": AbilityManager.PERSEVERANCE,
 		"background": "玩家在连续失败至少两次后终于击败了Boss。小墨想谈论失败与坚持。",
 		"resolved_when": "玩家承认失败并愿意继续前进，或认可双方没有放弃。",
 		"unresolved_when": "玩家否认失败、把责任全部推给小墨，或转移话题。",
@@ -108,19 +105,15 @@ event_id: %s
 
 
 func validate_and_resolve(event_result: Variant) -> Dictionary:
-	var outcome := {"resolved": false, "unlocked": false, "ability_id": ""}
+	var outcome := {"resolved": false}
 	if not has_active_event() or not event_result is Dictionary:
 		return outcome
 	var event_id := get_active_event_id()
 	if str(event_result.get("event_id", "")) != event_id or event_result.get("resolved", false) != true:
 		return outcome
-	var ability_id := str(DEFINITIONS[event_id]["reward"])
-	if not AbilityManager.DEFINITIONS.has(ability_id):
-		return outcome
-	var unlocked_now := AbilityManager.unlock(ability_id)
 	completed_events.append(event_id)
 	current_event.clear()
-	outcome = {"resolved": true, "unlocked": unlocked_now, "ability_id": ability_id}
+	outcome = {"resolved": true}
 	RunState.save_persistent_state()
 	return outcome
 

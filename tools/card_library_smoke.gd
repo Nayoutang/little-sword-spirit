@@ -30,7 +30,7 @@ func run() -> void:
 	library.collection_filter.select(1)
 	library._refresh()
 	check(library.shown_entries.size() == 20, "player filter")
-	check(library.collection_filter.item_count == 4, "catalog has no trial-only category")
+	check(library.collection_filter.item_count == 5, "catalog has no trial-only category")
 	var database = root.get_node("CardDatabase")
 	for card_id in [17, 18, 19]:
 		check(card_id in database.get_reward_card_ids(), "shield/parry card is obtainable from normal rewards")

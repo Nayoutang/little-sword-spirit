@@ -74,6 +74,7 @@ func run() -> void:
 	# 这次已经开始抽取；强制下一次只剩飞花令。
 	await process_frame
 	state.run_adventures.assign([0, 1, 2, 3, 4])
+	state.checkpoint("adventure")
 	change_scene_to_file("res://scenes/adventure.tscn")
 	for step in range(6):
 		await process_frame

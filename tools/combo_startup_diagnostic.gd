@@ -23,7 +23,6 @@ func run() -> void:
 	state = root.get_node("RunState")
 	cards = root.get_node("CardDatabase")
 	state.suppress_persistence = true
-	root.get_node("AbilityManager").reset()
 	baseline_memory = state.relationship_facts.duplicate(true)
 	var count := 20
 	for arg in OS.get_cmdline_user_args():

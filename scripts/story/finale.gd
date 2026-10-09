@@ -36,7 +36,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _advance() -> void:
 	if finishing:
 		if RunState.finale_state == "ended":
-			get_tree().change_scene_to_file("res://scenes/save_select.tscn")
+			RunState.navigate("save_select", self)
 		return
 	if page.reveal_next(): return
 	if page_index + 1 < pages.size():
@@ -46,7 +46,7 @@ func _advance() -> void:
 	finishing = true
 	if RunState.finale_mode == "arrival":
 		RunState.prepare_finale_battle()
-		get_tree().change_scene_to_file("res://scenes/battle.tscn")
+		RunState.navigate("battle", self)
 	else:
 		RunState.set_finale_state("ended", RunState.finale_mode)
 		$FinaleUI/Continue.text = "返回存档"

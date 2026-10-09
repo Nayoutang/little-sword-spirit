@@ -1,13 +1,17 @@
-extends Node
+extends SceneTree
 
 
-func _ready() -> void:
+func _initialize() -> void:
+	call_deferred("run")
+
+
+func run() -> void:
 	var failed := false
-	var controller := FeihualingController.new()
+	var controller = load("res://scripts/home/feihualing_controller.gd").new()
 	var seen := {}
 	var previous := ""
 	for index in range(FeihualingGame.CHARACTERS.size()):
-		var keyword := controller._draw_keyword()
+		var keyword: String = controller._draw_keyword()
 		if seen.has(keyword):
 			push_error("令字池尚未抽完就重复：%s" % keyword)
 			failed = true
@@ -34,4 +38,4 @@ func _ready() -> void:
 	controller.free()
 	chat.free()
 	print("飞花令令字测试：%s" % ("失败" if failed else "通过"))
-	get_tree().quit(1 if failed else 0)
+	quit(1 if failed else 0)

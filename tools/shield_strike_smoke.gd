@@ -21,7 +21,6 @@ func scene():
 	state.bond_stage = 2
 	state.learned_sword_intents.clear()
 	state.pending_encounter = state.EncounterType.NORMAL
-	root.get_node("AbilityManager").reset()
 	var battle = load("res://scenes/battle.tscn").instantiate()
 	battle.force_offline_companion = true
 	battle.offline_experiment = true

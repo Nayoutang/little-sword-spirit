@@ -11,6 +11,8 @@ func mount(path: String):
 	current_scene = scene
 	return scene
 func run() -> void:
+	create_timer(30).timeout.connect(func(): quit(2))
+	assert(OS.get_environment("APPDATA").contains("finale-save-user"))
 	var state = root.get_node("RunState")
 	state.suppress_persistence = true
 	state.intro_done = true
@@ -54,7 +56,7 @@ func run() -> void:
 		else:
 			battle.player_hp = 1
 			battle.block = 0
-			battle.life_guard_used = true
+			battle.few_return_used = true
 			battle.enemy_intents.assign([{ "type": battle.EnemyIntent.ATTACK, "value": 999 }])
 			battle._resolve_enemy_turn()
 		await create_timer(1.0).timeout

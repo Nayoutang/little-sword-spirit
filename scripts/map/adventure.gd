@@ -84,11 +84,15 @@ const MIDDLE_LINES := [
 
 
 func _ready() -> void:
-	var index := adventure_index if adventure_index >= 0 else RunState.draw_comic_adventure(ADVENTURES.size())
+	preload("res://scripts/ui/save_exit_button.gd").install(self, $AdventureUI, Vector2(1600, 24))
+	var saved := RunState.room_checkpoint("adventure")
+	var index := int(saved.comic) if saved.has("comic") else (adventure_index if adventure_index >= 0 else RunState.draw_comic_adventure(ADVENTURES.size()))
 	if index == -1:
-		get_tree().change_scene_to_file.call_deferred("res://scenes/expedition_poetry.tscn")
+		RunState.checkpoint("poetry")
+		RunState.navigate("poetry", self)
 		return
 	selected_adventure_index = index
+	RunState.checkpoint("adventure", {"comic": index})
 	current_adventure = ADVENTURES[index]
 	title_label.text = "奇遇 · %s" % current_adventure["title"]
 	$AdventureUI/Page.begin(load("res://art/story/adventures/" + COMIC_ART[index] + "_v1.png"))
@@ -167,7 +171,7 @@ func _resolve_choice(choice: Dictionary) -> void:
 	var old_hp := RunState.player_hp
 	var heal := int(choice.get("heal", 0))
 	if heal > 0:
-		RunState.player_hp = mini(RunState.player_hp + heal, RunState.player_max_hp)
+		RunState.adjust_player_hp(heal)
 	var bond_gain := int(choice.get("bond", 0))
 	RunState.add_bond(bond_gain)
 	RunState.record_moment("奇遇「%s」里，你选择了「%s」：%s" % [
@@ -190,6 +194,7 @@ func _resolve_choice(choice: Dictionary) -> void:
 		pending_effect_text,
 	])
 	story_label.text = "%s\n%s" % [choice["result"], pending_effect_text]
+	RunState.checkpoint("map")
 	result_label.text = "……"
 	result_label.show()
 	_refresh_bond()
@@ -254,19 +259,11 @@ func _on_request_completed(
 	if result != HTTPRequest.RESULT_SUCCESS or response_code < 200 or response_code >= 300:
 		_show_fallback_response()
 		return
-	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
-	if not parsed is Dictionary:
+	var response := preload("res://scripts/data/llm_response.gd").from_body(body)
+	if not response.error.is_empty():
 		_show_fallback_response()
 		return
-	var api_choices: Variant = parsed.get("choices", [])
-	if not api_choices is Array or api_choices.is_empty() or not api_choices[0] is Dictionary:
-		_show_fallback_response()
-		return
-	var message: Variant = api_choices[0].get("message", {})
-	if not message is Dictionary:
-		_show_fallback_response()
-		return
-	var generated := _parse_generated_response(str(message.get("content", "")))
+	var generated := _parse_generated_response(response.content)
 	if generated.is_empty():
 		_show_fallback_response()
 		return
@@ -274,14 +271,7 @@ func _on_request_completed(
 
 
 func _parse_generated_response(content: String) -> Dictionary:
-	var cleaned := content.strip_edges()
-	if cleaned.begins_with("```json"):
-		cleaned = cleaned.trim_prefix("```json").trim_suffix("```").strip_edges()
-	elif cleaned.begins_with("```"):
-		cleaned = cleaned.trim_prefix("```").trim_suffix("```").strip_edges()
-	var parsed: Variant = JSON.parse_string(cleaned)
-	if not parsed is Dictionary:
-		return {}
+	var parsed := preload("res://scripts/data/llm_response.gd").json_object(content)
 	var reply := str(parsed.get("reply", "")).strip_edges()
 	var narration := str(parsed.get("narration", "")).strip_edges()
 	if reply.is_empty() or narration.is_empty():
@@ -326,4 +316,4 @@ func _refresh_bond() -> void:
 
 
 func _return_to_map() -> void:
-	get_tree().change_scene_to_file("res://scenes/map.tscn")
+	RunState.navigate("map", self)

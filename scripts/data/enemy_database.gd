@@ -51,7 +51,7 @@ const ROLES := {
 }
 
 
-func get_encounter_roles(layer: int, count: int, elite: bool) -> Array[String]:
+func get_encounter_roles(layer: int, count: int, elite: bool, rng: RandomNumberGenerator = null) -> Array[String]:
 	var result: Array[String] = []
 	if layer <= 3 and not elite:
 		var role := SWORDSMAN if layer <= 1 else (GUARDIAN if layer == 2 else HEXER)
@@ -60,7 +60,7 @@ func get_encounter_roles(layer: int, count: int, elite: bool) -> Array[String]:
 	else:
 		var pairs := [[SWORDSMAN, GUARDIAN], [GUARDIAN, HEXER], [SWORDSMAN, HEXER]]
 		role_random_calls += 1
-		var pair: Array = pairs[randi_range(0, pairs.size() - 1)]
+		var pair: Array = pairs[randi_range(0, pairs.size() - 1) if rng == null else rng.randi_range(0, pairs.size() - 1)]
 		for index in range(count):
 			result.append(pair[index % pair.size()])
 	return result

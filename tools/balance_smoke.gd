@@ -32,7 +32,7 @@ func run() -> void:
 	state.suppress_persistence = true
 	state.start_new_run()
 	check(state.deck.size() == 15, "起始牌组不变")
-	check(cards.get_reward_card_ids().size() == 11, "奖励池十一张，含行云与追风")
+	check(cards.get_reward_card_ids().size() == 14, "奖励池十四张，含行云、追风、护盾攻击、留盾与招架")
 	for id in [cards.ATTACK, cards.DEFENSE, cards.STATUS]:
 		check(id not in cards.get_reward_card_ids(), "基础牌不进入奖励池")
 	check(enemies.get_normal_config(1)["hp_min"] == 34, "首战生命下界")
@@ -166,7 +166,7 @@ func run() -> void:
 	check(battle.companion_last_card_id == "guard_echo" and battle.companion_last_reason.contains("致命"), "可救致命危险改盾并解释")
 	var director = load("res://scripts/battle/companion_card_director.gd")
 	check(director.build_prompt(battle._build_companion_context(), legal).contains("boss_hits"), "在线提示包含机制状态")
-	check(tactics.cooperation_plan({"combo": 2}, "grind_sword").get("kind", "") == "preserve_combo", "磨剑附带留势条件")
+	check(tactics.cooperation_plan({"combo": 2}, "grind_sword").get("kind", "") == "charge_attack", "磨剑积蓄小墨下次伤害")
 	battle.queue_free()
 	await process_frame
 	state.pending_encounter = state.EncounterType.NORMAL

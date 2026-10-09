@@ -27,8 +27,22 @@ const FEW_RETURN := "few_return"
 const STANCE_SELF := "self_preservation"
 const STANCE_INVEST := "investment"
 
+# 常规牌的效果按数组顺序执行；数值仍引用下方已有字段，供策略和展示共用。
+const TARGET_LOWEST_HP := "lowest_hp_enemy"
+const TARGET_NONE := "none"
+const EFFECT_DAMAGE := "damage"
+const EFFECT_BLOCK := "block"
+const EFFECT_COMBO := "combo"
+const EFFECT_BOON := "boon"
+const COMBO_ADD := "add"
+const COMBO_CLEAR := "clear"
+const COMBO_PRESERVE := "preserve"
+
 const DEFINITIONS := {
 	QUICK_SLASH: {
+		"target": TARGET_LOWEST_HP,
+		"effects": [{"kind": EFFECT_DAMAGE, "amount_key": "damage"}],
+		"result_template": "对敌人{target}造成 {damage} 伤害",
 		"name": "随手一斩",
 		"min_bond_stage": 0,
 		"stance": STANCE_SELF,
@@ -36,6 +50,9 @@ const DEFINITIONS := {
 		"description": "对生命最低的敌人造成6点伤害。",
 	},
 	GUARD_ECHO: {
+		"target": TARGET_NONE,
+		"effects": [{"kind": EFFECT_BLOCK, "amount_key": "block"}],
+		"result_template": "获得 {block} 格挡",
 		"name": "剑影回护",
 		"min_bond_stage": 0,
 		"stance": STANCE_SELF,
@@ -43,6 +60,9 @@ const DEFINITIONS := {
 		"description": "为玩家获得6点格挡。",
 	},
 	FOLLOW_UP: {
+		"target": TARGET_LOWEST_HP,
+		"effects": [{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scale_key": "combo_scale"}, {"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount": 1}],
+		"result_template": "对敌人{target}造成 {damage} 伤害，连击 +1",
 		"name": "衔锋",
 		"min_bond_stage": 1,
 		"stance": STANCE_SELF,
@@ -51,6 +71,9 @@ const DEFINITIONS := {
 		"description": "承接玩家连击，对生命最低的敌人造成7+连击×2伤害，并令连击+1。",
 	},
 	CLEAN_CUT: {
+		"target": TARGET_LOWEST_HP,
+		"effects": [{"kind": EFFECT_DAMAGE, "amount_key": "damage"}],
+		"result_template": "对敌人{target}造成 {damage} 伤害",
 		"name": "利落",
 		"min_bond_stage": 1,
 		"stance": STANCE_SELF,
@@ -58,6 +81,9 @@ const DEFINITIONS := {
 		"description": "对生命最低的敌人造成8点伤害。",
 	},
 	LEAD_MOMENTUM: {
+		"target": TARGET_NONE,
+		"effects": [{"kind": EFFECT_BOON}],
+		"result_template": "玩家下回合第一张攻击牌伤害 ×{boon}",
 		"name": "引势",
 		"min_bond_stage": 1,
 		"stance": STANCE_INVEST,
@@ -66,6 +92,9 @@ const DEFINITIONS := {
 		"description": "不造成伤害；令玩家下回合第一张攻击牌的伤害×2。",
 	},
 	OATH_GUARD: {
+		"target": TARGET_NONE,
+		"effects": [{"kind": EFFECT_BLOCK, "amount_key": "block", "promise": "protect", "bonus_key": "promise_bonus"}],
+		"result_template": "获得 {block} 格挡",
 		"name": "守诺",
 		"min_bond_stage": 2,
 		"stance": STANCE_SELF,
@@ -74,6 +103,9 @@ const DEFINITIONS := {
 		"description": "为玩家获得10点格挡；若本趟立下保护约定，额外获得3点。",
 	},
 	RETURN_GUARD: {
+		"target": TARGET_NONE,
+		"effects": [{"kind": EFFECT_BLOCK, "amount_key": "block"}],
+		"result_template": "获得 {block} 格挡",
 		"name": "回护",
 		"min_bond_stage": 2,
 		"stance": STANCE_SELF,
@@ -81,6 +113,9 @@ const DEFINITIONS := {
 		"description": "为玩家获得10点格挡。",
 	},
 	ESCORT: {
+		"target": TARGET_NONE,
+		"effects": [{"kind": EFFECT_BLOCK, "amount_key": "block"}, {"kind": EFFECT_BOON}],
+		"result_template": "获得 {block} 格挡；玩家下回合第一张攻击牌伤害 +{boon}",
 		"name": "拱卫",
 		"min_bond_stage": 2,
 		"stance": STANCE_INVEST,
@@ -90,6 +125,9 @@ const DEFINITIONS := {
 		"description": "为玩家获得6点格挡；令玩家下回合第一张攻击牌伤害+4。",
 	},
 	HEART_RESONANCE: {
+		"target": TARGET_LOWEST_HP,
+		"effects": [{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scale_key": "combo_scale"}, {"kind": EFFECT_COMBO, "mode": COMBO_PRESERVE}],
+		"result_template": "对敌人{target}造成 {damage} 伤害，保留连击",
 		"name": "同心剑鸣",
 		"min_bond_stage": 3,
 		"stance": STANCE_INVEST,
@@ -98,6 +136,9 @@ const DEFINITIONS := {
 		"description": "对生命最低的敌人造成12+连击×3伤害，保留当前连击。",
 	},
 	LONE_JUDGMENT: {
+		"target": TARGET_LOWEST_HP,
+		"effects": [{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scale_key": "combo_scale"}, {"kind": EFFECT_COMBO, "mode": COMBO_CLEAR}],
+		"result_template": "对敌人{target}造成 {damage} 伤害，连击清零",
 		"name": "独断",
 		"min_bond_stage": 3,
 		"stance": STANCE_SELF,
@@ -120,20 +161,20 @@ const INTENT_DEFINITIONS := {
 		"damage": 4, "combo_scale": 4,
 		"poem": "十步杀一人，千里不留行", "source": "李白《侠客行》", "trigger": "十步杀一人",
 		"hint": "这句写侠客十步之内取人，千里不留行迹。",
-		"description": "对生命最低的敌人造成4+连击×4伤害；击杀则连击+1并保留到下回合，否则清空连击。",
+		"description": "对生命最低的敌人造成4+连击×4伤害；击杀后立即再释放一次技能。再次用十步击杀可继续追击，不限次数；连击不变。",
 	},
 	GRIND_SWORD: {
 		"name": "磨剑", "min_bond_stage": 0, "stance": STANCE_INVEST, "requires_intent": true,
-		"preserve_combo": true,
+		"charge_multiplier": 2,
 		"poem": "十年磨一剑，霜刃未曾试", "source": "贾岛《剑客》", "trigger": "十年磨一剑",
 		"hint": "这句写十年磨一剑、霜刃还没出过鞘。你自己就是一把剑。",
-		"description": "不造成伤害；护住当前连击，保留到下一回合，留给玩家或下一次收招。",
+		"description": "不造成伤害；小墨下一次伤害技能伤害翻倍，释放后消耗蓄势；重复磨剑不叠加。",
 	},
 	CUT_WATER: {
 		"name": "断水", "min_bond_stage": 0, "stance": STANCE_INVEST, "requires_intent": true,
 		"poem": "抽刀断水水更流，举杯销愁愁更愁", "source": "李白《宣州谢朓楼饯别校书叔云》", "trigger": "抽刀断水水更流",
 		"hint": "这句写抽刀断水、水却更流，斩不断的东西。",
-		"description": "不造成伤害；玩家下回合打出的第一张防御或状态牌不会清空连击。",
+		"description": "不造成伤害；玩家下一回合打出的防御或状态牌均不会清空连击。",
 	},
 	LONG_WIND: {
 		"name": "长风", "min_bond_stage": 0, "stance": STANCE_INVEST, "requires_intent": true,
@@ -147,7 +188,7 @@ const INTENT_DEFINITIONS := {
 		"damage": 14,
 		"poem": "愿将腰下剑，直为斩楼兰", "source": "李白《塞下曲六首·其一》", "trigger": "直为斩楼兰",
 		"hint": "这句写愿以腰间剑直取楼兰。",
-		"description": "对生命最高的敌人造成14点伤害。",
+		"description": "对生命最高的敌人造成14点伤害，无视格挡。",
 	},
 	YIN_MOUNTAIN: {
 		"name": "阴山", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,
@@ -157,10 +198,10 @@ const INTENT_DEFINITIONS := {
 	},
 	FEW_RETURN: {
 		"name": "几人回", "min_bond_stage": 0, "stance": STANCE_SELF, "requires_intent": true,
-		"block": 5, "block_low": 16,
+		"rescue": true,
 		"poem": "醉卧沙场君莫笑，古来征战几人回", "source": "王翰《凉州词》", "trigger": "古来征战几人回",
 		"hint": "这句写征战的人少有回来的——你偏要带他回去。",
-		"description": "玩家生命不高于1/4时获得16点格挡，否则获得5点。",
+		"description": "本回合受到致命伤害时保留1点生命，并免疫本回合剩余伤害；每场战斗最多成功救险一次。",
 	},
 }
 

@@ -138,4 +138,4 @@ func _finish() -> void:
 	if player_name.is_empty():
 		player_name = DEFAULT_NAME
 	RunState.complete_intro(player_name, "初遇那天，你替断碑旁的古剑拂去灰尘，她说「喂，轻一点……我又不是块破石头。」你惊讶剑会说话，她告诉你自己叫小墨。你们一起下山，在山脚的旧屋落脚。你让她记住你的称呼是%s。" % player_name)
-	get_tree().change_scene_to_file("res://scenes/home.tscn")
+	RunState.navigate("home", self)

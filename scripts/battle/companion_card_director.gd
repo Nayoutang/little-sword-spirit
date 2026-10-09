@@ -14,7 +14,7 @@ static func build_prompt(context: Dictionary, allowed_ids: Array[String]) -> Str
 2. 在剩下都不亏的牌里，由关系拍板，不默认选择数学收益最高的牌。
 3. 关系轴只有一条：自保/当场兑现 ↔ 投资玩家。自保是你现在收残血或贴足盾；投资是把这一手变成玩家下回合的资源、把主动权留给玩家。
 4. 羁绊影响表达，不直接决定投资倾向；应根据具体机会被使用或浪费的统计判断配合把握。具体偏向必须从关系档案和已发生事实里长出来。
-5. 你正在玩家行动之前锁定本回合意向。不得假称玩家已经打出了尚未发生的牌。连击归双方共享且回合末默认清零。你是清零前最后一个能行动的人；你在回答“玩家攒的这串、这个局面，我认不认、接不接”。
+5. 通常在玩家行动之前锁定意向；若当前是十步击杀后的追加行动，玩家已行动完毕，按实时战况重新选择技能，不假称玩家还能继续出牌。连击归双方共享且回合末默认清零。
 
 授权卡池：
 %s
@@ -31,6 +31,7 @@ static func build_prompt(context: Dictionary, allowed_ids: Array[String]) -> Str
 
 机制信息（索引从1开始，intent.type：0攻击、1防御、2强化、3心魔、4观望）：
 %s
+若手牌提示玩家已结束行动，这是执行或十步追击阶段，不能再依赖玩家补攻击。
 Boss重斩时，正伤害命中即计破势，被格挡吸收也计；叠浪连击+2仍只命中一次。
 小墨的攻击也可补一次命中；达成门槛后重斩降至普通攻击。可用攻击次数只来自当前手牌与精力，不假设后续抽牌。
 守卫护卫存活同伴，咒师塞心魔。击杀可取消它们尚未执行的行动。
@@ -68,7 +69,7 @@ reason 的语气要演出你此刻对他的信任程度：
 		int(context.get("incoming_damage", 0)),
 		str(context.get("hand_cards", "未知")),
 		str(context.get("turn_player_cards", "未知")),
-		JSON.stringify({"enemies": context.get("enemies", []), "energy": context.get("energy", 0), "affordable_attack_hits": context.get("affordable_attack_hits", 0), "boss_charging": context.get("boss_charging", false), "boss_hits": context.get("boss_hits", 0), "boss_hit_required": context.get("boss_hit_required", 3), "boss_interrupted_damage": context.get("boss_interrupted_damage", 8)}),
+		JSON.stringify({"bonus_action": context.get("bonus_action", false), "grind_sword_ready": context.get("grind_sword_ready", false), "few_return_used": context.get("few_return_used", false), "enemies": context.get("enemies", []), "energy": context.get("energy", 0), "affordable_attack_hits": context.get("affordable_attack_hits", 0), "boss_charging": context.get("boss_charging", false), "boss_hits": context.get("boss_hits", 0), "boss_hit_required": context.get("boss_hit_required", 3), "boss_interrupted_damage": context.get("boss_interrupted_damage", 8)}),
 		str(context.get("relationship_archive", "暂无可用记录。")),
 		str(context.get("shared_history", "【你们的共同经历】\n暂无。")),
 		str(context.get("run_journal", "暂无可用记录。")),
@@ -90,15 +91,7 @@ static func _stage_voice(stage: int) -> String:
 
 
 static func parse_choice(raw_content: String, allowed_ids: Array[String], context: Dictionary = {}) -> Dictionary:
-	var cleaned := raw_content.strip_edges()
-	if cleaned.begins_with("```"):
-		var first_newline := cleaned.find("\n")
-		var last_fence := cleaned.rfind("```")
-		if first_newline >= 0 and last_fence > first_newline:
-			cleaned = cleaned.substr(first_newline + 1, last_fence - first_newline - 1).strip_edges()
-	var parsed: Variant = JSON.parse_string(cleaned)
-	if not parsed is Dictionary:
-		return {}
+	var parsed := preload("res://scripts/data/llm_response.gd").json_object(raw_content, true)
 	var card_id := str(parsed.get("card_id", ""))
 	if card_id not in allowed_ids:
 		return {}
@@ -126,7 +119,7 @@ static func get_fact_check_error(reason: String, context: Dictionary) -> String:
 			battle_numbers.append(str(int(context[key])))
 	var corpus := "%s\n%s\n%s\n%s\n%s\n%s" % [
 		archive, history, journal, str(context.get("turn_player_cards", "")), " ".join(battle_numbers),
-		JSON.stringify({"enemies": context.get("enemies", []), "boss_hits": context.get("boss_hits", 0), "boss_hit_required": context.get("boss_hit_required", 3), "affordable_attack_hits": context.get("affordable_attack_hits", 0)}),
+		JSON.stringify({"bonus_action": context.get("bonus_action", false), "grind_sword_ready": context.get("grind_sword_ready", false), "few_return_used": context.get("few_return_used", false), "enemies": context.get("enemies", []), "boss_hits": context.get("boss_hits", 0), "boss_hit_required": context.get("boss_hit_required", 3), "affordable_attack_hits": context.get("affordable_attack_hits", 0)}),
 	]
 	var corpus_numbers := {}
 	var number_pattern := RegEx.new()
@@ -211,25 +204,12 @@ static func request_online_choice(
 			printerr("LLM 请求失败：result=%d, HTTP=%d" % [int(response[0]), int(response[1])])
 		return {}
 	var response_body: PackedByteArray = response[3]
-	var response_json: Variant = JSON.parse_string(response_body.get_string_from_utf8())
-	if not response_json is Dictionary:
+	var envelope := preload("res://scripts/data/llm_response.gd").from_body(response_body)
+	if not envelope.error.is_empty():
 		if debug_output:
-			printerr("LLM 响应不是合法 JSON。")
+			printerr("LLM 响应格式不正确：%s" % envelope.error)
 		return {}
-	var choices: Variant = response_json.get("choices", [])
-	if not choices is Array or choices.is_empty():
-		if debug_output:
-			printerr("LLM 响应不含 choices。")
-		return {}
-	var first_choice: Variant = choices[0]
-	if not first_choice is Dictionary:
-		return {}
-	var message: Variant = first_choice.get("message", {})
-	if not message is Dictionary:
-		if debug_output:
-			printerr("LLM choices[0] 不含 message。")
-		return {}
-	var raw_content := str(message.get("content", ""))
+	var raw_content: String = envelope.content
 	var parsed_choice := parse_choice(raw_content, allowed_ids, context)
 	if parsed_choice.is_empty() and debug_output:
 		var loose := parse_choice(raw_content, allowed_ids)

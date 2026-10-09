@@ -2,8 +2,11 @@ extends Node2D
 
 
 func _ready() -> void:
+	preload("res://scripts/ui/save_exit_button.gd").install(self, $SettlementUI, Vector2(1600, 24))
 	$SettlementUI/HomeButton.pressed.connect(_return_home)
-	var settlement: Dictionary = RunState.apply_settlement()
+	var saved := RunState.room_checkpoint("settlement")
+	var settlement: Dictionary = saved.settlement_result if saved.has("settlement_result") else RunState.apply_settlement()
+	RunState.checkpoint("settlement", {"settlement_result": settlement})
 	var result := str(settlement.get("result", "none"))
 
 	if result == "kept":
@@ -26,4 +29,5 @@ func _ready() -> void:
 
 
 func _return_home() -> void:
-	get_tree().change_scene_to_file("res://scenes/home.tscn")
+	RunState.clear_expedition()
+	RunState.navigate("home", self)

@@ -17,7 +17,6 @@ func run() -> void:
 	state.active_promise = ""
 	state.route_layer = 8
 	state.pending_encounter = state.EncounterType.NORMAL
-	root.get_node("AbilityManager").reset()
 	var battle = load("res://scenes/battle.tscn").instantiate()
 	battle.set_script(load("res://tools/shield_playtest_battle.gd"))
 	battle.offline_experiment = true

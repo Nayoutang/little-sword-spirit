@@ -12,6 +12,7 @@ var leaving := false
 
 
 func _ready() -> void:
+	preload("res://scripts/ui/save_exit_button.gd").install(self, $FeihualingLayer, Vector2(1350, 24))
 	controller = FeihualingController.new()
 	controller.scene_context = "当前在远征途中歇脚对诗，不在家中；结束后继续赶路，不要把对诗结果说成远征结算。"
 	add_child(controller)
@@ -81,10 +82,12 @@ func _on_opening_failed(keyword: String) -> void:
 func _on_finished(summary: String) -> void:
 	log_text.add_text("[对局结束] %s\n\n歇息结束，可以继续赶路。" % summary)
 	RunState.record_run_fact("poetry", "途中飞花令：%s" % summary)
+	RunState.checkpoint("map")
 	_refresh_controls()
 
 
 func _on_intent_learned(card_id: String, _player_line: String) -> void:
+	RunState.checkpoint("map")
 	var definition := CompanionCardDatabase.get_definition(card_id)
 	log_text.add_text("[剑意领悟] %s：%s\n\n" % [definition.get("name", card_id), definition.get("description", "")])
 
@@ -95,7 +98,8 @@ func _leave() -> void:
 	leaving = true
 	controller.cancel()
 	RunState.record_run_fact("poetry_departure", "途中停留对诗后继续赶路。" if started else "途经对诗歇脚处，选择继续赶路。")
-	get_tree().change_scene_to_file("res://scenes/map.tscn")
+	RunState.checkpoint("map")
+	RunState.navigate("map", self)
 
 
 func _exit_tree() -> void:

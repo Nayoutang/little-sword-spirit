@@ -33,8 +33,15 @@ func _ready() -> void:
 
 
 func _open_slot(slot: int) -> void:
+	if slot_buttons[0].disabled:
+		return
+	for button in slot_buttons:
+		button.disabled = true
 	RunState.select_save_slot(slot)
-	get_tree().change_scene_to_file("res://scenes/home.tscn")
+	var error := RunState.navigate(RunState.resume_expedition(), self)
+	if error != OK:
+		for button in slot_buttons:
+			button.disabled = false
 
 
 func _request_delete(slot: int) -> void:
@@ -53,7 +60,7 @@ func _refresh_slots() -> void:
 		var slot := index + 1
 		var summary: Dictionary = RunState.get_save_slot_summary(slot)
 		if summary["exists"]:
-			slot_buttons[index].text = "存档 %d\n继续与小墨的旅途" % slot
+			slot_buttons[index].text = "存档 %d\n继续远征 · 第%d层" % [slot, summary["layer"]] if summary.get("expedition", false) else "存档 %d\n继续与小墨的旅途" % slot
 			delete_buttons[index].disabled = false
 		else:
 			slot_buttons[index].text = "存档 %d\n新游戏" % slot

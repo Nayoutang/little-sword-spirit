@@ -26,7 +26,7 @@ func run() -> void:
 			var types: Array = plan.layer_node_types[layer]
 			if layer in [8, 18]:
 				check(types.count(RouteNode.NodeType.TREASURE) == 5, "两次整备宝箱")
-			elif layer == 10:
+			elif layer in plan.ADVENTURE_LAYERS:
 				check(types.count(RouteNode.NodeType.ADVENTURE) == 5, "中途奇遇路线")
 			else:
 				check(types.has(RouteNode.NodeType.BATTLE), "每个非整备层保留战斗路线")

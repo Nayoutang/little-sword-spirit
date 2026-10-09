@@ -16,13 +16,17 @@ var finishing := false
 @onready var card_choices: HBoxContainer = $EventUI/CardChoices
 
 func _ready() -> void:
+	preload("res://scripts/ui/save_exit_button.gd").install(self, $EventUI, Vector2(1330, 24))
+	preload("res://scripts/ui/card_library.gd").install_deck_view(self, $EventUI, Vector2(1600, 24))
 	$EventUI/MainChoices/Heal.pressed.connect(_choose_heal)
 	$EventUI/MainChoices/MaxHP.pressed.connect(_choose_max_hp)
 	$EventUI/MainChoices/Card.pressed.connect(_show_card_choices)
 	card_choices.hide()
 	skip_button.pressed.connect(_finish_event.bind("跳过选卡"))
 	_refresh_hp()
-	if RunState.pending_event == RunState.EventType.UNKNOWN:
+	if RunState.room_checkpoint("event").get("card_choices", false):
+		_show_card_choices()
+	elif RunState.pending_event == RunState.EventType.UNKNOWN:
 		_resolve_unknown_event()
 
 
@@ -38,31 +42,34 @@ func _resolve_unknown_event() -> void:
 		2:
 			_show_card_choices()
 		3:
-			RunState.player_hp = maxi(RunState.player_hp - 20, 1)
+			RunState.adjust_player_hp(-20, 1)
 			_finish_event("遭遇陷阱：失去 20 HP")
 		4:
 			_lose_random_card()
 
 
 func _lose_random_card() -> void:
+	if finishing:
+		return
 	if RunState.deck.is_empty():
 		_finish_event("牌组为空，没有卡牌可以失去")
 		return
 	var removed_index := randi_range(0, RunState.deck.size() - 1)
-	var removed_type: int = RunState.deck[removed_index]
-	RunState.deck.remove_at(removed_index)
+	var removed_type := RunState.remove_run_card(removed_index)
 	_finish_event("失去一张「%s」" % CardDatabase.get_card_name(removed_type))
 
 
 func _choose_heal() -> void:
-	var old_hp := RunState.player_hp
-	RunState.player_hp = mini(RunState.player_hp + heal_amount, RunState.player_max_hp)
-	_finish_event("恢复了 %d 点 HP" % (RunState.player_hp - old_hp))
+	if finishing:
+		return
+	var restored := RunState.adjust_player_hp(heal_amount)
+	_finish_event("恢复了 %d 点 HP" % restored)
 
 
 func _choose_max_hp() -> void:
-	RunState.player_max_hp += max_hp_increase
-	RunState.player_hp += max_hp_increase
+	if finishing:
+		return
+	RunState.increase_max_hp(max_hp_increase)
 	_finish_event("最大 HP 与当前 HP 都提升了 %d" % max_hp_increase)
 
 
@@ -72,9 +79,15 @@ func _show_card_choices() -> void:
 	skip_button.show()
 	message_label.text = "选择一张加入牌组"
 	var candidates: Array[int] = []
-	for card_type in CardDatabase.get_reward_card_ids(RunState.deck):
-		candidates.append(card_type)
-	candidates.shuffle()
+	var saved := RunState.room_checkpoint("event")
+	if saved.has("cards"):
+		candidates.assign(saved.cards)
+	else:
+		for card_type in CardDatabase.get_reward_card_ids(RunState.deck):
+			candidates.append(card_type)
+		candidates.shuffle()
+		candidates.resize(card_choices.get_child_count())
+	RunState.checkpoint("event", {"card_choices": true, "cards": candidates})
 	for index in range(card_choices.get_child_count()):
 		var button := card_choices.get_child(index) as Button
 		var card_type := candidates[index]
@@ -90,7 +103,8 @@ func _show_card_choices() -> void:
 func _choose_card(card_type: int) -> void:
 	if finishing:
 		return
-	RunState.deck.append(card_type)
+	if not RunState.add_run_card(card_type):
+		return
 	_finish_event("已将「%s」加入牌组" % CardDatabase.get_card_name(card_type))
 
 
@@ -111,8 +125,9 @@ func _finish_event(message: String) -> void:
 		RunState.deck.size(),
 	])
 	_refresh_hp()
+	RunState.checkpoint("map")
 	await get_tree().create_timer(1.0).timeout
-	get_tree().change_scene_to_file("res://scenes/map.tscn")
+	RunState.navigate("map", self)
 
 
 func _refresh_hp() -> void:

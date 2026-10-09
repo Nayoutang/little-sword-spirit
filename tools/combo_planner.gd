@@ -9,7 +9,6 @@ const DRAW_SAMPLES := 4
 var cards
 var enemies
 var state
-var abilities
 var horizon_rounds := 2
 var blocked_cards: Array = []
 
@@ -18,7 +17,6 @@ func _init() -> void:
 	cards = tree.root.get_node("CardDatabase")
 	enemies = tree.root.get_node("EnemyDatabase")
 	state = tree.root.get_node("RunState")
-	abilities = tree.root.get_node("AbilityManager")
 
 func snapshot(battle) -> Dictionary:
 	var held: Array = []
@@ -38,10 +36,10 @@ func snapshot(battle) -> Dictionary:
 		"damage": 0, "loss": 0, "round": 0, "first": {}, "extra_energy": 0}
 
 func choose(battle, planning_seed := 701) -> Dictionary:
-	if state.pending_encounter != state.EncounterType.NORMAL or abilities.unlocked.size() > 0:
-		return {"kind": "unsupported", "reason": "primary planner excludes Boss and persistent abilities"}
+	if state.pending_encounter != state.EncounterType.NORMAL:
+		return {"kind": "unsupported", "reason": "primary planner excludes Boss"}
 	for id in state.learned_sword_intents:
-		if id not in ["grind_sword", "cut_water", "long_wind", "ten_steps"]:
+		if id not in ["cut_water", "long_wind"]:
 			return {"kind": "unsupported", "reason": "unsupported learned intent: " + id}
 	return choose_state(snapshot(battle), planning_seed)
 
@@ -195,8 +193,7 @@ func apply_card(s: Dictionary, action: Dictionary, rng: RandomNumberGenerator) -
 		if s["refund"]: s["energy"] += 1
 
 func clear_or_protect(s: Dictionary) -> void:
-	if s["cut_water"]: s["cut_water"] = false
-	else: s["combo"] = 0
+	if not s["cut_water"]: s["combo"] = 0
 
 func hit(s: Dictionary, target: int, damage: int) -> void:
 	if target < 0 or s["enemy_hp"][target] <= 0: return
@@ -312,12 +309,9 @@ func apply_companion(s: Dictionary, id: String) -> void:
 	match id:
 		"follow_up": s["combo"] += 1
 		"lone_judgment": s["combo"] = 0
-		"heart_resonance", "grind_sword": s["preserve"] = true
+		"heart_resonance": s["preserve"] = true
+		"grind_sword": s["grind_ready"] = true
 		"cut_water": s["cut_water"] = true
 		"long_wind": s["extra_energy"] = 1
 		"lead_momentum", "escort": s["boon"] = {"type": d["boon_type"], "value": d["boon_value"]}
-		"ten_steps":
-			if target >= 0 and s["enemy_hp"][target] <= 0:
-				s["combo"] += 1
-				s["preserve"] = true
-			else: s["combo"] = 0
+		"ten_steps": s["extra_action"] = target >= 0 and s["enemy_hp"][target] <= 0

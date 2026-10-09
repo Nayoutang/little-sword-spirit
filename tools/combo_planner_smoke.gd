@@ -45,10 +45,10 @@ func run() -> void:
 	var preserved := s.duplicate(true)
 	preserved["hp"] = 90
 	preserved["combo"] = 2
-	preserved["locked"] = "grind_sword"
-	preserved["allowed"] = ["grind_sword", "guard_echo"]
+	preserved["locked"] = "heart_resonance"
+	preserved["allowed"] = ["heart_resonance", "guard_echo"]
 	planner.end_round(preserved, rng)
-	check(preserved["combo"] == 2, "locked grind preserved in forecast")
+	check(preserved["combo"] == 2, "locked heart resonance preserved in forecast")
 	var decision := planner.snapshot(battle)
 	decision["hp"] = 5
 	decision["enemy_hp"] = [1000, 1000]
@@ -84,20 +84,21 @@ func run() -> void:
 	hold["guard"] = [100, 0]
 	hold["vulnerable"] = [0, 0]
 	hold["intents"] = [{"type": 4, "value": 0}, {"type": 4, "value": 0}]
-	hold["locked"] = "grind_sword"
-	hold["allowed"] = ["grind_sword"]
-	check(planner.choose_state(hold, 31)["kind"] == "end", "two-round planner waits through armor with locked grind")
+	hold["locked"] = "heart_resonance"
+	hold["allowed"] = ["heart_resonance"]
+	check(planner.choose_state(hold, 31)["kind"] == "end", "two-round planner waits through armor with locked heart resonance")
 	var actual_state := planner.snapshot(battle)
-	actual_state["locked"] = "grind_sword"
+	actual_state["locked"] = "heart_resonance"
+	actual_state["allowed"] = ["heart_resonance", "guard_echo"]
 	actual_state["combo"] = 2
 	battle.combo = 2
 	var hp_before: int = battle.player_hp
 	planner.end_round(actual_state, rng)
-	battle._apply_companion_card({"card_id": "grind_sword", "source": "replay"})
+	battle._apply_companion_card({"card_id": "heart_resonance", "source": "replay"})
 	battle._resolve_enemy_turn()
-	check(actual_state["hp"] == battle.player_hp and actual_state["combo"] == battle.combo and actual_state["block"] == battle.block, "forecast turn boundary matches actual health and grind carry")
+	check(actual_state["hp"] == battle.player_hp and actual_state["combo"] == battle.combo and actual_state["block"] == battle.block, "forecast turn boundary matches actual health and heart resonance carry")
 	check(hp_before - battle.player_hp == actual_state["loss"], "forecast accumulated loss matches actual")
-	# 同样立即少打伤害，磨剑留势的两轮价值应进入目标，而非清零。
+	# 同样立即少打伤害，同心剑鸣留势的两轮价值应进入目标，而非清零。
 	var m = Metrics.new()
 	m.begin_round(1, 0, true, true, 1)
 	m.observe_combo(3, "attack")

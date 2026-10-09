@@ -13,6 +13,8 @@ var removal_scroll: ScrollContainer
 @onready var message_label: Label = $RewardUI/Message
 
 func _ready() -> void:
+	preload("res://scripts/ui/save_exit_button.gd").install(self, $RewardUI, Vector2(1330, 24))
+	preload("res://scripts/ui/card_library.gd").install_deck_view(self, $RewardUI, Vector2(1600, 24))
 	card_choices.hide()
 	skip_button = Button.new()
 	skip_button.text = "跳过选卡"
@@ -29,7 +31,13 @@ func _ready() -> void:
 			message_label.text = "这场战斗，你做到了答应她的事。选择一张卡牌，或跳过。"
 		else:
 			message_label.text = "这场战斗没能守住约定。选择一张卡牌，或跳过。"
-	_show_card_choices()
+	var saved := RunState.room_checkpoint("reward")
+	if saved.get("removing", false):
+		finishing = true
+		reward_message = str(saved.get("reward_message", ""))
+		_show_removal_choices()
+	else:
+		_show_card_choices()
 
 
 func _show_card_choices() -> void:
@@ -38,9 +46,15 @@ func _show_card_choices() -> void:
 	card_choices.show()
 	skip_button.show()
 	var candidates: Array[int] = []
-	for card_type in CardDatabase.get_reward_card_ids(RunState.deck):
-		candidates.append(card_type)
-	candidates.shuffle()
+	var saved := RunState.room_checkpoint("reward")
+	if saved.has("cards"):
+		candidates.assign(saved.cards)
+	else:
+		for card_type in CardDatabase.get_reward_card_ids(RunState.deck):
+			candidates.append(card_type)
+		candidates.shuffle()
+		candidates.resize(card_choices.get_child_count())
+	RunState.checkpoint("reward", {"cards": candidates})
 	for index in range(card_choices.get_child_count()):
 		var button := card_choices.get_child(index) as Button
 		var card_type := candidates[index]
@@ -56,7 +70,8 @@ func _show_card_choices() -> void:
 func _choose_card(card_type: int) -> void:
 	if finishing:
 		return
-	RunState.deck.append(card_type)
+	if not RunState.add_run_card(card_type):
+		return
 	_finish_reward("已将「%s」加入本局牌组" % CardDatabase.get_card_name(card_type))
 
 
@@ -85,6 +100,7 @@ func _skip_choice() -> void:
 
 func _show_removal_choices() -> void:
 	removing = true
+	RunState.checkpoint("reward", {"removing": true, "reward_message": reward_message})
 	message_label.text = "精英额外奖励：移除一张牌，或跳过"
 	removal_scroll = ScrollContainer.new()
 	removal_scroll.position = Vector2(510, 400)
@@ -109,8 +125,7 @@ func _remove_card(index: int) -> void:
 	if not removing:
 		return
 	removing = false
-	var card_id := RunState.deck[index]
-	RunState.deck.remove_at(index)
+	var card_id := RunState.remove_run_card(index)
 	removal_scroll.hide()
 	skip_button.hide()
 	_complete_reward(reward_message + "；精英奖励移除「%s」" % CardDatabase.get_card_name(card_id))
@@ -125,8 +140,9 @@ func _complete_reward(message: String) -> void:
 		RunState.deck.size(),
 	])
 	_refresh_status()
+	RunState.checkpoint("settlement" if RunState.post_battle_scene == RunState.scene_path("settlement") else "map")
 	await get_tree().create_timer(0.8).timeout
-	get_tree().change_scene_to_file(RunState.post_battle_scene)
+	RunState.navigate(RunState.post_battle_scene, self)
 
 
 func _refresh_status() -> void:

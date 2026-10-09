@@ -13,8 +13,8 @@ static func interruption_prevention(context: Dictionary, card_id: String) -> int
 
 
 static func cooperation_plan(context: Dictionary, card_id: String) -> Dictionary:
-	if card_id == Cards.GRIND_SWORD and (int(context.get("combo", 0)) > 0 or bool(context.get("can_build_combo", false))):
-		return {"kind": "preserve_combo"}
+	if card_id == Cards.GRIND_SWORD:
+		return {"kind": "charge_attack"}
 	if not bool(context.get("boss_charging", false)) or int(Cards.get_definition(card_id).get("damage", 0)) <= 0:
 		return {}
 	var player_hits := maxi(int(context.get("boss_hit_required", 3)) - int(context.get("boss_hits", 0)) - 1, 0)
@@ -33,19 +33,19 @@ static func candidates(context: Dictionary, allowed: Array[String]) -> Array[Str
 		var d: Dictionary = Cards.get_definition(id)
 		var shield := int(d.get("block", 0))
 		if id == Cards.FEW_RETURN:
-			shield = int(d.get("block_low", 0)) if hp * 4 <= int(context.get("player_max_hp", 1)) else shield
+			shield = threat if not bool(context.get("few_return_used", false)) else 0
 		if id == Cards.OATH_GUARD and context.get("active_promise", "") == "protect":
 			shield += int(d.get("promise_bonus", 0))
 		if id == Cards.YIN_MOUNTAIN:
 			shield = int(context.get("strongest_attack", 0))
 		if id == Cards.FROST_COLD:
 			shield = int(context.get("frost_prevention", 0))
-		var damage := int(d.get("damage", 0)) + combo * int(d.get("combo_scale", 0))
+		var damage := (int(d.get("damage", 0)) + combo * int(d.get("combo_scale", 0))) * (2 if bool(context.get("grind_sword_ready", false)) else 1)
 		if id == Cards.GRIND_SWORD:
 			damage = 0
 		var kill := damage >= int(context.get("lowest_enemy_effective_hp", 999999))
 		if id == Cards.BEHEAD_LOULAN:
-			kill = damage >= int(context.get("highest_enemy_effective_hp", 999999))
+			kill = damage >= int(context.get("highest_enemy_hp", 999999))
 		var remaining_threat := maxi(threat - interruption_prevention(context, id), 0)
 		if remaining_threat >= hp and shield < remaining_threat - hp + 1 and not (kill and int(context.get("living_enemies", 0)) == 1):
 			continue
@@ -53,9 +53,11 @@ static func candidates(context: Dictionary, allowed: Array[String]) -> Array[Str
 			continue
 		if id == Cards.YIN_MOUNTAIN and threat == 0:
 			continue
-		if id == Cards.GRIND_SWORD and combo == 0 and not can_build:
+		if id == Cards.GRIND_SWORD and bool(context.get("grind_sword_ready", false)):
 			continue
-		if int(d.get("combo_scale", 0)) > 0 and combo == 0 and not can_build:
+		if id == Cards.FEW_RETURN and (bool(context.get("few_return_used", false)) or threat == 0):
+			continue
+		if int(d.get("combo_scale", 0)) > 0 and id != Cards.TEN_STEPS and combo == 0 and not can_build:
 			continue
 		result.append(id)
 	return result
@@ -75,7 +77,7 @@ static func choose(context: Dictionary, options: Array[String]) -> Dictionary:
 	var best_score := -INF
 	for id in options:
 		var d: Dictionary = Cards.get_definition(id)
-		var damage := float(d.get("damage", 0)) + int(context.get("combo", 0)) * float(d.get("combo_scale", 0))
+		var damage := (float(d.get("damage", 0)) + int(context.get("combo", 0)) * float(d.get("combo_scale", 0))) * (2.0 if bool(context.get("grind_sword_ready", false)) else 1.0)
 		var score := damage
 		# 已打两击的补击是确定收益；起手可配合仅是计划，不能作为救命保证。
 		score += interruption_prevention(context, id) * 2.0
@@ -84,22 +86,24 @@ static func choose(context: Dictionary, options: Array[String]) -> Dictionary:
 		# 只在可接剑时让过去交给她的剑势影响偏好，不解锁专用流派。
 		if int(context.get("combo", 0)) > 0:
 			score += minf(average_combo, 5.0) * float(d.get("combo_scale", 0)) * 0.25
-		var target_hp := int(context.get("highest_enemy_effective_hp", 999999)) if id == Cards.BEHEAD_LOULAN else int(context.get("lowest_enemy_effective_hp", 999999))
+		var target_hp := int(context.get("highest_enemy_hp", 999999)) if id == Cards.BEHEAD_LOULAN else int(context.get("lowest_enemy_effective_hp", 999999))
 		if damage >= target_hp and int(d.get("damage", 0)) > 0:
 			score += 20.0
+			if id == Cards.TEN_STEPS and int(context.get("living_enemies", 0)) > 1:
+				score += 15.0
 			if id != Cards.BEHEAD_LOULAN and context.get("companion_target_role", "") in ["guardian", "hexer"]:
 				score += 4.0
 		if Cards.is_investment(id):
 			score += 5.0 + confidence * 14.0
 		if id == Cards.GRIND_SWORD:
-			score = 5.0 + confidence * 14.0 + int(context.get("combo", 0)) * 2.0
+			score = 5.0 + confidence * 14.0
 		var shield := float(d.get("block", 0))
 		if id == Cards.YIN_MOUNTAIN:
 			shield = float(context.get("strongest_attack", 0))
 		if id == Cards.FROST_COLD:
 			shield = float(context.get("frost_prevention", 0))
-		if id == Cards.FEW_RETURN and int(context.get("player_hp", 0)) * 4 <= int(context.get("player_max_hp", 1)):
-			shield = float(d.get("block_low", 0))
+		if id == Cards.FEW_RETURN:
+			shield = float(threat) if threat >= int(context.get("player_hp", 0)) else 0.0
 		if id == Cards.OATH_GUARD and context.get("active_promise", "") == "protect":
 			shield += float(d.get("promise_bonus", 0))
 		score += minf(shield, threat) * (2.0 + guard_history / (guard_history + 10.0) * 0.25)

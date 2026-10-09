@@ -44,7 +44,6 @@ func run() -> void:
 	state.suppress_persistence = true
 	state.bond_value = 100
 	state.bond_stage = 3
-	root.get_node("AbilityManager").unlocked.clear()
 	cards = root.get_node("CardDatabase")
 	check(cards.FLOWING_CLOUD in cards.get_reward_card_ids(state.deck), "cloud offered before ownership")
 	state.deck.append(cards.FLOWING_CLOUD)
@@ -109,9 +108,9 @@ func run() -> void:
 	var combo_before: int = battle.combo
 	play(cards.ATTACK)
 	check(battle.combo == combo_before, "unaffordable card does not change count")
-	battle._apply_companion_card({"card_id": "grind_sword", "source": "replay"})
+	battle._apply_companion_card({"card_id": "heart_resonance", "source": "replay"})
 	battle._resolve_enemy_turn()
-	check(battle.combo == 2 and battle.consecutive_attacks == 0 and not battle.flowing_cloud_triggered and battle.flowing_cloud_active, "grind carries combo, round resets count")
+	check(battle.combo == 2 and battle.consecutive_attacks == 0 and not battle.flowing_cloud_triggered and battle.flowing_cloud_active, "heart resonance carries combo, round resets count")
 	battle.companion_turn_pending = false
 	play(cards.ATTACK)
 	battle._use_ultimate()

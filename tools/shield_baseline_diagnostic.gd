@@ -137,7 +137,6 @@ func fight(hit: int, multi: bool, strategy: String, seed_value: int, enemy_life 
 	state.active_promise = ""
 	state.route_layer = 8
 	state.pending_encounter = state.EncounterType.NORMAL
-	root.get_node("AbilityManager").reset()
 	var battle = load("res://scenes/battle.tscn").instantiate()
 	battle.set_script(load("res://tools/shield_baseline_battle.gd"))
 	battle.calibration_hit = hit

@@ -49,21 +49,20 @@ func run() -> void:
 	# 直接复用真实战斗结算，验证跨回合资源链。
 	battle.start_battle()
 	battle.combo = 3
-	battle._apply_companion_card({"card_id": Cards.GRIND_SWORD, "source": "fallback"})
+	battle._apply_companion_card({"card_id": Cards.HEART_RESONANCE, "source": "fallback"})
 	battle._resolve_enemy_turn()
-	check(battle.combo == 3, "磨剑跨回合保留剑势")
+	check(battle.combo == 3, "同心剑鸣跨回合保留剑势")
 	battle._play_hand_card(0)
 	battle._resolve_targeted_attack(0)
 	check(int(state.relationship_facts["cooperation"].get("opportunities_used", 0)) > 0, "玩家利用留势被记录")
 	battle.enemy_hps[0] = 1
 	battle.combo = 3
 	battle._apply_companion_card({"card_id": Cards.TEN_STEPS, "source": "fallback"})
-	battle._resolve_enemy_turn()
-	check(battle.combo == 4, "十步击杀加势并保留")
+	check(battle.combo == 3 and battle.companion_bonus_action, "十步击杀追加技能且不改变连击")
 	battle.enemy_hps.assign([100, 100])
 	battle.combo = 1
 	battle._apply_companion_card({"card_id": Cards.TEN_STEPS, "source": "fallback"})
-	check(battle.combo == 0, "十步未击杀付出连击代价")
+	check(battle.combo == 1 and not battle.companion_bonus_action, "十步未击杀不追加且不改变连击")
 
 	var context := {"player_hp": 50, "player_max_hp": 90, "incoming_damage": 0, "block": 0, "combo": 3, "living_enemies": 2, "lowest_enemy_effective_hp": 100}
 	var options: Array[String] = [Cards.CLEAN_CUT, Cards.GRIND_SWORD]
@@ -84,8 +83,9 @@ func run() -> void:
 	battle.start_battle()
 	battle.locked_companion_choice = {"card_id": Cards.GRIND_SWORD, "source": "fallback"}
 	battle.combo = 0
-	battle._run_companion_turn()
-	check(battle.companion_last_card_id != Cards.GRIND_SWORD and battle.companion_last_reason.contains("失效"), "零剑势留势意向失效后解释改牌")
+	battle.grind_sword_ready = true
+	await battle._run_companion_turn()
+	check(battle.companion_last_card_id != Cards.GRIND_SWORD and battle.companion_last_reason.contains("失效"), "重复蓄势意向失效后解释改牌")
 	battle.start_battle()
 	var used_before := int(state.relationship_facts["cooperation"].get("opportunities_used", 0))
 	var wasted_before := int(state.relationship_facts["cooperation"].get("opportunities_wasted", 0))
@@ -94,7 +94,7 @@ func run() -> void:
 	battle._play_hand_card(0)
 	battle._resolve_targeted_attack(0)
 	battle._play_hand_card(3)
-	check(battle.combo > 0 and not battle.cut_water_active, "断水让攻击后防御保留连击且只用一次")
+	check(battle.combo > 0 and battle.cut_water_active, "断水让整回合防御保留连击")
 	check(int(state.relationship_facts["cooperation"].get("opportunities_used", 0)) == used_before + 1, "断水使用记录一次")
 	battle._close_cooperation_window()
 	check(int(state.relationship_facts["cooperation"].get("opportunities_wasted", 0)) == wasted_before, "已利用机会不算浪费")
@@ -105,7 +105,7 @@ func run() -> void:
 	check(int(state.relationship_facts["cooperation"].get("opportunities_wasted", 0)) == wasted_before + 1, "有可用攻击但未接机会记入未使用统计")
 	battle.start_battle()
 	battle.combo = 3
-	battle._apply_companion_card({"card_id": Cards.GRIND_SWORD, "source": "fallback"})
+	battle._apply_companion_card({"card_id": Cards.HEART_RESONANCE, "source": "fallback"})
 	battle._resolve_enemy_turn()
 	used_before = int(state.relationship_facts["cooperation"].get("opportunities_used", 0))
 	battle._play_hand_card(3)
@@ -130,7 +130,7 @@ func run() -> void:
 				battle._play_hand_card(action[0])
 				if action[1] >= 0:
 					battle._resolve_targeted_attack(action[1])
-			battle._end_turn()
+			await battle._end_turn()
 			# 多目标诊断分数，不等于完整胜率：伤害、存活、下一回合剑势。
 			var score: float = battle.battle_damage_dealt + battle.player_hp - 90 + battle.combo * 2
 			if score > best_score:

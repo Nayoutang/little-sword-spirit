@@ -2,12 +2,15 @@ extends Node
 
 enum EncounterType { NORMAL, ELITE, BOSS }
 enum EventType { TREASURE, UNKNOWN }
-enum CardType {
-	ATTACK, DEFENSE, STATUS, HEAVY_ATTACK, HEAVY_DEFENSE, SWEEP, COMBO_BOOST, CURSE,
-	TUNE_BREATH, SHADOW_STEP, BREAK_EDGE, UNLOAD_FORCE, HIDE_EDGE,
-	FLOWING_CLOUD = 15, CHASE_WIND = 16, SHIELD_STRIKE = 17, RETAIN_SHIELD = 18, PARRY = 19,
-}
+const CombatTypes = preload("res://scripts/data/combat_types.gd")
+const CardType = CombatTypes.CardType
 
+const SaveStorage = preload("res://scripts/data/save_slot_storage.gd")
+const Narrative = preload("res://scripts/narrative/relationship_context.gd")
+const ProfileCodec = preload("res://scripts/data/relationship_profile.gd")
+const Routes = preload("res://scripts/data/scene_routes.gd")
+const Navigator = preload("res://scripts/flow/scene_navigator.gd")
+const Checkpoint = preload("res://scripts/data/expedition_checkpoint.gd")
 const LEGACY_SAVE_PATH := "user://relationship_save.cfg"
 const SAVE_SLOT_COUNT := 3
 const BOND_MIN := BalanceConfig.BOND_MIN
@@ -16,6 +19,7 @@ const BOND_STAGE_THRESHOLDS := BalanceConfig.BOND_STAGE_THRESHOLDS
 const BOND_STAGE_NAMES := BalanceConfig.BOND_STAGE_NAMES
 
 var player_max_hp := BalanceConfig.PLAYER_START_MAX_HP
+var _navigator := Navigator.new()
 var player_hp := BalanceConfig.PLAYER_START_MAX_HP
 var pending_encounter := EncounterType.NORMAL
 var route_layer := 1
@@ -33,18 +37,10 @@ var active_promise := ""
 var promise_broken := false
 var run_won := false
 var settlement_applied := false
-var post_battle_scene := "res://scenes/map.tscn"
+var post_battle_scene := Routes.PATHS.map
 var pending_act_bond_gain := -1
 var consecutive_run_failures := 0
-var relationship_facts: Dictionary = {
-	"battles_won": 0,
-	"battles_lost": 0,
-	"promise_kept": 0,
-	"promise_broken": 0,
-	"companion_card_counts": {},
-	"minigame_results": [],
-	"cooperation": {},
-}
+var relationship_facts: Dictionary = ProfileCodec.empty_facts()
 var current_run_journal: Array[Dictionary] = []
 var last_run_journal: Array[Dictionary] = []
 var run_journal_finished := false
@@ -84,10 +80,19 @@ const MOODS := [
 var recent_lines: Array[String] = []
 # 剑意：飞花令里对出特定诗句时，她领悟的剑招（进入她的战斗牌池）。
 var learned_sword_intents: Array[String] = []
+var run_active := false
+var map_seed := 0
+var map_layer := 0
+var map_node := 0
+var map_path: Array = []
+var battle_seed := 0
+var expedition_checkpoint: Dictionary = {}
+var last_save_error: Error = OK
 var suppress_persistence := false
 
 
 func _ready() -> void:
+	get_tree().auto_accept_quit = false
 	if "--cooperation-sim" in OS.get_cmdline_user_args():
 		suppress_persistence = true
 		_reset_deck()
@@ -98,34 +103,81 @@ func _ready() -> void:
 		_reset_deck()
 
 
+# Map scenes request mutations; RunState owns the state across scene replacement.
+func ensure_map_seed() -> int:
+	if map_seed == 0:
+		map_seed = maxi(randi(), 1)
+	return map_seed
+
+
+func visit_map_node(layer: int, node_index: int) -> void:
+	assert(layer > 0 and layer < BalanceConfig.ROUTE_TOTAL_LAYERS)
+	assert(node_index >= 0 and node_index < 5)
+	route_layer = layer
+	map_layer = layer
+	map_node = node_index
+	map_path.append([layer, node_index])
+
+
+func prepare_encounter(encounter_type: EncounterType) -> void:
+	pending_encounter = encounter_type
+	battle_seed = maxi(randi(), 1)
+
+
+func prepare_event(event_type: EventType) -> void:
+	pending_event = event_type
+
+
+func add_run_card(card_id: int) -> bool:
+	if not CardDatabase.DEFINITIONS.has(card_id):
+		return false
+	deck.append(card_id)
+	return true
+
+
+func remove_run_card(index: int) -> int:
+	if index < 0 or index >= deck.size():
+		return -1
+	var card_id := deck[index]
+	deck.remove_at(index)
+	return card_id
+
+
+func set_player_hp(value: int) -> void:
+	player_hp = clampi(value, 0, player_max_hp)
+
+
+func adjust_player_hp(amount: int, minimum: int = 0) -> int:
+	var previous := player_hp
+	player_hp = clampi(player_hp + amount, minimum, player_max_hp)
+	return player_hp - previous
+
+
+func increase_max_hp(amount: int) -> void:
+	var gain := maxi(amount, 0)
+	player_max_hp += gain
+	player_hp += gain
+
+
+func set_post_battle_route(route: String) -> void:
+	assert(route in ["map", "settlement"])
+	post_battle_scene = scene_path(route)
+	if route == "map":
+		pending_act_bond_gain = -1
+
+
 func start_new_run() -> void:
-	route_layer = 1
-	run_id += 1
-	run_adventures.clear()
-	player_max_hp = BalanceConfig.PLAYER_START_MAX_HP
-	player_hp = player_max_hp
-	pending_encounter = EncounterType.NORMAL
-	pending_event = EventType.TREASURE
-	active_promise = ""
-	promise_broken = false
-	run_won = false
-	settlement_applied = false
-	post_battle_scene = "res://scenes/map.tscn"
-	pending_act_bond_gain = -1
-	current_run_journal.clear()
-	run_journal_finished = false
-	run_moments.clear()
-	run_battle_index = 0
-	homecoming_pending = false
-	promise_sincere = true
-	run_min_hp = player_hp
+	var next_run_id := run_id + 1
+	_reset_expedition_runtime()
+	run_active = true
+	run_id = next_run_id
 	record_run_fact("departure", "从家中出发时生命为 %d/%d，羁绊为 %d/100（%s）。" % [
 		player_hp,
 		player_max_hp,
 		bond_value,
 		get_bond_stage_name(),
 	])
-	_reset_deck()
+	checkpoint("promise")
 
 
 func draw_comic_adventure(comic_count: int) -> int:
@@ -193,10 +245,6 @@ func _advance_bond_stage() -> void:
 
 func select_save_slot(slot: int) -> void:
 	current_save_slot = clampi(slot, 1, SAVE_SLOT_COUNT)
-	bond_value = 0
-	bond_stage = 0
-	pending_bond_stage = -1
-	_reset_relationship_facts()
 	_load_relationship()
 	if not FileAccess.file_exists(_save_path_for_slot(current_save_slot)):
 		_save_relationship()
@@ -207,18 +255,18 @@ func get_save_slot_summary(slot: int) -> Dictionary:
 	var config := ConfigFile.new()
 	var error := config.load(path)
 	if error != OK:
+		error = config.load(path + ".bak")
+	if error != OK:
 		return {"exists": false, "bond": 0, "stage": BOND_STAGE_NAMES[0]}
-	var saved_bond := clampi(int(config.get_value("relationship", "bond_value", 0)), BOND_MIN, BOND_MAX)
-	var saved_stage := clampi(
-		int(config.get_value("relationship", "bond_stage", _stage_index_for_value(saved_bond))),
-		0,
-		BOND_STAGE_NAMES.size() - 1
-	)
-	saved_stage = maxi(saved_stage, _stage_index_for_value(saved_bond))
+	var profile := ProfileCodec.decode(config)
+	var saved_checkpoint: Variant = config.get_value("expedition", "checkpoint", {})
+	var valid_checkpoint := Checkpoint.valid(saved_checkpoint)
 	return {
 		"exists": true,
-		"bond": saved_bond,
-		"stage": BOND_STAGE_NAMES[saved_stage],
+		"bond": profile.bond_value,
+		"stage": BOND_STAGE_NAMES[profile.bond_stage],
+		"expedition": valid_checkpoint,
+		"layer": int(saved_checkpoint.state.map_layer) if valid_checkpoint else 0,
 	}
 
 
@@ -228,17 +276,12 @@ func delete_save_slot(slot: int) -> void:
 		var error := DirAccess.remove_absolute(absolute_path)
 		if error != OK:
 			push_warning("删除存档失败，错误码：%s" % error)
+			return
+	for suffix in [".bak", ".tmp"]:
+		if FileAccess.file_exists(_save_path_for_slot(slot) + suffix):
+			DirAccess.remove_absolute(absolute_path + suffix)
 	if current_save_slot == slot:
-		bond_value = 0
-		bond_stage = 0
-		pending_bond_stage = -1
-		consecutive_run_failures = 0
-		_reset_relationship_facts()
-		current_run_journal.clear()
-		last_run_journal.clear()
-		run_journal_finished = false
-		AbilityManager.reset()
-		SpecialEventManager.reset()
+		_reset_slot_state()
 
 
 func _stage_name_for_value(value: int) -> String:
@@ -246,18 +289,11 @@ func _stage_name_for_value(value: int) -> String:
 
 
 func _stage_index_for_value(value: int) -> int:
-	var stage_index := 0
-	for index in range(BOND_STAGE_THRESHOLDS.size()):
-		if value >= BOND_STAGE_THRESHOLDS[index]:
-			stage_index = index
-	return stage_index
+	return ProfileCodec.stage_index(value)
 
 
 func get_relationship_prompt() -> String:
-	var stage_text := _stage_prompt()
-	if not player_name.is_empty():
-		stage_text += "持剑人的名字：%s。" % player_name
-	return stage_text
+	return Narrative.relationship(bond_stage, player_name)
 
 
 func record_spoken_line(text: String) -> void:
@@ -270,40 +306,16 @@ func record_spoken_line(text: String) -> void:
 
 
 func get_recent_lines_block(limit: int = 8) -> String:
-	if recent_lines.is_empty():
-		return "（暂无）"
-	var lines: Array[String] = []
-	for index in range(maxi(recent_lines.size() - limit, 0), recent_lines.size()):
-		lines.append("- " + recent_lines[index])
-	return "\n".join(lines)
+	return Narrative.recent(recent_lines, limit)
 
 
 func get_variety_prompt() -> String:
-	return "【别重复自己】你最近说过的话：\n%s\n这次换一个开头和句式，别复用上面的说法和口头禅。\n【此刻的你】%s（只影响你的语气和想到的事，不必说出来）" % [
-		get_recent_lines_block(),
-		str(MOODS.pick_random()),
-	]
+	return Narrative.variety(recent_lines, str(MOODS.pick_random()))
 
 
 # 开头和最近几句撞了，或又用了已经用过的滥口头禅，就算重复。
 func is_repetitive(text: String) -> bool:
-	var clean := text.strip_edges()
-	if clean.length() < 4:
-		return false
-	var head := clean.left(3)
-	for index in range(maxi(recent_lines.size() - 4, 0), recent_lines.size()):
-		if recent_lines[index].left(3) == head:
-			return true
-	if clean.begins_with("…"):
-		for index in range(maxi(recent_lines.size() - 4, 0), recent_lines.size()):
-			if recent_lines[index].begins_with("…"):
-				return true
-	for worn in ["我才不是", "才不是担心", "别误会", "以前有个人", "你不必知道"]:
-		if clean.contains(worn):
-			for line in recent_lines:
-				if line.contains(worn):
-					return true
-	return false
+	return Narrative.repetitive(text, recent_lines)
 
 
 func learn_sword_intent(card_id: String, player_line: String) -> bool:
@@ -327,8 +339,8 @@ func needs_intro() -> bool:
 	return not intro_done and expedition_count == 0 and bond_value == 0 and shared_history.is_empty()
 
 
-func complete_intro(name: String, summary: String) -> void:
-	player_name = name.strip_edges()
+func complete_intro(chosen_name: String, summary: String) -> void:
+	player_name = chosen_name.strip_edges()
 	intro_done = true
 	var clean := summary.replace("\n", " ").strip_edges().left(200)
 	if not clean.is_empty():
@@ -337,35 +349,11 @@ func complete_intro(name: String, summary: String) -> void:
 
 
 func _stage_prompt() -> String:
-	match get_bond_stage_index():
-		0:
-			return "当前关系阶段：初遇。她认生、设防，愿意回应眼前的话，但不会假装早已熟悉。关心多通过提醒和实际的事表达，不主动追问私事。"
-		1:
-			return "当前关系阶段：相识。她开始习惯与玩家相处，偶尔主动接着以前的话题说，或自然提起记录里的一件共同经历；仍有自己的脾气，不必每次都强调关心。"
-		2:
-			return "当前关系阶段：交心。她信任玩家，愿意说眼前真实的烦恼、请他一起想办法，也可以自然邀他对诗。能安心地换话题或安静相处，不要求玩家表态证明信任。"
-		_:
-			return "当前关系阶段：生死之交。她把并肩相处当成自然的日常，关键时刻会直接关心，也保留独立意见。亲近体现在熟悉和默契里，不用反复确认承诺；不得编造记录里没有的习惯或往事。"
+	return Narrative.stage_voice(bond_stage)
 
 
 func get_relationship_archive() -> String:
-	var promise_text := "本趟没有约定"
-	if active_promise == "protect":
-		promise_text = "本趟约定：玩家会保护好自己（血不掉到四分之一以下）"
-	elif active_promise == "finish":
-		promise_text = "本趟约定：玩家会平安完成远征"
-	if not active_promise.is_empty() and not promise_sincere:
-		promise_text += "（玩家当时是随口应付着答应的）"
-	return "%s；羁绊 %d/100；并肩胜利 %d 次、失利 %d 次；兑现约定 %d 次、失约 %d 次；%s；过往出牌记录 %s。" % [
-		get_relationship_prompt(),
-		bond_value,
-		int(relationship_facts.get("battles_won", 0)),
-		int(relationship_facts.get("battles_lost", 0)),
-		int(relationship_facts.get("promise_kept", 0)),
-		int(relationship_facts.get("promise_broken", 0)),
-		promise_text,
-		str(relationship_facts.get("companion_card_counts", {})),
-	]
+	return Narrative.archive(get_relationship_prompt(), bond_value, relationship_facts, active_promise, promise_sincere)
 
 
 func get_relationship_facts_snapshot() -> Dictionary:
@@ -385,14 +373,7 @@ func record_minigame_result(summary: String) -> void:
 
 
 func get_minigame_memory_prompt() -> String:
-	var results: Array = relationship_facts.get("minigame_results", [])
-	if results.is_empty():
-		return "【小游戏关键事实】暂无。"
-	var lines: Array[String] = ["【小游戏关键事实】"]
-	for fact in results:
-		if fact is Dictionary:
-			lines.append(str(fact.get("summary", "")))
-	return "\n".join(lines)
+	return Narrative.minigame(relationship_facts)
 
 
 func has_minigame_history(game_name: String = "") -> bool:
@@ -421,20 +402,7 @@ func record_run_fact(category: String, summary: String, details: Dictionary = {}
 
 
 func get_run_journal_prompt() -> String:
-	var journal: Array[Dictionary] = current_run_journal
-	var status := "本趟仍在进行"
-	if journal.is_empty():
-		journal = last_run_journal
-		status = "最近一次已结束的远征"
-	elif run_journal_finished:
-		status = "本趟已经结束"
-	if journal.is_empty():
-		return "【整趟远征事实记录】\n暂无可核对的远征记录。不得自行虚构战斗、事件、奖励或玩家行为。"
-	var lines: Array[String] = ["【整趟远征事实记录】", "记录状态：%s" % status]
-	for index in range(journal.size()):
-		lines.append("%d. %s" % [index + 1, str(journal[index].get("summary", ""))])
-	lines.append("以上记录是本趟经历的唯一事实来源。可以表达感受，但不得添加记录中没有发生的战斗、受伤、选择、奖励、承诺或台词；记录未说明的细节应明确说不确定。")
-	return "\n".join(lines)
+	return Narrative.journal(current_run_journal, last_run_journal, run_journal_finished)
 
 
 func begin_battle() -> int:
@@ -469,21 +437,7 @@ func _commit_run_moments() -> void:
 
 
 func get_shared_history_prompt(limit: int = 9) -> String:
-	if shared_history.is_empty():
-		return "【你们的共同经历】\n还没有。你们才刚认识，不要编造任何过去。"
-	var lines: Array[String] = ["【你们的共同经历】（跨远征保留的真实往事，越往下越近。可以自然提起，但不得添油加醋，不得编造清单以外的往事）"]
-	var indices: Array[int] = []
-	for index in range(maxi(shared_history.size() - limit, 0), shared_history.size()):
-		indices.append(index)
-	if not indices.has(0) and int(shared_history[0].get("expedition", -1)) == 0:
-		indices.push_front(0)
-	for index in indices:
-		var fact: Dictionary = shared_history[index]
-		var label := str(fact.get("label", ""))
-		if label.is_empty():
-			label = "初遇" if int(fact.get("expedition", 0)) == 0 else "第%d趟" % int(fact.get("expedition", 0))
-		lines.append("- %s：%s" % [label, str(fact.get("summary", ""))])
-	return "\n".join(lines)
+	return Narrative.shared(shared_history, limit)
 
 
 # 回家后小墨是否应当先开口；读取一次即清除。
@@ -655,130 +609,76 @@ func apply_settlement() -> Dictionary:
 	return {"result": result, "bond_gain": gain}
 
 
-func _save_relationship() -> void:
-	if suppress_persistence:
-		return
-	var config := ConfigFile.new()
-	config.set_value("relationship", "version", 2)
-	config.set_value("relationship", "bond_value", bond_value)
-	config.set_value("relationship", "bond_stage", bond_stage)
-	config.set_value("relationship", "pending_bond_stage", pending_bond_stage)
-	config.set_value("progress", "consecutive_run_failures", consecutive_run_failures)
-	config.set_value("progress", "expedition_count", expedition_count)
-	config.set_value("progress", "pending_concern", pending_concern)
-	config.set_value("progress", "intro_done", intro_done)
-	config.set_value("profile", "player_name", player_name)
-	config.set_value("finale", "state", finale_state)
-	config.set_value("finale", "mode", finale_mode)
-	config.set_value("memory", "recent_lines", recent_lines)
-	config.set_value("memory", "recent_adventures", recent_adventures)
-	config.set_value("memory", "sword_intents", learned_sword_intents)
-	config.set_value("memory", "cooperation", relationship_facts.get("cooperation", {}))
-	config.set_value("memory", "shared_history", shared_history)
-	config.set_value("memory", "battles_won", int(relationship_facts.get("battles_won", 0)))
-	config.set_value("memory", "battles_lost", int(relationship_facts.get("battles_lost", 0)))
-	config.set_value("memory", "promise_kept", int(relationship_facts.get("promise_kept", 0)))
-	config.set_value("memory", "promise_broken", int(relationship_facts.get("promise_broken", 0)))
-	config.set_value("memory", "companion_card_counts", relationship_facts.get("companion_card_counts", {}))
-	config.set_value("memory", "minigame_results", relationship_facts.get("minigame_results", []))
-	config.set_value("run_journal", "last_completed", last_run_journal)
-	AbilityManager.save_to_config(config)
+func _profile_config() -> ConfigFile:
+	var config := ProfileCodec.encode(self)
 	SpecialEventManager.save_to_config(config)
-	var error := config.save(_save_path_for_slot(current_save_slot))
-	if error != OK:
-		push_warning("羁绊存档保存失败，错误码：%s" % error)
+	return config
+
+
+func _save_relationship() -> Error:
+	if suppress_persistence:
+		last_save_error = OK
+		return OK
+	var config := _profile_config()
+	# Unfinished rooms replay from their last complete checkpoint. Do not save
+	# combat counters or partially granted rewards on top of that old snapshot.
+	if not expedition_checkpoint.is_empty():
+		if str(expedition_checkpoint.phase) != "map" and not (expedition_checkpoint.phase == "settlement" and expedition_checkpoint.room.has("settlement_result")):
+			config = ConfigFile.new()
+			if config.parse(str(expedition_checkpoint.profile)) != OK:
+				last_save_error = ERR_PARSE_ERROR
+				return last_save_error
+		config.set_value("expedition", "checkpoint", expedition_checkpoint)
+	last_save_error = SaveStorage.write_atomic(config, _save_path_for_slot(current_save_slot))
+	if last_save_error != OK:
+		push_warning("存档保存失败，错误码：%d" % last_save_error)
+	return last_save_error
 
 
 func _load_relationship() -> void:
-	bond_value = 0
-	bond_stage = 0
-	pending_bond_stage = -1
-	consecutive_run_failures = 0
-	_reset_relationship_facts()
-	current_run_journal.clear()
-	last_run_journal.clear()
-	run_journal_finished = false
-	AbilityManager.reset()
-	SpecialEventManager.reset()
+	_reset_slot_state()
 	var config := ConfigFile.new()
 	var error := config.load(_save_path_for_slot(current_save_slot))
+	if error != OK:
+		error = config.load(_save_path_for_slot(current_save_slot) + ".bak")
 	if error == ERR_FILE_NOT_FOUND:
 		return
 	if error != OK:
 		push_warning("羁绊存档读取失败，错误码：%s" % error)
 		return
-	bond_value = clampi(
-		int(config.get_value("relationship", "bond_value", BOND_MIN)),
-		BOND_MIN,
-		BOND_MAX
-	)
-	# 旧存档没有独立阶段字段时，按旧规则推算，避免玩家关系阶段倒退。
-	bond_stage = clampi(
-		int(config.get_value("relationship", "bond_stage", _stage_index_for_value(bond_value))),
-		0,
-		BOND_STAGE_NAMES.size() - 1
-	)
-	# 旧档达到阈值但未通过突破选择，也按已发生的经历恢复关系。
-	_advance_bond_stage()
-	consecutive_run_failures = maxi(int(config.get_value("progress", "consecutive_run_failures", 0)), 0)
-	expedition_count = maxi(int(config.get_value("progress", "expedition_count", 0)), 0)
-	intro_done = bool(config.get_value("progress", "intro_done", false))
-	player_name = str(config.get_value("profile", "player_name", ""))
-	finale_state = str(config.get_value("finale", "state", "locked"))
-	finale_mode = str(config.get_value("finale", "mode", "arrival"))
-	var saved_adventures: Variant = config.get_value("memory", "recent_adventures", [])
-	if saved_adventures is Array:
-		for index in saved_adventures:
-			if index is int and index >= 0 and index < 5 and not recent_adventures.has(index):
-				recent_adventures.append(index)
-	var saved_lines: Variant = config.get_value("memory", "recent_lines", [])
-	if saved_lines is Array:
-		for line in saved_lines:
-			recent_lines.append(str(line))
-	var saved_cooperation: Variant = config.get_value("memory", "cooperation", {})
-	if saved_cooperation is Dictionary:
-		for key in ["opportunities_used", "opportunities_wasted", "finisher_combo_total", "finishers", "guards"]:
-			relationship_facts["cooperation"][key] = maxi(int(saved_cooperation.get(key, 0)), 0)
-	var saved_intents: Variant = config.get_value("memory", "sword_intents", [])
-	if saved_intents is Array:
-		for card_id in saved_intents:
-			if not CompanionCardDatabase.get_definition(str(card_id)).is_empty():
-				learned_sword_intents.append(str(card_id))
-	var saved_concern: Variant = config.get_value("progress", "pending_concern", {})
-	if saved_concern is Dictionary:
-		pending_concern = saved_concern.duplicate(true)
-	var saved_history: Variant = config.get_value("memory", "shared_history", [])
-	if saved_history is Array:
-		for fact in saved_history:
-			if fact is Dictionary and not str(fact.get("summary", "")).is_empty():
-				shared_history.append(fact.duplicate(true))
-	relationship_facts["battles_won"] = maxi(int(config.get_value("memory", "battles_won", 0)), 0)
-	relationship_facts["battles_lost"] = maxi(int(config.get_value("memory", "battles_lost", 0)), 0)
-	relationship_facts["promise_kept"] = maxi(int(config.get_value("memory", "promise_kept", 0)), 0)
-	relationship_facts["promise_broken"] = maxi(int(config.get_value("memory", "promise_broken", 0)), 0)
-	var saved_card_counts = config.get_value("memory", "companion_card_counts", {})
-	if saved_card_counts is Dictionary:
-		relationship_facts["companion_card_counts"] = saved_card_counts.duplicate(true)
-	var saved_minigame_results: Variant = config.get_value("memory", "minigame_results", [])
-	if saved_minigame_results is Array:
-		var clean_results: Array = []
-		for fact in saved_minigame_results:
-			if fact is Dictionary and fact.get("category", "") == "minigame_result" and not str(fact.get("summary", "")).is_empty():
-				clean_results.append(fact.duplicate(true))
-				if clean_results.size() > 12:
-					clean_results.pop_front()
-		relationship_facts["minigame_results"] = clean_results
-	var saved_run_journal: Variant = config.get_value("run_journal", "last_completed", [])
-	if saved_run_journal is Array:
-		for fact in saved_run_journal:
-			if fact is Dictionary and not str(fact.get("summary", "")).is_empty():
-				last_run_journal.append(fact.duplicate(true))
-	AbilityManager.load_from_config(config)
+	_apply_profile(ProfileCodec.decode(config))
 	SpecialEventManager.load_from_config(config)
+	var saved_checkpoint: Variant = config.get_value("expedition", "checkpoint", {})
+	if Checkpoint.valid(saved_checkpoint):
+		expedition_checkpoint = saved_checkpoint.duplicate(true)
+		Checkpoint.restore(self, expedition_checkpoint)
+		run_active = true
+	elif config.has_section("expedition"):
+		push_warning("远征进度格式无效，已保留长期存档并返回家中。")
 
 
 func save_persistent_state() -> void:
 	_save_relationship()
+
+
+# Called only with a complete normalized profile, after clean-state reset.
+func _apply_profile(profile: Dictionary) -> void:
+	bond_value = profile.bond_value
+	bond_stage = profile.bond_stage
+	pending_bond_stage = profile.pending_bond_stage
+	consecutive_run_failures = profile.consecutive_run_failures
+	expedition_count = profile.expedition_count
+	intro_done = profile.intro_done
+	player_name = profile.player_name
+	finale_state = profile.finale_state
+	finale_mode = profile.finale_mode
+	pending_concern = profile.pending_concern
+	recent_adventures.assign(profile.recent_adventures)
+	recent_lines.assign(profile.recent_lines)
+	learned_sword_intents.assign(profile.learned_sword_intents)
+	shared_history.assign(profile.shared_history)
+	last_run_journal.assign(profile.last_run_journal)
+	relationship_facts = profile.relationship_facts
 
 
 func _reset_relationship_facts() -> void:
@@ -794,15 +694,19 @@ func _reset_relationship_facts() -> void:
 	recent_lines.clear()
 	learned_sword_intents.clear()
 	run_moments.clear()
-	relationship_facts = {
-		"battles_won": 0,
-		"battles_lost": 0,
-		"promise_kept": 0,
-		"promise_broken": 0,
-		"companion_card_counts": {},
-		"minigame_results": [],
-		"cooperation": {},
-	}
+	relationship_facts = ProfileCodec.empty_facts()
+
+
+# Loading or deleting a slot resets both lifetimes. New runs reset only run state.
+func _reset_slot_state() -> void:
+	_reset_expedition_runtime()
+	_reset_relationship_facts()
+	bond_value = 0
+	bond_stage = 0
+	pending_bond_stage = -1
+	consecutive_run_failures = 0
+	last_run_journal.clear()
+	SpecialEventManager.reset()
 
 
 func _save_path_for_slot(slot: int) -> String:
@@ -829,6 +733,9 @@ func _migrate_legacy_save() -> void:
 func set_finale_state(next_state: String, mode := "arrival") -> void:
 	assert(next_state in ["locked", "invited", "accepted", "story", "battle", "ended"])
 	assert(mode in ["arrival", "refusal", "victory", "sacrifice"])
+	if next_state in ["story", "ended"]:
+		run_active = false
+		expedition_checkpoint.clear()
 	finale_state = next_state
 	finale_mode = mode
 	save_persistent_state()
@@ -836,4 +743,112 @@ func set_finale_state(next_state: String, mode := "arrival") -> void:
 func prepare_finale_battle() -> void:
 	pending_encounter = EncounterType.BOSS
 	player_hp = player_max_hp
+	run_active = true
+	battle_seed = maxi(1, randi() & 0x7fffffff)
 	set_finale_state("battle")
+	checkpoint("battle")
+
+
+func _reset_expedition_runtime() -> void:
+	run_active = false
+	expedition_checkpoint.clear()
+	map_seed = 0
+	map_layer = 0
+	map_node = 0
+	map_path.clear()
+	battle_seed = 0
+	route_layer = 1
+	run_id = 0
+	player_max_hp = BalanceConfig.PLAYER_START_MAX_HP
+	player_hp = player_max_hp
+	pending_encounter = EncounterType.NORMAL
+	pending_event = EventType.TREASURE
+	active_promise = ""
+	promise_broken = false
+	run_won = false
+	settlement_applied = false
+	post_battle_scene = Checkpoint.SCENES.map
+	pending_act_bond_gain = -1
+	run_adventures.clear()
+	current_run_journal.clear()
+	run_journal_finished = false
+	run_moments.clear()
+	run_battle_index = 0
+	homecoming_pending = false
+	promise_sincere = true
+	run_min_hp = player_hp
+	_reset_deck()
+
+
+func checkpoint(phase: String, room: Dictionary = {}) -> Error:
+	if not run_active:
+		return OK
+	var snapshot := Checkpoint.capture(self, phase, room, _profile_config().encode_to_text())
+	if not Checkpoint.valid(snapshot):
+		last_save_error = ERR_INVALID_DATA
+		push_warning("远征进度保存失败：状态不完整。")
+		return last_save_error
+	expedition_checkpoint = snapshot
+	return _save_relationship()
+
+
+func has_expedition() -> bool:
+	return run_active and not expedition_checkpoint.is_empty()
+
+
+func resume_destination() -> String:
+	if has_expedition():
+		return str(Checkpoint.SCENES[expedition_checkpoint.phase])
+	return Routes.PATHS.home
+
+
+func resume_expedition() -> String:
+	if has_expedition():
+		Checkpoint.restore(self, expedition_checkpoint)
+	return resume_destination()
+
+
+func room_checkpoint(phase: String) -> Dictionary:
+	if has_expedition() and expedition_checkpoint.phase == phase:
+		return expedition_checkpoint.room.duplicate(true)
+	return {}
+
+
+func clear_expedition() -> Error:
+	run_active = false
+	expedition_checkpoint.clear()
+	return _save_relationship()
+
+
+func navigate(destination: String, source: Node) -> Error:
+	return _navigator.request(get_tree(), destination, source)
+
+
+func is_scene_transition_pending() -> bool:
+	return _navigator.is_pending()
+
+
+func scene_path(route: String) -> String:
+	return Routes.resolve(route)
+
+
+func save_and_exit(source: Node = null) -> Error:
+	if is_scene_transition_pending():
+		return ERR_BUSY
+	var error := _save_relationship()
+	if error == OK:
+		var origin := source if source != null else get_tree().current_scene
+		error = navigate("save_select", origin)
+	return error
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if _save_relationship() == OK:
+			get_tree().quit()
+		else:
+			var dialog := AcceptDialog.new()
+			dialog.dialog_text = "存档未能保存，请检查磁盘或文件权限后重试。"
+			get_tree().root.add_child(dialog)
+			dialog.confirmed.connect(dialog.queue_free)
+			dialog.popup_centered()

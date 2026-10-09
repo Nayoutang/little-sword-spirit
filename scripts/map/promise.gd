@@ -28,10 +28,11 @@ var http_request: HTTPRequest
 
 
 func _ready() -> void:
+	preload("res://scripts/ui/save_exit_button.gd").install(self, $PromiseUI, Vector2(1600, 24))
 	concern = RunState.get_pending_concern()
 	if concern.is_empty():
 		RunState.resolve_departure_concern("")
-		get_tree().change_scene_to_file("res://scenes/map.tscn")
+		RunState.navigate("map", self)
 		return
 	var promise_type := str(concern.get("promise", "protect"))
 	title_label.text = "出门前"
@@ -52,9 +53,11 @@ func _set_choices_enabled(enabled: bool) -> void:
 
 
 func _choose(response: String) -> void:
+	if RunState.is_scene_transition_pending():
+		return
 	_set_choices_enabled(false)
 	RunState.resolve_departure_concern(response)
-	get_tree().change_scene_to_file("res://scenes/map.tscn")
+	RunState.navigate("map", self)
 
 
 func _request_line() -> void:
@@ -100,13 +103,8 @@ func _request_line() -> void:
 func _on_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	var reply := ""
 	if result == HTTPRequest.RESULT_SUCCESS and response_code >= 200 and response_code < 300:
-		var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
-		if parsed is Dictionary:
-			var choices: Variant = parsed.get("choices", [])
-			if choices is Array and not choices.is_empty() and choices[0] is Dictionary:
-				var message: Variant = choices[0].get("message", {})
-				if message is Dictionary:
-					reply = str(message.get("content", ""))
+		var response := preload("res://scripts/data/llm_response.gd").from_body(body)
+		reply = response.content if response.error.is_empty() else ""
 	_show_line(reply)
 
 

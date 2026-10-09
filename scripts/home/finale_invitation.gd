@@ -12,12 +12,13 @@ func _ready() -> void:
 	$Invite/Stay.pressed.connect(_refuse)
 	$Journey.pressed.connect(_depart)
 	if RunState.finale_state == "ended":
-		get_tree().call_deferred("change_scene_to_file", "res://scenes/finale.tscn")
+		RunState.navigate("finale", self)
 	elif RunState.finale_state == "story":
-		get_tree().call_deferred("change_scene_to_file", "res://scenes/finale.tscn")
+		RunState.navigate("finale", self)
 	elif RunState.finale_state == "battle":
-		RunState.pending_encounter = RunState.EncounterType.BOSS
-		get_tree().call_deferred("change_scene_to_file", "res://scenes/battle.tscn")
+		if not RunState.has_expedition():
+			RunState.prepare_finale_battle()
+		RunState.navigate("battle", self)
 	elif RunState.finale_state == "accepted": $Journey.show()
 	elif RunState.bond_value >= 100:
 		RunState.set_finale_state("invited")
@@ -32,8 +33,8 @@ func _accept() -> void:
 func _refuse() -> void:
 	if RunState.finale_state != "invited": return
 	RunState.set_finale_state("story", "refusal")
-	get_tree().change_scene_to_file("res://scenes/finale.tscn")
+	RunState.navigate("finale", self)
 func _depart() -> void:
 	if RunState.finale_state != "accepted": return
 	RunState.set_finale_state("story", "arrival")
-	get_tree().change_scene_to_file("res://scenes/finale.tscn")
+	RunState.navigate("finale", self)

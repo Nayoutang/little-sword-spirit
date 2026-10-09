@@ -10,14 +10,19 @@ signal enemy_attack_segment_resolved(enemy_index: int, damage: int, absorbed: in
 @export var selection_logging_enabled := true
 @export var selection_log_max_bytes := 2097152
 
+const Feedback = preload("res://scripts/ui/battle_feedback.gd")
 const BoundedLog = preload("res://scripts/battle/bounded_jsonl.gd")
 const ComboTelemetry = preload("res://scripts/battle/combo_telemetry.gd")
 const AttackSegments = preload("res://scripts/battle/enemy_attack_segments.gd")
+const IntentPlanner = preload("res://scripts/battle/enemy_intent_planner.gd")
+const BattleDeck = preload("res://scripts/battle/battle_deck.gd")
+const CombatTypes = preload("res://scripts/data/combat_types.gd")
 var random_call_counts := {"deck": 0, "enemy": 0}
 var combo_telemetry = ComboTelemetry.new()
 var telemetry_action: Dictionary = {}
 
 const CompanionCards = preload("res://scripts/data/companion_card_database.gd")
+const CompanionEffects = preload("res://scripts/battle/companion_effect_resolver.gd")
 const CompanionTactics = preload("res://scripts/battle/companion_tactics.gd")
 const CompanionDirector = preload("res://scripts/battle/companion_card_director.gd")
 const NORMAL_ENEMY_ART := preload("res://art/enemies/ink_puppet.png")
@@ -107,12 +112,8 @@ var enemy_action_step := 0
 var pending_boon: Dictionary = {}
 var battle_finished := false
 
-enum CardType {
-	ATTACK, DEFENSE, STATUS, HEAVY_ATTACK, HEAVY_DEFENSE, SWEEP, COMBO_BOOST, CURSE,
-	TUNE_BREATH, SHADOW_STEP, BREAK_EDGE, UNLOAD_FORCE, HIDE_EDGE,
-	FLOWING_CLOUD = 15, CHASE_WIND = 16, SHIELD_STRIKE = 17, RETAIN_SHIELD = 18, PARRY = 19,
-}
-enum EnemyIntent { ATTACK, DEFEND, ENHANCE, CURSE, OTHER }
+const CardType = CombatTypes.CardType
+const EnemyIntent = CombatTypes.EnemyIntent
 var draw_count := BalanceConfig.HAND_DRAW_COUNT
 const CARD_POOL: Array[CardType] = [
 	CardType.ATTACK,
@@ -137,8 +138,18 @@ const CARD_POOL: Array[CardType] = [
 	CardType.HIDE_EDGE,
 ]
 var hand: Array[CardType] = []
-var draw_pile: Array[CardType] = []
-var discard_pile: Array[CardType] = []
+var _deck := BattleDeck.new()
+# Compatibility accessors share the model's arrays; there is no second copy.
+var draw_pile: Array[CardType]:
+	get:
+		return _deck.draw_pile
+	set(value):
+		_deck.draw_pile = value
+var discard_pile: Array[CardType]:
+	get:
+		return _deck.discard_pile
+	set(value):
+		_deck.discard_pile = value
 var enemy_guards: Array[int] = []
 var enemy_strengths: Array[int] = []
 var enemy_vulnerabilities: Array[int] = []
@@ -149,8 +160,12 @@ var pending_skill_target := 0 # 0=无，1=特殊技，2=华彩
 var last_target_index := -1
 var tune_breath_used_this_turn := false
 var preserve_combo_this_turn := false
-var life_guard_used := false
-var resonance_used := false
+var grind_sword_ready := false
+var companion_damage_multiplier := 1
+var companion_bonus_action := false
+var few_return_active := false
+var few_return_used := false
+var few_return_immune := false
 var bond_skill_comeback := false
 var companion_turn_pending := false
 var locked_companion_choice: Dictionary = {}
@@ -244,6 +259,9 @@ func _ready() -> void:
 	preload("res://scripts/ui/ink_ui_skin.gd").style_button(library_button)
 	$BattleUI.add_child(library_button)
 	library_button.pressed.connect(card_library.open)
+	preload("res://scripts/ui/save_exit_button.gd").install(self, $BattleUI, Vector2(1370, 30))
+	if RunState.has_expedition() and RunState.expedition_checkpoint.phase == "battle" and not fixed_cooperation_test and not offline_experiment:
+		fixed_random_seed = RunState.battle_seed
 	random_call_counts = {"deck": 0, "enemy": 0}
 	if not enemy_attack_segment_resolved.is_connected(_on_parry_attack_segment):
 		enemy_attack_segment_resolved.connect(_on_parry_attack_segment)
@@ -334,8 +352,12 @@ func start_battle() -> void:
 	last_target_index = -1
 	tune_breath_used_this_turn = false
 	preserve_combo_this_turn = false
-	life_guard_used = false
-	resonance_used = false
+	grind_sword_ready = false
+	companion_damage_multiplier = 1
+	companion_bonus_action = false
+	few_return_active = false
+	few_return_used = false
+	few_return_immune = false
 	bond_skill_comeback = false
 	companion_turn_pending = false
 	locked_companion_choice.clear()
@@ -380,7 +402,7 @@ func _configure_encounter() -> void:
 			for index in range(enemy_count):
 				enemy_hps.append(_enemy_roll(normal_config["hp_min"], normal_config["hp_max"]))
 	if RunState.pending_encounter != RunState.EncounterType.BOSS:
-		enemy_roles = EnemyDatabase.get_encounter_roles(RunState.route_layer, enemy_count, RunState.pending_encounter == RunState.EncounterType.ELITE)
+		enemy_roles = EnemyDatabase.get_encounter_roles(RunState.route_layer, enemy_count, RunState.pending_encounter == RunState.EncounterType.ELITE, enemy_rng if RunState.has_expedition() else null)
 		for index in range(enemy_count):
 			enemy_hps[index] += int(EnemyDatabase.ROLES[enemy_roles[index]]["hp_offset"])
 	for index in range(enemy_count):
@@ -436,102 +458,28 @@ func _build_enemy_display() -> void:
 
 
 func _enemy_floating_text(index: int, caption: String, tint: Color, row: int = 0) -> void:
-	if index < 0 or index >= enemy_sprites.size():
-		return
-	var label := Label.new()
-	label.text = caption
-	label.position = Vector2(-10, 105 + row * 34)
-	label.size = Vector2(255, 36)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.add_theme_font_size_override("font_size", 25)
-	label.add_theme_color_override("font_color", tint)
-	label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	label.add_theme_constant_override("shadow_offset_x", 2)
-	label.add_theme_constant_override("shadow_offset_y", 2)
-	enemy_blocks[index].get_parent().add_child(label)
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property(label, "position:y", label.position.y - 40, 0.75)
-	tween.tween_property(label, "modulate:a", 0.0, 0.4).set_delay(0.35)
-	tween.chain().tween_callback(label.queue_free)
+	if index >= 0 and index < enemy_sprites.size():
+		Feedback.enemy_text(enemy_blocks[index], caption, tint, row)
 
 
 func _animate_enemy_hit(index: int) -> void:
-	var sprite := enemy_sprites[index]
-	if enemy_feedback_tweens.has(index) and enemy_feedback_tweens[index].is_valid():
-		enemy_feedback_tweens[index].kill()
-	var rest_position: Vector2 = sprite.get_meta("rest_position")
-	sprite.position = rest_position
-	sprite.self_modulate = Color(1.5, 1.25, 1.15, 1)
-	var tween := create_tween()
-	enemy_feedback_tweens[index] = tween
-	tween.tween_property(sprite, "position:x", rest_position.x + 6.0, 0.05)
-	tween.tween_property(sprite, "position:x", rest_position.x - 4.0, 0.05)
-	tween.tween_property(sprite, "position:x", rest_position.x, 0.08)
-	tween.parallel().tween_property(sprite, "self_modulate", Color.WHITE, 0.18)
+	enemy_feedback_tweens[index] = Feedback.hit(enemy_sprites[index], enemy_feedback_tweens.get(index))
 
 
 func _enemy_action_effect(index: int, kind: String, tint: Color) -> void:
-	var effect := EnemyActionEffect.new()
-	effect.kind = kind
-	effect.tint = tint
-	effect.size = enemy_blocks[index].size
-	enemy_blocks[index].add_child(effect)
+	Feedback.enemy_effect(enemy_blocks[index], kind, tint)
 
 
 func _animate_enemy_action(index: int, kind: String) -> void:
-	var sprite := enemy_sprites[index]
-	if enemy_feedback_tweens.has(index) and enemy_feedback_tweens[index].is_valid():
-		enemy_feedback_tweens[index].kill()
-	var rest_position: Vector2 = sprite.get_meta("rest_position")
-	sprite.position = rest_position
-	sprite.self_modulate = Color.WHITE
-	var tween := create_tween()
-	enemy_feedback_tweens[index] = tween
-	if kind == "attack":
-		tween.tween_property(sprite, "position:y", rest_position.y - 6.0, 0.1)
-		tween.tween_property(sprite, "position:y", rest_position.y + 13.0, 0.08)
-		tween.tween_property(sprite, "position:y", rest_position.y, 0.18)
-		_enemy_action_effect(index, "attack", Color("#e6c17e"))
-	else:
-		var tint := Color("#74c7bd") if kind == "guard" else Color("#bf9de8")
-		tween.tween_property(sprite, "self_modulate", tint.lightened(0.3), 0.15)
-		tween.tween_property(sprite, "self_modulate", Color.WHITE, 0.25)
-		_enemy_action_effect(index, kind, tint)
+	enemy_feedback_tweens[index] = Feedback.action(enemy_sprites[index], enemy_blocks[index], kind, enemy_feedback_tweens.get(index))
 
 
 func _animate_enemy_death(index: int) -> void:
-	if enemy_idle_tweens[index].is_valid():
-		enemy_idle_tweens[index].kill()
-	if enemy_feedback_tweens.has(index) and enemy_feedback_tweens[index].is_valid():
-		enemy_feedback_tweens[index].kill()
-	var sprite := enemy_sprites[index]
-	var rest_position: Vector2 = sprite.get_meta("rest_position")
-	sprite.position = rest_position
-	var tween := create_tween().set_parallel(true)
-	enemy_feedback_tweens[index] = tween
-	tween.tween_property(sprite, "position:y", rest_position.y + 12.0, 0.4)
-	tween.tween_property(sprite, "scale", Vector2(0.94, 0.94), 0.4)
-	tween.tween_property(sprite, "self_modulate:a", 0.0, 0.5)
+	enemy_feedback_tweens[index] = Feedback.death(enemy_sprites[index], enemy_idle_tweens[index], enemy_feedback_tweens.get(index))
 
 
 func _player_floating_text(caption: String, tint: Color, slot: int = 0) -> void:
-	var label := Label.new()
-	label.text = caption
-	label.position = Vector2(510 + slot * 240, 615)
-	label.size = Vector2(320, 40)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 25)
-	label.add_theme_color_override("font_color", tint)
-	label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	label.add_theme_constant_override("shadow_offset_x", 2)
-	label.add_theme_constant_override("shadow_offset_y", 2)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	$BattleUI.add_child(label)
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property(label, "position:y", label.position.y - 25, 0.8)
-	tween.tween_property(label, "modulate:a", 0.0, 0.4).set_delay(0.4)
-	tween.chain().tween_callback(label.queue_free)
+	Feedback.player_text($BattleUI, caption, tint, slot)
 
 
 func _enemy_art(index: int = -1) -> Texture2D:
@@ -672,14 +620,11 @@ func _resolve_targeted_skill(enemy_index: int) -> void:
 		_show_flowing_light()
 		combo = maxi(combo - special_combo_cost, 0)
 		_consume_parry_combo(special_combo_cost, "skill")
-		var resonance_triggered := _apply_resonance_after_skill()
 		message_label.text = "流光攻击敌人%d，造成 %d 伤害，消耗 %d 层连击" % [
 			enemy_index + 1,
 			damage,
 			special_combo_cost,
 		]
-		if resonance_triggered:
-			message_label.text += "；剑鸣余韵生效，保留1层连击"
 	else:
 		_record_player_card(CardDatabase.BRILLIANCE)
 		energy -= ultimate_energy_cost
@@ -688,10 +633,7 @@ func _resolve_targeted_skill(enemy_index: int) -> void:
 		_damage_enemy_at(enemy_index, damage)
 		combo = 0
 		_consume_parry_combo(parry_injected_remaining, "skill")
-		var resonance_triggered := _apply_resonance_after_skill()
 		message_label.text = "华彩攻击敌人%d，造成 %d 伤害，连击清零" % [enemy_index + 1, damage]
-		if resonance_triggered:
-			message_label.text += "；剑鸣余韵生效，保留1层连击"
 		_show_ink_event()
 	_finish_action()
 
@@ -788,14 +730,6 @@ func _record_bond_skill_use(skill_name: String) -> void:
 				battle_index, player_hp, player_max_hp, skill_name,
 			], 3)
 		bond_skill_comeback = true
-
-
-func _apply_resonance_after_skill() -> bool:
-	if AbilityManager.has_ability(AbilityManager.RESONANCE) and not resonance_used:
-		combo = maxi(combo, 1)
-		resonance_used = true
-		return true
-	return false
 
 
 func _play_attack_card(cost: int, base_damage: int, target_index: int) -> void:
@@ -896,7 +830,6 @@ func _play_defense_card(cost: int, block_amount: int) -> void:
 	energy -= cost
 	_gain_block(block_amount, "player")
 	if cut_water_active:
-		cut_water_active = false
 		if combo > 0:
 			_use_cooperation_window()
 		message_label.text = "获得 %d 格挡；断水生效，连击保留" % block_amount
@@ -910,7 +843,6 @@ func _play_defense_card(cost: int, block_amount: int) -> void:
 func _play_status_card(hand_index: int, cost: int) -> void:
 	energy -= cost
 	if cut_water_active:
-		cut_water_active = false
 		if combo > 0:
 			_use_cooperation_window()
 		_draw_card_into_slot(hand_index)
@@ -1043,8 +975,8 @@ func _refresh_locked_companion_intent() -> void:
 		else:
 			var needed := maxi(int(plan["required_total"]) - boss_charge_hits - int(plan["companion_hits"]), 0)
 			condition = "\n配合：你还需命中%d次，我补最后一击（格挡也计次）。" % needed if needed > 0 else "\n配合条件已达成：我这一击可打断重斩。"
-	elif plan.get("kind", "") == "preserve_combo":
-		condition = "\n配合：结束回合前保留连击，我替你留到下一轮。" if combo == 0 else "\n配合条件已达成：当前%d层连击可留到下一轮。" % combo
+	elif plan.get("kind", "") == "charge_attack":
+		condition = "\n蓄势：强化我下一次伤害技能。"
 	companion_reason_label.text = "“%s”" % str(choice.get("reason", "这回合按计划来。"))
 	$BattleUI/CompanionPanel/Effect.text = "%s%s" % [definition["description"], condition.replace("\n", " ")]
 	if not companion_intent_notice.is_empty():
@@ -1052,21 +984,37 @@ func _refresh_locked_companion_intent() -> void:
 
 
 func _run_companion_turn() -> void:
-	var context := _build_companion_context()
-	# 玩家已经行动完毕，不能再把“手上能积势”当成当前有剑势。
-	context["can_build_combo"] = false
-	var options := CompanionTactics.candidates(context, _allowed_companion_cards())
 	var choice := locked_companion_choice.duplicate(true)
+	locked_companion_choice.clear()
 	companion_intent_notice = ""
-	if choice.is_empty() or str(choice.get("card_id", "")) not in options:
+	while not battle_finished and _living_enemy_count() > 0:
+		var context := _build_companion_context()
+		context["can_build_combo"] = false
+		context["bonus_action"] = companion_bonus_action
+		context["affordable_attack_hits"] = 0
+		context["hand_cards"] = "玩家已结束行动，不能继续出牌"
+		var options := CompanionTactics.candidates(context, _allowed_companion_cards())
 		if options.is_empty():
 			options.assign([CompanionCards.GUARD_ECHO])
-		choice = CompanionDirector.choose_fallback(context, options)
-		choice["reason"] = "原定配合已失效或无法挡住致命伤害，我改用「%s」。" % CompanionCards.get_definition(str(choice["card_id"]))["name"]
-		companion_intent_notice = str(choice["reason"])
-	locked_companion_choice.clear()
-	_record_companion_selection("execute", context, options, choice)
-	_apply_companion_card(choice)
+		if choice.is_empty():
+			if not force_offline_companion:
+				choice = await _request_companion_choice(context, options)
+			if battle_finished or not is_inside_tree():
+				return
+			if choice.is_empty():
+				choice = CompanionDirector.choose_fallback(context, options)
+		elif str(choice.get("card_id", "")) not in options:
+			choice = CompanionDirector.choose_fallback(context, options)
+			choice["reason"] = "原定配合已失效或无法挡住致命伤害，我改用「%s」。" % CompanionCards.get_definition(str(choice["card_id"]))["name"]
+			companion_intent_notice = str(choice["reason"])
+		_record_companion_selection("execute", context, options, choice)
+		_apply_companion_card(choice)
+		if not companion_bonus_action or battle_finished:
+			break
+		choice = {}
+		message_label.text = "十步击杀，小墨继续出招……"
+		if not fixed_cooperation_test:
+			await get_tree().create_timer(0.55).timeout
 
 
 func _record_companion_selection(phase: String, context: Dictionary, options: Array[String], choice: Dictionary) -> void:
@@ -1149,6 +1097,8 @@ func _build_companion_context() -> Dictionary:
 		"hand_cards": "、".join(hand_names),
 		"strongest_attack": strongest,
 		"frost_prevention": frost_prevention,
+		"grind_sword_ready": grind_sword_ready, "few_return_used": few_return_used,
+		"highest_enemy_hp": enemy_hps[highest_index] if highest_index >= 0 else 999999,
 		"attacking_enemies": attacking,
 		"can_build_combo": can_build,
 		"lowest_enemy_effective_hp": lowest_effective,
@@ -1182,134 +1132,76 @@ func _apply_companion_card(choice: Dictionary) -> void:
 	if definition.is_empty():
 		card_id = CompanionCards.QUICK_SLASH
 		definition = CompanionCards.get_definition(card_id)
+	companion_bonus_action = false
+	companion_damage_multiplier = 1
+	if int(definition.get("damage", 0)) > 0 and grind_sword_ready:
+		companion_damage_multiplier = 2
+		grind_sword_ready = false
 	var target_index := _lowest_hp_enemy_index()
 	var result_text := ""
 	var combo_before := combo
 	var incoming_before := _enemy_intent_damage_total()
 	var block_before := block
 	_show_companion_flash(card_id)
-	match card_id:
-		CompanionCards.GUARD_ECHO:
-			var gained_block := int(definition["block"])
-			_gain_block(gained_block, "companion")
-			companion_block_this_turn += gained_block
-			result_text = "获得 %d 格挡" % gained_block
-		CompanionCards.FOLLOW_UP:
-			var damage := int(definition["damage"]) + combo * int(definition["combo_scale"])
-			_damage_enemy_at(target_index, damage)
-			last_target_index = target_index
-			combo += 1
-			result_text = "对敌人%d造成 %d 伤害，连击 +1" % [target_index + 1, damage]
-		CompanionCards.LEAD_MOMENTUM:
-			pending_boon = {
-				"type": str(definition["boon_type"]),
-				"value": float(definition["boon_value"]),
-				"source": str(definition["name"]),
-			}
-			result_text = "玩家下回合第一张攻击牌伤害 ×%.1f" % float(definition["boon_value"])
-		CompanionCards.OATH_GUARD:
-			var gained_block := int(definition["block"])
-			if RunState.active_promise == "protect":
-				gained_block += int(definition["promise_bonus"])
-			_gain_block(gained_block, "companion")
-			companion_block_this_turn += gained_block
-			result_text = "获得 %d 格挡" % gained_block
-		CompanionCards.RETURN_GUARD:
-			var gained_block := int(definition["block"])
-			_gain_block(gained_block, "companion")
-			companion_block_this_turn += gained_block
-			result_text = "获得 %d 格挡" % gained_block
-		CompanionCards.ESCORT:
-			var gained_block := int(definition["block"])
-			_gain_block(gained_block, "companion")
-			companion_block_this_turn += gained_block
-			pending_boon = {
-				"type": str(definition["boon_type"]),
-				"value": int(definition["boon_value"]),
-				"source": str(definition["name"]),
-			}
-			result_text = "获得 %d 格挡；玩家下回合第一张攻击牌伤害 +%d" % [
-				gained_block,
-				int(definition["boon_value"]),
-			]
-		CompanionCards.LONE_JUDGMENT:
-			var damage := int(definition["damage"]) + combo * int(definition["combo_scale"])
-			_damage_enemy_at(target_index, damage)
-			last_target_index = target_index
-			_consume_parry_combo(parry_injected_remaining, "other")
-			combo = 0
-			result_text = "对敌人%d造成 %d 伤害，连击清零" % [target_index + 1, damage]
-		CompanionCards.HEART_RESONANCE:
-			var damage := int(definition["damage"]) + combo * int(definition["combo_scale"])
-			_damage_enemy_at(target_index, damage)
-			last_target_index = target_index
-			preserve_combo_this_turn = true
-			result_text = "对敌人%d造成 %d 伤害，保留连击" % [target_index + 1, damage]
-		CompanionCards.FROST_COLD:
-			for index in range(enemy_hps.size()):
-				if enemy_hps[index] <= 0:
-					continue
-				_damage_enemy_at(index, int(definition["damage"]))
-				if enemy_hps[index] > 0 and enemy_intents[index]["type"] == EnemyIntent.ATTACK:
-					AttackSegments.reduce_each(enemy_intents[index], int(definition["weaken"]))
-			last_target_index = -1
-			result_text = "对全体敌人各造成 %d 伤害，它们本回合攻击 -%d" % [int(definition["damage"]), int(definition["weaken"])]
-		CompanionCards.TEN_STEPS:
-			var damage := int(definition["damage"]) + combo * int(definition["combo_scale"])
-			_damage_enemy_at(target_index, damage)
-			last_target_index = target_index
-			result_text = "对敌人%d造成 %d 伤害" % [target_index + 1, damage]
-			if target_index >= 0 and enemy_hps[target_index] <= 0:
-				combo += 1
-				preserve_combo_this_turn = true
-				result_text += "，击杀后连击 +1并保留"
-			else:
-				_consume_parry_combo(parry_injected_remaining, "other")
-				combo = 0
-				result_text += "，未击杀，连击清空"
-		CompanionCards.GRIND_SWORD:
-			preserve_combo_this_turn = true
-			result_text = "放弃本次攻击，将 %d 层连击留到下回合" % combo
-		CompanionCards.CUT_WATER:
-			cut_water_active = true
-			result_text = "玩家下回合第一张防御或状态牌不会清空连击"
-		CompanionCards.LONG_WIND:
-			long_wind_bonus = int(definition["energy"])
-			result_text = "玩家下回合精力 +%d" % long_wind_bonus
-		CompanionCards.BEHEAD_LOULAN:
-			var highest := _highest_hp_enemy_index()
-			var damage := int(definition["damage"])
-			_damage_enemy_at(highest, damage)
-			last_target_index = highest
-			result_text = "对生命最高的敌人%d造成 %d 伤害" % [highest + 1, damage]
-		CompanionCards.YIN_MOUNTAIN:
-			var strongest := -1
-			for index in range(enemy_intents.size()):
-				if enemy_hps[index] > 0 and enemy_intents[index]["type"] == EnemyIntent.ATTACK:
-					if strongest < 0 or AttackSegments.total(enemy_intents[index]) > AttackSegments.total(enemy_intents[strongest]):
-						strongest = index
-			if strongest >= 0:
-				var blocked := AttackSegments.total(enemy_intents[strongest])
-				AttackSegments.intercept(enemy_intents[strongest])
-				result_text = "挡下敌人%d本回合的攻击（%d）" % [strongest + 1, blocked]
-			else:
-				result_text = "本回合没有敌人要攻击，剑势落空"
-		CompanionCards.FEW_RETURN:
-			var gained_block := int(definition["block_low"]) if player_hp * 4 <= player_max_hp else int(definition["block"])
-			_gain_block(gained_block, "companion")
-			companion_block_this_turn += gained_block
-			result_text = "获得 %d 格挡" % gained_block
-		_:
-			var damage := int(definition["damage"])
-			_damage_enemy_at(target_index, damage)
-			last_target_index = target_index
-			result_text = "对敌人%d造成 %d 伤害" % [target_index + 1, damage]
+	if definition.has("effects"):
+		result_text = _execute_companion_effects(definition)
+	else:
+		match card_id:
+			CompanionCards.FROST_COLD:
+				for index in range(enemy_hps.size()):
+					if enemy_hps[index] <= 0:
+						continue
+					_damage_enemy_at(index, int(definition["damage"]) * companion_damage_multiplier)
+					if enemy_hps[index] > 0 and enemy_intents[index]["type"] == EnemyIntent.ATTACK:
+						AttackSegments.reduce_each(enemy_intents[index], int(definition["weaken"]))
+				last_target_index = -1
+				result_text = "对全体敌人各造成 %d 伤害，它们本回合攻击 -%d" % [int(definition["damage"]) * companion_damage_multiplier, int(definition["weaken"])]
+			CompanionCards.TEN_STEPS:
+				var damage := int(definition["damage"]) + combo * int(definition["combo_scale"])
+				damage *= companion_damage_multiplier
+				_damage_enemy_at(target_index, damage)
+				last_target_index = target_index
+				result_text = "对敌人%d造成 %d 伤害" % [target_index + 1, damage]
+				if target_index >= 0 and enemy_hps[target_index] <= 0:
+					companion_bonus_action = _living_enemy_count() > 0
+					result_text += "，击杀后立即再释放一次技能"
+			CompanionCards.GRIND_SWORD:
+				grind_sword_ready = true
+				result_text = "积蓄剑势，小墨下次伤害技能伤害翻倍（不叠加）"
+			CompanionCards.CUT_WATER:
+				cut_water_active = true
+				result_text = "玩家下回合防御或状态牌不会清空连击"
+			CompanionCards.LONG_WIND:
+				long_wind_bonus = int(definition["energy"])
+				result_text = "玩家下回合精力 +%d" % long_wind_bonus
+			CompanionCards.BEHEAD_LOULAN:
+				var highest := _highest_hp_enemy_index()
+				var damage := int(definition["damage"])
+				damage *= companion_damage_multiplier
+				_damage_enemy_at(highest, damage, true)
+				last_target_index = highest
+				result_text = "无视格挡，对生命最高的敌人%d造成 %d 伤害" % [highest + 1, damage]
+			CompanionCards.YIN_MOUNTAIN:
+				var strongest := -1
+				for index in range(enemy_intents.size()):
+					if enemy_hps[index] > 0 and enemy_intents[index]["type"] == EnemyIntent.ATTACK:
+						if strongest < 0 or AttackSegments.total(enemy_intents[index]) > AttackSegments.total(enemy_intents[strongest]):
+							strongest = index
+				if strongest >= 0:
+					var blocked := AttackSegments.total(enemy_intents[strongest])
+					AttackSegments.intercept(enemy_intents[strongest])
+					result_text = "挡下敌人%d本回合的攻击（%d）" % [strongest + 1, blocked]
+				else:
+					result_text = "本回合没有敌人要攻击，剑势落空"
+			CompanionCards.FEW_RETURN:
+				few_return_active = not few_return_used
+				result_text = "本回合受到致命伤害时保留1点生命，并免疫剩余伤害" if few_return_active else "本场战斗已救险，不能再次发动"
 	if card_id in [CompanionCards.TEN_STEPS, CompanionCards.LONE_JUDGMENT]:
 		RunState.record_cooperation("finishers")
 		RunState.record_cooperation("finisher_combo_total", combo_before)
 	if (block > block_before and incoming_before > block_before) or (card_id in [CompanionCards.YIN_MOUNTAIN, CompanionCards.FROST_COLD] and _enemy_intent_damage_total() < incoming_before):
 		RunState.record_cooperation("guards")
-	if CompanionCards.is_investment(card_id) or (card_id == CompanionCards.TEN_STEPS and preserve_combo_this_turn):
+	if CompanionCards.is_investment(card_id) and card_id != CompanionCards.GRIND_SWORD:
 		cooperation_windows["resource"] = {"source": card_id, "used": false, "combo": combo}
 	companion_last_card_id = card_id
 	if str(choice.get("source", "")) == "llm":
@@ -1323,10 +1215,47 @@ func _apply_companion_card(choice: Dictionary) -> void:
 	companion_reason_label.text = "“%s”" % companion_last_reason
 	$BattleUI/CompanionPanel/Effect.text = result_text
 	message_label.text = "小墨打出「%s」：%s" % [definition["name"], result_text]
+	companion_damage_multiplier = 1
 	if _living_enemy_count() == 0:
 		_end_battle(true)
 	else:
 		_refresh_ui()
+
+# 状态的唯一写入者仍是战斗；解析器只根据显式输入计算一项效果。
+func _execute_companion_effects(definition: Dictionary) -> String:
+	var target_index := -1
+	if str(definition.get("target", CompanionCards.TARGET_NONE)) == CompanionCards.TARGET_LOWEST_HP:
+		target_index = _lowest_hp_enemy_index()
+	var result := {"target": target_index + 1, "damage": 0, "block": 0, "boon": ""}
+	for authored_effect in definition["effects"]:
+		var effect := CompanionEffects.resolve(authored_effect, definition, {
+			"combo": combo, "promise": RunState.active_promise,
+			"damage_multiplier": companion_damage_multiplier,
+		})
+		match str(effect["kind"]):
+			CompanionCards.EFFECT_DAMAGE:
+				var damage := int(effect["amount"])
+				_damage_enemy_at(target_index, damage)
+				last_target_index = target_index
+				result["damage"] = damage
+			CompanionCards.EFFECT_BLOCK:
+				var gained_block := int(effect["amount"])
+				_gain_block(gained_block, "companion")
+				companion_block_this_turn += gained_block
+				result["block"] = gained_block
+			CompanionCards.EFFECT_COMBO:
+				match str(effect["mode"]):
+					CompanionCards.COMBO_ADD:
+						combo += int(effect["amount"])
+					CompanionCards.COMBO_CLEAR:
+						_consume_parry_combo(parry_injected_remaining, "other")
+						combo = 0
+					CompanionCards.COMBO_PRESERVE:
+						preserve_combo_this_turn = true
+			CompanionCards.EFFECT_BOON:
+				pending_boon = effect["boon"]
+				result["boon"] = "%.1f" % float(pending_boon["value"]) if pending_boon["type"] == "multiply" else str(pending_boon["value"])
+	return str(definition["result_template"]).format(result)
 
 
 func _highest_hp_enemy_index() -> int:
@@ -1386,7 +1315,7 @@ func _resolve_enemy_turn() -> void:
 	if not companion_save_recorded and companion_block_this_turn > 0 and damage_without_companion >= player_hp and maxi(expected_damage - block_at_start, 0) < player_hp:
 		companion_save_recorded = true
 		RunState.record_moment("第%d场，敌人那一轮本来足以击倒只剩 %d 血的你，是小墨的格挡替你接住了。" % [battle_index, player_hp], 4)
-	var life_guard_before := life_guard_used
+	var few_return_before := few_return_used
 	# 敌人上一轮获得的格挡在玩家回合结束时消失；本轮防御行动生成的新格挡
 	# 会保留到下一个玩家回合。
 	for index in range(enemy_guards.size()):
@@ -1461,11 +1390,11 @@ func _resolve_enemy_turn() -> void:
 	combo_telemetry.finish_round(_visible_wind_count(), "end_turn")
 	if not retain_shield_active: block = 0
 	companion_block_this_turn = 0
-	var life_guard_triggered := life_guard_used and not life_guard_before
+	var few_return_triggered := few_return_used and not few_return_before
 	if damage_taken > 0:
 		_player_floating_text("-%d 生命" % damage_taken, Color("#e89584"))
 		player_status.flash_damage()
-	RunState.player_hp = player_hp
+	RunState.set_player_hp(player_hp)
 	RunState.record_player_hp()
 	if player_hp <= 0:
 		_end_battle(false)
@@ -1473,13 +1402,13 @@ func _resolve_enemy_turn() -> void:
 	if _living_enemy_count() == 0:
 		_end_battle(true)
 		return
+	few_return_active = false
+	few_return_immune = false
 	energy = max_energy + long_wind_bonus
 	long_wind_bonus = 0
 	var combo_was_preserved := preserve_combo_this_turn
 	if not preserve_combo_this_turn:
 		combo = 0
-		if AbilityManager.has_ability(AbilityManager.PERSEVERANCE):
-			combo = 1
 	var injected := parry_pending_combo
 	combo += injected
 	parry_injected_remaining = injected
@@ -1503,10 +1432,8 @@ func _resolve_enemy_turn() -> void:
 			combo_telemetry.current["retain_active"] = true
 	_assess_cooperation_window()
 	var combo_result := "藏锋生效，保留连击" if combo_was_preserved else "连击清零"
-	if not combo_was_preserved and AbilityManager.has_ability(AbilityManager.PERSEVERANCE):
-		combo_result = "百折生效，新回合保留1层连击"
 	if injected > 0: combo_result += "；回锋注入%d连击" % injected
-	var guard_result := "；护命发动，保留1点生命" if life_guard_triggered else ""
+	var guard_result := "；几人回救险，保留1点生命" if few_return_triggered else ""
 	message_label.text = "敌方行动：%s。受到 %d 伤害，%s%s" % [
 		"；".join(action_messages),
 		damage_taken,
@@ -1525,10 +1452,14 @@ func _resolve_enemy_attack_segment(enemy_index: int, segment_index: int, damage:
 	var absorbed := mini(block, damage)
 	block -= absorbed
 	var life_lost := maxi(damage - absorbed, 0)
-	if life_lost >= player_hp and player_hp > 0 and AbilityManager.has_ability(AbilityManager.LIFE_GUARD) and not life_guard_used:
+	if few_return_immune:
+		life_lost = 0
+	elif life_lost >= player_hp and player_hp > 0 and few_return_active and not few_return_used:
 		life_lost = player_hp - 1
-		life_guard_used = true
-		RunState.record_moment("第%d场，本该倒下的那一击，灵剑护主替你留住了最后一口气。" % battle_index, 4)
+		few_return_used = true
+		few_return_immune = true
+		few_return_active = false
+		RunState.record_moment("第%d场，本该倒下的那一击，小墨用「几人回」替你留住了最后一口气。" % battle_index, 4)
 	life_lost = mini(life_lost, player_hp)
 	player_hp -= life_lost
 	battle_damage_taken += life_lost
@@ -1611,15 +1542,15 @@ func _card_cost(card_type: CardType) -> int:
 	return CardDatabase.get_cost(int(card_type))
 
 
-func _damage_enemy_at(target_index: int, damage: int) -> void:
+func _damage_enemy_at(target_index: int, damage: int, ignore_guard: bool = false) -> void:
 	if target_index >= 0:
 		if combo > 0 and cooperation_windows.has("resource"):
 			var source := str(cooperation_windows["resource"].get("source", ""))
-			if source in [CompanionCards.GRIND_SWORD, CompanionCards.HEART_RESONANCE, CompanionCards.TEN_STEPS] and not companion_turn_pending and not bool(cooperation_windows["resource"].get("lost", false)):
+			if source in [CompanionCards.HEART_RESONANCE] and not companion_turn_pending and not bool(cooperation_windows["resource"].get("lost", false)):
 				_use_cooperation_window()
 		var hp_before := enemy_hps[target_index]
 		damage += enemy_vulnerabilities[target_index]
-		var absorbed := mini(enemy_guards[target_index], damage)
+		var absorbed := 0 if ignore_guard else mini(enemy_guards[target_index], damage)
 		enemy_guards[target_index] -= absorbed
 		enemy_hps[target_index] = maxi(enemy_hps[target_index] - (damage - absorbed), 0)
 		battle_damage_dealt += hp_before - enemy_hps[target_index]
@@ -1654,63 +1585,18 @@ func _guard_target(guardian_index: int) -> int:
 
 
 func _roll_enemy_intents() -> void:
-	if fixed_cooperation_test:
-		enemy_intents.assign([{"type": EnemyIntent.ATTACK, "value": 6}, {"type": EnemyIntent.ATTACK, "value": 8}])
-		return
-	enemy_intents.clear()
-	if _is_boss_battle():
-		boss_charge_hits = 0
-		var action := boss_action_step % 3
-		boss_action_step += 1
-		if action == 1:
-			enemy_intents.append({"type": EnemyIntent.DEFEND, "value": int(EnemyDatabase.get_boss_config(RunState.route_layer)["guard"])})
-		else:
-			var charging := action == 2
-			var enraged := enemy_hps[0] * 2 <= enemy_max_hps[0]
-			var damage := int(EnemyDatabase.get_boss_config(RunState.route_layer)["attack"])
-			if charging:
-				damage = int(EnemyDatabase.get_boss_config(RunState.route_layer)["enraged_heavy"] if enraged else EnemyDatabase.get_boss_config(RunState.route_layer)["heavy"])
-			damage = maxi(damage - enemy_attack_reductions[0], 0)
-			enemy_attack_reductions[0] = 0
-			enemy_intents.append({"type": EnemyIntent.ATTACK, "value": damage, "charging": charging})
-		return
-	var role_step := enemy_action_step
-	enemy_action_step += 1
-	for hp in enemy_hps:
-		if hp <= 0:
-			enemy_intents.append({"type": EnemyIntent.OTHER, "value": 0})
-			continue
-		var enemy_index := enemy_intents.size()
-		if enemy_index < enemy_roles.size():
-			var role_intent := EnemyDatabase.get_role_intent(enemy_roles[enemy_index], role_step, RunState.pending_encounter == RunState.EncounterType.ELITE, RunState.route_layer)
-			if role_intent["type"] == EnemyIntent.ATTACK:
-				AttackSegments.reduce_next(role_intent, enemy_attack_reductions[enemy_index])
-				enemy_attack_reductions[enemy_index] = 0
-			enemy_intents.append(role_intent)
-			continue
-		var roll := _enemy_roll(0, 99)
-		if roll < EnemyDatabase.INTENT_ATTACK_END:
-			enemy_intents.append({
-				"type": EnemyIntent.ATTACK,
-				"value": maxi(
-					_enemy_roll(EnemyDatabase.ATTACK_DAMAGE_MIN, EnemyDatabase.ATTACK_DAMAGE_MAX)
-					+ enemy_strengths[enemy_index]
-					- enemy_attack_reductions[enemy_index],
-					0
-				),
-			})
-			enemy_attack_reductions[enemy_index] = 0
-		elif roll < EnemyDatabase.INTENT_DEFEND_END:
-			enemy_intents.append({
-				"type": EnemyIntent.DEFEND,
-				"value": _enemy_roll(EnemyDatabase.DEFENSE_MIN, EnemyDatabase.DEFENSE_MAX),
-			})
-		elif roll < EnemyDatabase.INTENT_ENHANCE_END:
-			enemy_intents.append({"type": EnemyIntent.ENHANCE, "value": EnemyDatabase.STRENGTH_GAIN})
-		elif roll < EnemyDatabase.INTENT_CURSE_END:
-			enemy_intents.append({"type": EnemyIntent.CURSE, "value": 1})
-		else:
-			enemy_intents.append({"type": EnemyIntent.OTHER, "value": 0})
+	var planned := IntentPlanner.roll({
+		"fixed": fixed_cooperation_test, "boss": _is_boss_battle(),
+		"elite": RunState.pending_encounter == RunState.EncounterType.ELITE,
+		"layer": RunState.route_layer, "hps": enemy_hps, "max_hps": enemy_max_hps,
+		"roles": enemy_roles, "strengths": enemy_strengths, "reductions": enemy_attack_reductions,
+		"boss_step": boss_action_step, "boss_hits": boss_charge_hits, "role_step": enemy_action_step,
+	}, _enemy_roll)
+	enemy_intents.assign(planned.intents)
+	enemy_attack_reductions.assign(planned.reductions)
+	boss_action_step = planned.boss_step
+	boss_charge_hits = planned.boss_hits
+	enemy_action_step = planned.role_step
 
 
 func _first_living_enemy_index() -> int:
@@ -1730,11 +1616,7 @@ func _living_enemy_count() -> int:
 
 func _initialize_deck() -> void:
 	hand.clear()
-	discard_pile.clear()
-	draw_pile.clear()
-	for card_value in RunState.deck:
-		draw_pile.append(card_value as CardType)
-	_shuffle_draw_pile()
+	_deck.reset(RunState.deck, _deck_roll)
 	for button in hand_buttons:
 		button.hide()
 	$BattleUI/HandViewport.scroll_horizontal = 0
@@ -1823,13 +1705,7 @@ func _draw_cards_into_empty_slots(count: int, preferred_index: int = -1) -> int:
 
 
 func _take_top_card() -> int:
-	if draw_pile.is_empty():
-		if discard_pile.is_empty():
-			return -1
-		draw_pile = discard_pile.duplicate()
-		discard_pile.clear()
-		_shuffle_draw_pile()
-	return draw_pile.pop_back()
+	return _deck.take_top(_deck_roll)
 
 
 func _finish_action() -> void:
@@ -1837,7 +1713,7 @@ func _finish_action() -> void:
 	if not telemetry_action.is_empty():
 		combo_telemetry.record_action(int(telemetry_action["card_id"]), int(telemetry_action["cost"]), int(telemetry_action["combo"]), combo, flowing_cloud_active, _visible_wind_count(), RunState.deck.count(CardDatabase.CHASE_WIND))
 		telemetry_action.clear()
-	if combo == 0 and cooperation_windows.has("resource") and str(cooperation_windows["resource"].get("source", "")) in [CompanionCards.GRIND_SWORD, CompanionCards.HEART_RESONANCE, CompanionCards.TEN_STEPS]:
+	if combo == 0 and cooperation_windows.has("resource") and str(cooperation_windows["resource"].get("source", "")) in [CompanionCards.HEART_RESONANCE]:
 		cooperation_windows["resource"]["lost"] = true
 	if cooperation_windows.has("resource") and str(cooperation_windows["resource"].get("source", "")) == CompanionCards.LONG_WIND and energy < int(CompanionCards.get_definition(CompanionCards.LONG_WIND)["energy"]):
 		_use_cooperation_window()
@@ -1871,11 +1747,7 @@ func _resolve_consecutive_attack() -> void:
 
 
 func _shuffle_draw_pile() -> void:
-	for index in range(draw_pile.size() - 1, 0, -1):
-		var other := _deck_roll(0, index)
-		var card := draw_pile[index]
-		draw_pile[index] = draw_pile[other]
-		draw_pile[other] = card
+	_deck.shuffle(_deck_roll)
 
 
 func _end_battle(player_won: bool) -> void:
@@ -1910,12 +1782,12 @@ func _end_battle(player_won: bool) -> void:
 		companion_reason_label.text = "按 R 重开固定战斗。此场景不写入正式存档。"
 		_refresh_ui()
 		return
-	RunState.player_hp = player_hp
+	RunState.set_player_hp(player_hp)
 	if RunState.finale_state == "battle":
 		RunState.set_finale_state("story", "victory" if player_won else "sacrifice")
 		_refresh_ui()
 		await get_tree().create_timer(0.8).timeout
-		get_tree().change_scene_to_file("res://scenes/finale.tscn")
+		RunState.navigate("finale", self)
 		return
 	_record_battle_journal(player_won)
 	RunState.record_battle_result(player_won)
@@ -1939,15 +1811,16 @@ func _end_battle(player_won: bool) -> void:
 			RunState.settle_act_promise()
 			print("远征通关")
 			RunState.finish_run(true)
-			RunState.post_battle_scene = "res://scenes/settlement.tscn"
+			RunState.set_post_battle_route("settlement")
 		else:
-			RunState.pending_act_bond_gain = -1
-			RunState.post_battle_scene = "res://scenes/map.tscn"
+			RunState.set_post_battle_route("map")
+		RunState.checkpoint("reward")
 		_return_to_reward_after_delay(victory_delay)
 	else:
 		message_label.text = "失败"
 		print("失败")
 		RunState.finish_run(false)
+		RunState.checkpoint("settlement")
 	_refresh_ui()
 	if not player_won:
 		_return_to_settlement_after_delay()
@@ -1955,12 +1828,12 @@ func _end_battle(player_won: bool) -> void:
 
 func _return_to_reward_after_delay(delay: float) -> void:
 	await get_tree().create_timer(delay).timeout
-	get_tree().change_scene_to_file("res://scenes/battle_reward.tscn")
+	RunState.navigate("reward", self)
 
 
 func _return_to_settlement_after_delay() -> void:
 	await get_tree().create_timer(1.0).timeout
-	get_tree().change_scene_to_file("res://scenes/settlement.tscn")
+	RunState.navigate("settlement", self)
 
 
 func _refresh_ui() -> void:
@@ -2181,9 +2054,11 @@ func _format_card_counts(counts: Dictionary) -> String:
 func _pending_boon_ui_text() -> String:
 	var extra := ""
 	if cut_water_active:
-		extra += "　断水：下张防御不断连击"
+		extra += "　断水：本回合防御/状态不断连击"
 	if long_wind_bonus > 0:
 		extra += "　长风：下回合精力 +%d" % long_wind_bonus
+	if grind_sword_ready:
+		extra += "　磨剑：小墨下次伤害 ×2"
 	return _pending_boon_core_text() + extra
 
 
@@ -2264,12 +2139,12 @@ func _assess_cooperation_window() -> void:
 		available = defense and (combo > 0 or attack)
 	elif source == CompanionCards.LONG_WIND:
 		available = total_cost > max_energy
-	elif source in [CompanionCards.GRIND_SWORD, CompanionCards.HEART_RESONANCE, CompanionCards.TEN_STEPS]:
+	elif source in [CompanionCards.HEART_RESONANCE]:
 		available = attack and combo > 0
 	cooperation_windows["resource"]["available"] = available
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if fixed_cooperation_test and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R:
-		RunState.player_hp = RunState.player_max_hp
+		RunState.set_player_hp(RunState.player_max_hp)
 		start_battle()

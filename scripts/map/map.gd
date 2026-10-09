@@ -25,11 +25,6 @@ var player_marker: Sprite2D
 var layer_node_types: Array[Array] = []
 var map_rng := RandomNumberGenerator.new()
 
-# 场景切到战斗再回来时，静态数据用于复原同一张地图和所在节点。
-static var run_seed := 0
-static var saved_layer_index := 0
-static var saved_node_index := 0
-static var saved_run_id := -1
 
 
 func _ready() -> void:
@@ -39,6 +34,9 @@ func _ready() -> void:
 	$MapUI/Bond.hide()
 	_generate_map()
 	_build_legend()
+	preload("res://scripts/ui/card_library.gd").install_deck_view(self, $MapUI, Vector2(1490, 24))
+	preload("res://scripts/ui/save_exit_button.gd").install(self, $MapUI, Vector2(1240, 24))
+	RunState.checkpoint("map")
 
 
 func _build_legend() -> void:
@@ -73,14 +71,7 @@ func _build_legend() -> void:
 
 
 func _generate_map() -> void:
-	if saved_run_id != RunState.run_id:
-		saved_run_id = RunState.run_id
-		run_seed = 0
-		saved_layer_index = 0
-		saved_node_index = 0
-	if run_seed == 0:
-		run_seed = randi()
-	map_rng.seed = run_seed
+	map_rng.seed = RunState.ensure_map_seed()
 	_build_node_type_plan()
 	var viewport_size := get_viewport_rect().size
 
@@ -89,15 +80,6 @@ func _generate_map() -> void:
 		var node_count := _node_count_for_layer(layer_index)
 		var layer_nodes: Array[RouteNode] = []
 		var y := viewport_size.y - BOTTOM_MARGIN - LAYER_SPACING * layer_index
-		var depth_label := Label.new()
-		depth_label.text = "起点" if layer_index == 0 else "%d层" % layer_index
-		depth_label.position = Vector2(35, y - 14)
-		depth_label.add_theme_font_size_override("font_size", 20)
-		depth_label.add_theme_font_override("font", MAP_FONT)
-		depth_label.set_meta("depth_label", true)
-		depth_label.add_theme_color_override("font_color", Color("#413b30"))
-		depth_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		$MapContent.add_child(depth_label)
 		for node_index in range(node_count):
 			var route_node := RouteNode.new()
 			route_node.z_index = 2
@@ -113,9 +95,11 @@ func _generate_map() -> void:
 
 	_build_connections()
 	_draw_connections()
-	var restored_layer := mini(saved_layer_index, layers.size() - 1)
-	var restored_index := mini(saved_node_index, layers[restored_layer].size() - 1)
+	var restored_layer := mini(RunState.map_layer, layers.size() - 1)
+	var restored_index := mini(RunState.map_node, layers[restored_layer].size() - 1)
 	current_node = layers[restored_layer][restored_index]
+	for point in RunState.map_path:
+		layers[point[0]][point[1]].is_visited = true
 	_create_player_marker()
 	_refresh_node_states()
 	_set_map_scroll(restored_layer * LAYER_SPACING - 340)
@@ -132,9 +116,7 @@ func _set_map_scroll(value: float) -> void:
 			node.visible = node.global_position.y >= TOP_MARGIN and node.global_position.y <= get_viewport_rect().size.y - BOTTOM_MARGIN
 			node.input_pickable = node.is_selectable and node.visible
 	for child in $MapContent.get_children():
-		if child.has_meta("depth_label"):
-			child.visible = child.global_position.y >= TOP_MARGIN and child.global_position.y <= get_viewport_rect().size.y - BOTTOM_MARGIN
-		elif child is Line2D:
+		if child is Line2D:
 			child.visible = child.get_meta("from").visible and child.get_meta("to").visible
 
 
@@ -308,12 +290,12 @@ func _marker_position(route_node: RouteNode) -> Vector2:
 
 
 func _on_node_selected(route_node: RouteNode) -> void:
+	if RunState.is_scene_transition_pending():
+		return
 	if not connections.get(current_node, []).has(route_node):
 		return
 	current_node = route_node
-	RunState.route_layer = current_node.layer_index
-	saved_layer_index = current_node.layer_index
-	saved_node_index = layers[saved_layer_index].find(current_node)
+	RunState.visit_map_node(current_node.layer_index, layers[current_node.layer_index].find(current_node))
 	player_marker.position = _marker_position(current_node)
 	_refresh_node_states()
 	enter_node(current_node.node_type)
@@ -333,6 +315,8 @@ func _refresh_node_states() -> void:
 
 # 后续在这里接入战斗、奖励或随机事件场景。
 func enter_node(node_type: RouteNode.NodeType) -> void:
+	if RunState.is_scene_transition_pending():
+		return
 	var names := {
 		RouteNode.NodeType.HOME: "Home节点",
 		RouteNode.NodeType.BATTLE: "战斗节点",
@@ -361,20 +345,26 @@ func enter_node(node_type: RouteNode.NodeType) -> void:
 			else:
 				start_event(RunState.EventType.UNKNOWN)
 		RouteNode.NodeType.ADVENTURE:
-			var destination := "res://scenes/expedition_poetry.tscn" if RunState.route_layer in POETRY_LAYERS else "res://scenes/adventure.tscn"
-			get_tree().change_scene_to_file(destination)
+			var destination := "poetry" if RunState.route_layer in POETRY_LAYERS else "adventure"
+			RunState.checkpoint("poetry" if RunState.route_layer in POETRY_LAYERS else "adventure")
+			RunState.navigate(destination, self)
 
 
 # 所有战斗节点共用入口，通过 RunState 把遭遇类型传给战斗场景。
 func start_battle(encounter_type: RunState.EncounterType) -> void:
-	RunState.pending_encounter = encounter_type
-	get_tree().change_scene_to_file("res://scenes/battle.tscn")
+	RunState.prepare_encounter(encounter_type)
+	RunState.checkpoint("battle")
+	RunState.navigate("battle", self)
 
 
 func start_event(event_type: RunState.EventType) -> void:
-	RunState.pending_event = event_type
-	get_tree().change_scene_to_file("res://scenes/event.tscn")
+	RunState.prepare_event(event_type)
+	RunState.checkpoint("event")
+	RunState.navigate("event", self)
 
 
 func _return_home() -> void:
-	get_tree().change_scene_to_file("res://scenes/home.tscn")
+	if RunState.is_scene_transition_pending():
+		return
+	RunState.checkpoint("map")
+	RunState.navigate("home", self)

@@ -113,7 +113,6 @@ func _send_round(next_action: String, next_player_text: String, retry: bool = fa
 				LLMConfig.load_system_prompt(),
 				scene_context,
 				RunState.get_relationship_prompt(),
-				AbilityManager.get_prompt_context(),
 				RunState.get_run_journal_prompt(),
 				RunState.get_shared_history_prompt(),
 				RunState.get_minigame_memory_prompt(),
@@ -123,6 +122,9 @@ func _send_round(next_action: String, next_player_text: String, retry: bool = fa
 	}
 	var headers := LLMConfig.request_headers()
 	_set_busy(true)
+	# Tests inject recorded responses through the normal completion callback.
+	if "--offline-tests" in OS.get_cmdline_user_args():
+		return
 	var error := request.request(LLMConfig.API_URL, headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
 	if error != OK:
 		_set_busy(false)
@@ -137,19 +139,11 @@ func _on_request_completed(result: int, status: int, _headers: PackedStringArray
 	if result != HTTPRequest.RESULT_SUCCESS or status < 200 or status >= 300:
 		_on_bad_reply("request_result_%d_http_%d" % [result, status], body_text)
 		return
-	var envelope: Variant = JSON.parse_string(body_text)
-	if not envelope is Dictionary:
-		_on_bad_reply("invalid_api_json", body_text)
+	var response := preload("res://scripts/data/llm_response.gd").from_body(body)
+	if not response.error.is_empty():
+		_on_bad_reply(response.error, body_text)
 		return
-	var choices: Variant = envelope.get("choices", [])
-	if not choices is Array or choices.is_empty() or not choices[0] is Dictionary:
-		_on_bad_reply("invalid_api_choices", body_text)
-		return
-	var message: Variant = choices[0].get("message", {})
-	if not message is Dictionary:
-		_on_bad_reply("invalid_api_message", body_text)
-		return
-	var raw := str(message.get("content", ""))
+	var raw: String = response.content
 	var reply := game.parse_round_reply(raw)
 	if reply.is_empty():
 		_on_bad_reply("invalid_game_json", raw)

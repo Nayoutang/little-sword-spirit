@@ -67,11 +67,11 @@ func _resolve_enemy_turn() -> void:
 	if (
 		damage_taken >= player_hp
 		and player_hp > 0
-		and AbilityManager.has_ability(AbilityManager.LIFE_GUARD)
-		and not life_guard_used
+		and few_return_active
+		and not few_return_used
 	):
 		damage_taken = player_hp - 1
-		life_guard_used = true
+		few_return_used = true
 		life_guard_triggered = true
 		RunState.record_moment("第%d场，本该倒下的那一击，灵剑护主替你留住了最后一口气。" % battle_index, 4)
 	player_hp = maxi(player_hp - damage_taken, 0)
@@ -86,7 +86,7 @@ func _resolve_enemy_turn() -> void:
 	var combo_was_preserved := preserve_combo_this_turn
 	if not preserve_combo_this_turn:
 		combo = 0
-		if AbilityManager.has_ability(AbilityManager.PERSEVERANCE):
+		if false:
 			combo = 1
 	preserve_combo_this_turn = false
 	tune_breath_used_this_turn = false
@@ -100,7 +100,7 @@ func _resolve_enemy_turn() -> void:
 		combo_telemetry.current["cloud_in_hand"] = _visible_cloud_count()
 	_assess_cooperation_window()
 	var combo_result := "藏锋生效，保留连击" if combo_was_preserved else "连击清零"
-	if not combo_was_preserved and AbilityManager.has_ability(AbilityManager.PERSEVERANCE):
+	if not combo_was_preserved and false:
 		combo_result = "百折生效，新回合保留1层连击"
 	var guard_result := "；护命发动，保留1点生命" if life_guard_triggered else ""
 	message_label.text = "敌方行动：%s。受到 %d 伤害，%s%s" % [

@@ -21,7 +21,6 @@ func scene():
 	state.learned_sword_intents.clear()
 	state.route_layer = 8
 	state.pending_encounter = state.EncounterType.NORMAL
-	root.get_node("AbilityManager").reset()
 	var battle = load("res://scenes/battle.tscn").instantiate()
 	battle.force_offline_companion = true
 	battle.offline_experiment = true
@@ -84,12 +83,12 @@ func run() -> void:
 	battle.queue_free()
 	await process_frame
 	battle = scene()
-	root.get_node("AbilityManager").unlock("life_guard")
+	battle.few_return_active = true
 	battle.player_hp = 5
 	battle.block = 0
 	battle.enemy_intents[0] = {"type":0,"value":6,"segments":[5,1]}
 	battle._resolve_enemy_turn()
-	expect(battle.enemy_hps[0] == 996 and battle.player_hp == 0 and battle.combo_telemetry.rounds[0]["parry_award_not_injected"] == 1, "life guard allows first parry; later fatal segment cancels next-turn injection")
+	expect(battle.enemy_hps[0] == 992 and battle.player_hp == 1 and battle.combo == 2, "few return allows surviving parries and next-turn combo injection")
 	battle.queue_free()
 	await process_frame
 	battle = scene()
@@ -118,6 +117,5 @@ func run() -> void:
 	expect(battle.combo == 5 and battle.parry_injected_remaining == 2, "preserved old combo plus injection is not capped by C")
 	battle.queue_free()
 	await process_frame
-	root.get_node("AbilityManager").reset()
 	print("PARRY_SMOKE failures=%d" % failures)
 	quit(1 if failures else 0)

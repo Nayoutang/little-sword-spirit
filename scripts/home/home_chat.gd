@@ -32,13 +32,12 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_resize_background)
 	# 新存档第一次进家前，先播初遇剧情。
 	if RunState.needs_intro():
-		get_tree().change_scene_to_file("res://scenes/intro.tscn")
+		RunState.navigate("intro", self)
 		return
 	if SpecialEventManager.activate_next():
 		RunState.save_persistent_state()
 	var system_prompt := _load_system_prompt()
 	system_prompt += "\n\n" + RunState.get_relationship_prompt()
-	system_prompt += "\n\n" + AbilityManager.get_prompt_context()
 	system_prompt += "\n\n" + RunState.get_run_journal_prompt()
 	system_prompt += "\n\n" + RunState.get_shared_history_prompt()
 	system_prompt += "\n\n" + RunState.get_minigame_memory_prompt()
@@ -75,11 +74,10 @@ func _ready() -> void:
 	game_controller.finished.connect(_on_game_finished)
 	game_controller.opening_failed.connect(_on_game_opening_failed)
 	game_controller.intent_learned.connect(_on_intent_learned)
+	depart_button.text = "继续远征" if RunState.has_expedition() else "出发"
 	_refresh_bond_display()
 	if SpecialEventManager.has_active_event():
 		chat_log.append_text("[特殊对话] 小墨似乎有一件刚才发生的事想和你谈谈。\n\n")
-	if not AbilityManager.unlocked.is_empty():
-		chat_log.append_text("[已掌握神通] %s\n\n" % AbilityManager.get_unlocked_names())
 	input.grab_focus()
 	if RunState.finale_state != "invited" and not preview_offline and RunState.consume_homecoming():
 		_request_homecoming_greeting()
@@ -111,13 +109,8 @@ func _request_homecoming_greeting() -> void:
 func _handle_greeting_response(result: int, response_code: int, body: PackedByteArray) -> void:
 	var reply := ""
 	if result == HTTPRequest.RESULT_SUCCESS and response_code >= 200 and response_code < 300:
-		var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
-		if parsed is Dictionary:
-			var api_choices: Variant = parsed.get("choices", [])
-			if api_choices is Array and not api_choices.is_empty() and api_choices[0] is Dictionary:
-				var message: Variant = api_choices[0].get("message", {})
-				if message is Dictionary:
-					reply = str(message.get("content", "")).strip_edges()
+		var response := preload("res://scripts/data/llm_response.gd").from_body(body)
+		reply = str(response.content).strip_edges() if response.error.is_empty() else ""
 	if not reply.is_empty() and SpecialEventManager.has_active_event():
 		# 特殊事件模式下返回 JSON；开口这一句只取台词，不判定事件是否完成。
 		var structured := _parse_special_event_reply(reply)
@@ -150,6 +143,8 @@ func _chat_payload(strict: bool = false) -> Dictionary:
 
 
 func _retry_for_variety() -> bool:
+	if not LLMConfig.is_available():
+		return false
 	var headers := LLMConfig.request_headers()
 	_set_request_in_flight(true)
 	var error := http_request.request(LLMConfig.API_URL, headers, HTTPClient.METHOD_POST, JSON.stringify(_chat_payload(true)))
@@ -165,12 +160,18 @@ func _refresh_bond_display() -> void:
 
 
 func _go_to_map() -> void:
+	if depart_button.disabled:
+		return
+	depart_button.disabled = true
+	if RunState.has_expedition():
+		RunState.navigate(RunState.resume_expedition(), self)
+		return
 	RunState.start_new_run()
-	get_tree().change_scene_to_file("res://scenes/promise.tscn")
+	RunState.navigate("promise", self)
 
 
 func _return_to_save_slots() -> void:
-	get_tree().change_scene_to_file("res://scenes/save_select.tscn")
+	RunState.navigate("save_select", self)
 
 
 func _load_system_prompt() -> String:
@@ -359,30 +360,19 @@ func _on_request_completed(
 		_show_error("API 返回 HTTP %s：%s" % [response_code, _extract_api_error(parsed, body_text)])
 		return
 
-	if not parsed is Dictionary:
+	var response := preload("res://scripts/data/llm_response.gd").from_envelope(parsed)
+	if not response.error.is_empty():
 		_remove_unanswered_user_message()
-		_show_error("API 返回的内容不是有效的 JSON 对象。")
+		var errors := {
+			"invalid_api_json": "API 返回的内容不是有效的 JSON 对象。",
+			"invalid_api_choices": "API 响应中的 choices 格式不正确。",
+			"invalid_api_message": "API 响应中没有 message。",
+			"invalid_api_content": "API 响应中的回复不是文本。",
+		}
+		_show_error(errors[response.error])
 		return
 
-	var choices: Variant = parsed.get("choices", [])
-	if not choices is Array or choices.is_empty():
-		_remove_unanswered_user_message()
-		_show_error("API 响应中没有 choices。")
-		return
-
-	var first_choice: Variant = choices[0]
-	if not first_choice is Dictionary:
-		_remove_unanswered_user_message()
-		_show_error("API 响应中的 choices 格式不正确。")
-		return
-
-	var message: Variant = first_choice.get("message", {})
-	if not message is Dictionary:
-		_remove_unanswered_user_message()
-		_show_error("API 响应中没有 message。")
-		return
-
-	var raw_reply: String = str(message.get("content", "")).strip_edges()
+	var raw_reply: String = str(response.content).strip_edges()
 	var reply := raw_reply
 	var event_outcome: Dictionary = {}
 	if SpecialEventManager.has_active_event():
@@ -409,14 +399,7 @@ func _on_request_completed(
 	_show_home_reply(reply)
 	RunState.record_spoken_line(reply)
 	if event_outcome.get("resolved", false):
-		if event_outcome.get("unlocked", false):
-			var ability_id := str(event_outcome.get("ability_id", ""))
-			chat_log.append_text("[心有所悟] 获得神通「%s」：%s\n\n" % [
-				AbilityManager.get_name_for(ability_id),
-				AbilityManager.get_description(ability_id),
-			])
-		else:
-			chat_log.append_text("[心事已解] 这段共同经历已经被记住。\n\n")
+		chat_log.append_text("[心事已解] 这段共同经历已经被记住。\n\n")
 		messages.append({
 			"role": "system",
 			"content": "特殊事件已经完成。此后的回复恢复普通自由聊天，只输出小墨的自然语言台词，不再输出 JSON。",
@@ -425,14 +408,7 @@ func _on_request_completed(
 
 
 func _parse_special_event_reply(content: String) -> Dictionary:
-	var cleaned := content.strip_edges()
-	if cleaned.begins_with("```json"):
-		cleaned = cleaned.trim_prefix("```json").trim_suffix("```").strip_edges()
-	elif cleaned.begins_with("```"):
-		cleaned = cleaned.trim_prefix("```").trim_suffix("```").strip_edges()
-	var parsed: Variant = JSON.parse_string(cleaned)
-	if not parsed is Dictionary:
-		return {}
+	var parsed := preload("res://scripts/data/llm_response.gd").json_object(content)
 	if not parsed.has("reply") or not parsed.has("event_result"):
 		return {}
 	return parsed

@@ -19,7 +19,6 @@ func battle_scene():
 	state.player_max_hp = 90
 	state.route_layer = 8
 	state.pending_encounter = state.EncounterType.NORMAL
-	root.get_node("AbilityManager").reset()
 	var battle = load("res://scenes/battle.tscn").instantiate()
 	battle.force_offline_companion = true
 	battle.offline_experiment = true
@@ -121,15 +120,14 @@ func run() -> void:
 	await process_frame
 
 	battle = battle_scene()
-	root.get_node("AbilityManager").unlock("life_guard")
+	battle.few_return_active = true
 	battle.player_hp = 5
 	battle.enemy_intents.assign([{"type":0,"value":6,"segments":[5,1]}, {"type":4,"value":0}])
 	events = []
 	battle.enemy_attack_segment_resolved.connect(func(index, _damage, _absorbed, _lost): events.append(index))
 	battle._resolve_enemy_turn()
-	expect(events == [0] and battle.life_guard_used and battle.player_hp == 0, "life guard resolves before reaction; following fatal segment cannot react")
+	expect(events == [0,0] and battle.few_return_used and battle.player_hp == 1, "few return survives lethal hit and remaining attack segments")
 	battle.queue_free()
 	await process_frame
-	root.get_node("AbilityManager").reset()
 	print("ENEMY_SEGMENTS_SMOKE failures=%d" % failures)
 	quit(1 if failures else 0)

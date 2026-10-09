@@ -1,0 +1,9 @@
+extends RefCounted
+
+# Stable card IDs shared by run snapshots and battle models. Do not renumber.
+enum CardType {
+	ATTACK, DEFENSE, STATUS, HEAVY_ATTACK, HEAVY_DEFENSE, SWEEP, COMBO_BOOST, CURSE,
+	TUNE_BREATH, SHADOW_STEP, BREAK_EDGE, UNLOAD_FORCE, HIDE_EDGE,
+	FLOWING_CLOUD = 15, CHASE_WIND = 16, SHIELD_STRIKE = 17, RETAIN_SHIELD = 18, PARRY = 19,
+}
+enum EnemyIntent { ATTACK, DEFEND, ENHANCE, CURSE, OTHER }

@@ -8,6 +8,10 @@ const InkSkin = preload("res://scripts/ui/ink_ui_skin.gd")
 const FONT = preload("res://ui/shared/comic_font.tres")
 const STAGES := ["初遇", "相识", "交心", "生死之交"]
 
+const OWNED_COLLECTION := 4
+
+var heading: Label
+var subtitle_label: Label
 var overlay: Control
 var search: LineEdit
 var collection_filter: OptionButton
@@ -73,14 +77,15 @@ func _build_ui() -> void:
 	paper.content_margin_left = 72
 	paper.content_margin_right = 72
 	paper.content_margin_top = 72
-	paper.content_margin_bottom = 46
+	paper.content_margin_bottom = 90
 	panel.add_theme_stylebox_override("panel", paper)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 14)
 	panel.add_child(column)
 	var header := HBoxContainer.new()
 	column.add_child(header)
-	var title := Label.new()
+	heading = Label.new()
+	var title := heading
 	title.text = "剑谱 · 卡牌图鉴"
 	title.add_theme_font_size_override("font_size", 40)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -92,7 +97,8 @@ func _build_ui() -> void:
 	InkSkin.style_button(close_button)
 	header.add_child(close_button)
 	close_button.pressed.connect(close)
-	var subtitle := Label.new()
+	subtitle_label = Label.new()
+	var subtitle := subtitle_label
 	subtitle.text = "翻阅全部招式与剑意；点选卡牌，查看完整效果与获得方式。"
 	subtitle.add_theme_font_size_override("font_size", 20)
 	column.add_child(subtitle)
@@ -119,7 +125,7 @@ func _build_ui() -> void:
 	filters.add_child(search)
 	collection_filter = OptionButton.new()
 	collection_filter.name = "Collection"
-	for item in ["全部卡牌", "玩家卡牌", "小墨行动", "羁绊技能"]:
+	for item in ["全部卡牌", "玩家卡牌", "小墨行动", "羁绊技能", "本趟持有"]:
 		collection_filter.add_item(item)
 	filters.add_child(collection_filter)
 	type_filter = OptionButton.new()
@@ -164,6 +170,8 @@ func _build_ui() -> void:
 	detail_column.add_child(detail_face)
 	detail_text = RichTextLabel.new()
 	detail_text.name = "DetailText"
+	detail_text.clip_contents = true
+	detail_text.scroll_active = true
 	detail_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail_text.custom_minimum_size = Vector2(330, 180)
 	detail_text.add_theme_color_override("default_color", Color("#203b36"))
@@ -181,6 +189,26 @@ func open() -> void:
 	_refresh()
 	search.grab_focus()
 	_resize_grid()
+
+func open_deck() -> void:
+	collection_filter.select(OWNED_COLLECTION)
+	type_filter.select(0)
+	search.clear()
+	open()
+
+static func install_deck_view(host: Node, ui: Node, position: Vector2) -> void:
+	var library = load("res://scripts/ui/card_library.gd").new()
+	library.name = "CardLibrary"
+	host.add_child(library)
+	var button := Button.new()
+	button.name = "DeckButton"
+	button.text = "查看牌组"
+	button.position = position
+	button.size = Vector2(200, 48)
+	InkSkin.style_button(button)
+	ui.add_child(button)
+	button.pressed.connect(library.open_deck)
+
 
 func close() -> void:
 	overlay.hide()
@@ -210,6 +238,7 @@ func _matches(entry: Dictionary) -> bool:
 		1: if not is_player: return false
 		2: if is_player: return false
 		3: if not is_skill: return false
+		OWNED_COLLECTION: if not is_player or not RunState.deck.has(int(entry["id"])): return false
 	if type_filter.selected > 0 and str(entry["type"]) != type_filter.get_item_text(type_filter.selected):
 		return false
 	var needle := search.text.strip_edges().to_lower()
@@ -243,8 +272,29 @@ func _refresh() -> void:
 		button.add_child(face)
 		face.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		_set_face(face, entry)
+		if collection_filter.selected == OWNED_COLLECTION:
+			var count := Label.new()
+			count.name = "OwnedCount"
+			count.text = "×%d" % RunState.deck.count(int(entry["id"]))
+			count.add_theme_font_size_override("font_size", 23)
+			count.add_theme_color_override("font_color", Color("#203b36"))
+			var badge := StyleBoxFlat.new()
+			badge.bg_color = Color("#efe7cf")
+			badge.content_margin_left = 7
+			badge.content_margin_right = 7
+			count.add_theme_stylebox_override("normal", badge)
+			count.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			button.add_child(count)
+			count.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+			count.offset_left = -56
+			count.offset_top = 8
+			count.offset_right = -8
+			count.offset_bottom = 40
 		button.pressed.connect(_select.bind(entry))
-	result_count.text = "共 %d / %d 张 · 含尚未解锁的招式" % [shown_entries.size(), entries.size()]
+	var viewing_deck := collection_filter.selected == OWNED_COLLECTION
+	heading.text = "本趟牌组" if viewing_deck else "剑谱 · 卡牌图鉴"
+	subtitle_label.text = "本趟持有的全部卡牌；同名合并显示数量，供选牌与删牌时参考。" if viewing_deck else "翻阅全部招式与剑意；点选卡牌，查看完整效果与获得方式。"
+	result_count.text = "本趟共 %d 张 · 当前显示 %d 种" % [RunState.deck.size(), shown_entries.size()] if viewing_deck else "共 %d / %d 张 · 含尚未解锁的招式" % [shown_entries.size(), entries.size()]
 	empty_label.visible = shown_entries.is_empty()
 	if shown_entries.is_empty():
 		detail_face.hide()
@@ -270,6 +320,8 @@ func _select(entry: Dictionary) -> void:
 	var definition: Dictionary = entry["definition"]
 	var effect := str(definition.get("battle", definition.get("description", "")))
 	var lines := [effect, "", _availability(entry)]
+	if collection_filter.selected == OWNED_COLLECTION:
+		lines.insert(0, "本趟持有：%d 张\n" % RunState.deck.count(int(entry["id"])))
 	if entry["owner"] == "玩家" and int(entry["id"]) in [13, 14]:
 		lines.append("按钮技能：不占手牌；不增加也不中断连续攻击计数。")
 	if definition.has("poem"):

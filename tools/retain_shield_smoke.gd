@@ -18,7 +18,6 @@ func run() -> void:
 	state.player_max_hp = 90
 	state.route_layer = 8
 	state.pending_encounter = state.EncounterType.NORMAL
-	root.get_node("AbilityManager").reset()
 	var battle = load("res://scenes/battle.tscn").instantiate()
 	battle.force_offline_companion = true
 	battle.offline_experiment = true

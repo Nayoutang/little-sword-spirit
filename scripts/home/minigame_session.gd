@@ -1,5 +1,6 @@
 class_name MiniGameSession
 extends RefCounted
+const Response = preload("res://scripts/data/llm_response.gd")
 
 # 小游戏共用约定：沿用小墨的人设提示，追加规则；每轮只读结构化 JSON；
 # 结束时只向关键事实记忆写一条结果。字段和回合状态由各游戏负责。
@@ -28,14 +29,7 @@ func record_result(player_won: bool, reason: String) -> String:
 
 
 func parse_round_reply(content: String) -> Dictionary:
-	var cleaned := content.strip_edges()
-	if cleaned.begins_with("```json"):
-		cleaned = cleaned.trim_prefix("```json").trim_suffix("```").strip_edges()
-	elif cleaned.begins_with("```"):
-		cleaned = cleaned.trim_prefix("```").trim_suffix("```").strip_edges()
-	var parsed: Variant = JSON.parse_string(cleaned)
-	if not parsed is Dictionary:
-		return {}
+	var parsed := Response.json_object(content)
 	return parsed if validate_round_reply(parsed) else {}
 
 

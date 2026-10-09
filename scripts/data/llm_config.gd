@@ -8,7 +8,7 @@ const SYSTEM_PROMPT_PATH := "res://prompts/system_prompt.txt"
 
 
 static func is_available() -> bool:
-	return not API_URL.is_empty() and not MODEL_NAME.is_empty()
+	return "--offline-tests" not in OS.get_cmdline_user_args() and not API_URL.is_empty() and not MODEL_NAME.is_empty()
 
 
 static func request_headers() -> PackedStringArray:

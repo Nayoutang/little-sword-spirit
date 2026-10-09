@@ -22,6 +22,8 @@ var combo_telemetry = ComboTelemetry.new()
 var telemetry_action: Dictionary = {}
 
 const CompanionCards = preload("res://scripts/data/companion_card_database.gd")
+const PlayerEffects = preload("res://scripts/battle/player_effect_resolver.gd")
+const OpportunityRules = preload("res://scripts/battle/companion_opportunity_rules.gd")
 const CompanionEffects = preload("res://scripts/battle/companion_effect_resolver.gd")
 const CompanionTactics = preload("res://scripts/battle/companion_tactics.gd")
 const CompanionDirector = preload("res://scripts/battle/companion_card_director.gd")
@@ -510,6 +512,11 @@ func _enemy_name(index: int) -> String:
 			return "影傀 %d" % (index + 1)
 
 
+func _player_once_per_turn_used(definition: Dictionary) -> bool:
+	var flag := str(definition.get("once_per_turn_flag", ""))
+	return not flag.is_empty() and bool(get(flag))
+
+
 func _play_hand_card(index: int) -> void:
 	if index < 0 or index >= hand.size() or not hand_buttons[index].visible:
 		return
@@ -517,12 +524,13 @@ func _play_hand_card(index: int) -> void:
 		message_label.text = "心魔无法打出"
 		return
 	var played_card := hand[index]
-	if (played_card == CardType.FLOWING_CLOUD and flowing_cloud_active) or (played_card == CardType.RETAIN_SHIELD and retain_shield_active) or (played_card == CardType.TUNE_BREATH and tune_breath_used_this_turn):
+	var definition: Dictionary = CardDatabase.get_definition(int(played_card))
+	if (played_card == CardType.FLOWING_CLOUD and flowing_cloud_active) or (played_card == CardType.RETAIN_SHIELD and retain_shield_active) or _player_once_per_turn_used(definition):
 		return
 	var cost := _card_cost(played_card)
 	if not _can_pay(cost):
 		return
-	if played_card in [CardType.ATTACK, CardType.HEAVY_ATTACK, CardType.COMBO_BOOST, CardType.BREAK_EDGE, CardType.UNLOAD_FORCE, CardType.CHASE_WIND, CardType.SHIELD_STRIKE]:
+	if str(definition["target"]) == CardDatabase.TARGET_SELECTED_ENEMY:
 		pending_attack_index = index
 		pending_skill_target = 0
 		last_target_index = -1
@@ -533,19 +541,12 @@ func _play_hand_card(index: int) -> void:
 	pending_attack_index = -1
 	pending_skill_target = 0
 	_commit_hand_card(index)
+	if definition.has("effects"):
+		_execute_player_card(definition, cost, index)
+		return
 	match played_card:
-		CardType.DEFENSE:
-			_play_defense_card(cost, defense_block)
 		CardType.STATUS:
 			_play_status_card(index, cost)
-		CardType.HEAVY_DEFENSE:
-			_play_defense_card(cost, heavy_defense_block)
-		CardType.SWEEP:
-			_play_sweep_card()
-		CardType.TUNE_BREATH:
-			_play_tune_breath(index)
-		CardType.SHADOW_STEP:
-			_play_shadow_step(index)
 		CardType.HIDE_EDGE:
 			_play_hide_edge()
 		CardType.FLOWING_CLOUD:
@@ -591,14 +592,13 @@ func _resolve_targeted_attack(enemy_index: int) -> void:
 	pending_attack_index = -1
 	last_target_index = enemy_index
 	_commit_hand_card(card_index)
-	if card_type == CardType.HEAVY_ATTACK:
-		_play_attack_card(cost, heavy_attack_base_damage, enemy_index)
+	var definition: Dictionary = CardDatabase.get_definition(int(card_type))
+	if definition.has("effects"):
+		_execute_player_card(definition, cost, card_index, enemy_index)
 	elif card_type == CardType.CHASE_WIND:
 		_play_attack_card(cost, CardDatabase.get_number(CardDatabase.CHASE_WIND, "damage"), enemy_index)
 	elif card_type == CardType.SHIELD_STRIKE:
 		_play_shield_strike_card(cost, enemy_index)
-	elif card_type == CardType.COMBO_BOOST:
-		_play_combo_boost_card(enemy_index)
 	elif card_type == CardType.BREAK_EDGE:
 		_play_break_edge_card(enemy_index)
 	elif card_type == CardType.UNLOAD_FORCE:
@@ -732,6 +732,51 @@ func _record_bond_skill_use(skill_name: String) -> void:
 		bond_skill_comeback = true
 
 
+# 调用前手牌已提交；所有效果完成后只触发一次连续攻击与回合内钩子。
+func _execute_player_card(definition: Dictionary, cost: int, hand_index: int, target_index: int = -1) -> void:
+	energy -= cost
+	var once_flag := str(definition.get("once_per_turn_flag", ""))
+	if not once_flag.is_empty():
+		set(once_flag, true)
+	var result := {"target": target_index + 1, "damage": 0, "block": 0, "drawn": 0}
+	var protected := false
+	for authored in definition["effects"]:
+		var effect := PlayerEffects.resolve(authored, definition, {"combo": combo, "attack_combo_bonus": attack_combo_bonus})
+		match str(effect["kind"]):
+			CardDatabase.EFFECT_DAMAGE:
+				var damage := _apply_pending_boon_to_player_attack(int(effect["amount"]))
+				if str(definition["target"]) == CardDatabase.TARGET_ALL_ENEMIES:
+					for index in range(enemy_hps.size()):
+						if enemy_hps[index] > 0:
+							_damage_enemy_at(index, damage)
+					last_target_index = -1
+				else:
+					_damage_enemy_at(target_index, damage)
+				result["damage"] = damage
+			CardDatabase.EFFECT_BLOCK:
+				_gain_block(int(effect["amount"]), "player")
+				result["block"] = int(effect["amount"])
+			CardDatabase.EFFECT_COMBO:
+				if str(effect["mode"]) == CardDatabase.COMBO_ADD:
+					combo += int(effect["amount"])
+				else:
+					protected = bool(effect.get("respect_combo_protection", false)) and cut_water_active
+					if protected:
+						if combo > 0:
+							_use_cooperation_window()
+					else:
+						_consume_parry_combo(parry_injected_remaining, str(effect.get("consume_reason", "other")))
+						combo = 0
+			CardDatabase.EFFECT_DRAW:
+				if str(effect["mode"]) == CardDatabase.DRAW_REPLACE_SLOT:
+					_draw_card_into_slot(hand_index)
+				else:
+					result["drawn"] = _draw_cards_into_empty_slots(int(effect["amount"]), hand_index)
+	var template := str(definition["protected_result_template"]) if protected else str(definition["result_template"])
+	message_label.text = template.format(result)
+	_finish_action()
+
+
 func _play_attack_card(cost: int, base_damage: int, target_index: int) -> void:
 	energy -= cost
 	var damage := base_damage + combo * attack_combo_bonus
@@ -752,30 +797,9 @@ func _play_shield_strike_card(cost: int, target_index: int) -> void:
 	_finish_action()
 
 
-func _play_sweep_card() -> void:
-	energy -= CardDatabase.get_cost(CardDatabase.SWEEP)
-	var damage := sweep_damage + combo * attack_combo_bonus
-	damage = _apply_pending_boon_to_player_attack(damage)
-	for index in range(enemy_hps.size()):
-		if enemy_hps[index] > 0:
-			_damage_enemy_at(index, damage)
-	combo += 1
-	last_target_index = -1
-	message_label.text = "扫叶对所有敌人造成 %d 伤害，连击 +1" % damage
-	_finish_action()
-
-
+# 兼容既有战斗测试入口，仍走同一效果执行器。
 func _play_combo_boost_card(target_index: int) -> void:
-	energy -= CardDatabase.get_cost(CardDatabase.COMBO_BOOST)
-	var damage := combo_boost_damage + combo * attack_combo_bonus
-	damage = _apply_pending_boon_to_player_attack(damage)
-	_damage_enemy_at(target_index, damage)
-	combo += 2
-	message_label.text = "叠浪攻击敌人%d，造成 %d 伤害，连击 +2" % [
-		target_index + 1,
-		damage,
-	]
-	_finish_action()
+	_execute_player_card(CardDatabase.get_definition(CardDatabase.COMBO_BOOST), CardDatabase.get_cost(CardDatabase.COMBO_BOOST), -1, target_index)
 
 
 func _play_break_edge_card(target_index: int) -> void:
@@ -801,20 +825,6 @@ func _play_unload_force_card(target_index: int) -> void:
 	else:
 		enemy_attack_reductions[target_index] += unload_force_reduction
 	message_label.text = "拨千斤：敌人%d下一段攻击伤害降低 %d" % [target_index + 1, unload_force_reduction]
-	_finish_action()
-
-
-func _play_tune_breath(hand_index: int) -> void:
-	tune_breath_used_this_turn = true
-	_draw_card_into_slot(hand_index)
-	message_label.text = "调息：抽取 1 张牌"
-	_finish_action()
-
-
-func _play_shadow_step(hand_index: int) -> void:
-	energy -= CardDatabase.get_cost(CardDatabase.SHADOW_STEP)
-	var drawn := _draw_cards_into_empty_slots(2, hand_index)
-	message_label.text = "掠影：抽取 %d 张牌" % drawn
 	_finish_action()
 
 
@@ -1542,10 +1552,8 @@ func _card_cost(card_type: CardType) -> int:
 
 func _damage_enemy_at(target_index: int, damage: int, ignore_guard: bool = false) -> void:
 	if target_index >= 0:
-		if combo > 0 and cooperation_windows.has("resource"):
-			var source := str(cooperation_windows["resource"].get("source", ""))
-			if source in [CompanionCards.HEART_RESONANCE] and not companion_turn_pending and not bool(cooperation_windows["resource"].get("lost", false)):
-				_use_cooperation_window()
+		if cooperation_windows.has("resource") and OpportunityRules.used_by_attack(_cooperation_opportunity_definition(), combo, companion_turn_pending, bool(cooperation_windows["resource"].get("lost", false))):
+			_use_cooperation_window()
 		var hp_before := enemy_hps[target_index]
 		damage += enemy_vulnerabilities[target_index]
 		var absorbed := 0 if ignore_guard else mini(enemy_guards[target_index], damage)
@@ -1711,9 +1719,9 @@ func _finish_action() -> void:
 	if not telemetry_action.is_empty():
 		combo_telemetry.record_action(int(telemetry_action["card_id"]), int(telemetry_action["cost"]), int(telemetry_action["combo"]), combo, flowing_cloud_active, _visible_wind_count(), RunState.deck.count(CardDatabase.CHASE_WIND))
 		telemetry_action.clear()
-	if combo == 0 and cooperation_windows.has("resource") and str(cooperation_windows["resource"].get("source", "")) in [CompanionCards.HEART_RESONANCE]:
+	if cooperation_windows.has("resource") and OpportunityRules.lost(_cooperation_opportunity_definition(), combo):
 		cooperation_windows["resource"]["lost"] = true
-	if cooperation_windows.has("resource") and str(cooperation_windows["resource"].get("source", "")) == CompanionCards.LONG_WIND and energy < int(CompanionCards.get_definition(CompanionCards.LONG_WIND)["energy"]):
+	if cooperation_windows.has("resource") and OpportunityRules.used_by_energy(_cooperation_opportunity_definition(), energy):
 		_use_cooperation_window()
 	if _living_enemy_count() == 0:
 		_end_battle(true)
@@ -1922,7 +1930,7 @@ func _refresh_ui() -> void:
 			or companion_turn_pending
 			or index >= hand.size()
 			or hand[index] == CardType.CURSE
-			or (hand[index] == CardType.TUNE_BREATH and tune_breath_used_this_turn)
+			or _player_once_per_turn_used(CardDatabase.get_definition(int(hand[index])))
 			or (hand[index] == CardType.FLOWING_CLOUD and flowing_cloud_active)
 			or (hand[index] == CardType.RETAIN_SHIELD and retain_shield_active)
 			or energy < _card_cost(hand[index])
@@ -2104,6 +2112,10 @@ func _show_pile_contents(show_draw_pile: bool) -> void:
 	pile_popup.popup_centered(Vector2i(1180, 760))
 
 
+func _cooperation_opportunity_definition() -> Dictionary:
+	return CompanionCards.get_definition(str(cooperation_windows.get("resource", {}).get("source", "")))
+
+
 func _use_cooperation_window() -> void:
 	if not cooperation_windows.has("resource") or bool(cooperation_windows["resource"].get("used", false)):
 		return
@@ -2130,16 +2142,11 @@ func _assess_cooperation_window() -> void:
 		if cost <= energy and card != CardType.CURSE:
 			total_cost += cost
 			attack = attack or definition.get("type", "") == "攻击"
-			defense = defense or card in [CardType.DEFENSE, CardType.HEAVY_DEFENSE, CardType.STATUS]
-	var source := str(cooperation_windows["resource"]["source"])
-	var available := attack
-	if source == CompanionCards.CUT_WATER:
-		available = defense and (combo > 0 or attack)
-	elif source == CompanionCards.LONG_WIND:
-		available = total_cost > max_energy
-	elif source in [CompanionCards.HEART_RESONANCE]:
-		available = attack and combo > 0
-	cooperation_windows["resource"]["available"] = available
+			defense = defense or bool(definition.get("combo_protection_candidate", false))
+	cooperation_windows["resource"]["available"] = OpportunityRules.available(_cooperation_opportunity_definition(), {
+		"attack": attack, "defense": defense, "total_cost": total_cost,
+		"max_energy": max_energy, "combo": combo,
+	})
 
 
 func _unhandled_key_input(event: InputEvent) -> void:

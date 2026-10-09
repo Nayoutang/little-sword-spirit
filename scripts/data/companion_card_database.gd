@@ -34,6 +34,11 @@ const TAG_FINISHER := "finisher"
 const TAG_GUARD := "guard"
 const TAG_OPENS_WINDOW := "opens_window"
 
+const OPPORTUNITY_ATTACK := "attack"
+const OPPORTUNITY_COMBO_PROTECTION := "combo_protection"
+const OPPORTUNITY_EXTRA_ENERGY := "extra_energy"
+const OPPORTUNITY_ATTACK_WITH_COMBO := "attack_with_combo"
+
 const TARGET_LOWEST_HP := "lowest_hp_enemy"
 const TARGET_NONE := "none"
 const TARGET_HIGHEST_HP := "highest_hp_enemy"
@@ -100,6 +105,7 @@ const DEFINITIONS := {
 		"description": "对生命最低的敌人造成8点伤害。",
 	},
 	LEAD_MOMENTUM: {
+		"opportunity": {"kind": OPPORTUNITY_ATTACK},
 		"tags": [TAG_OPENS_WINDOW],
 		"target": TARGET_NONE,
 		"effects": [{"kind": EFFECT_BOON}],
@@ -135,6 +141,7 @@ const DEFINITIONS := {
 		"description": "为玩家获得10点格挡。",
 	},
 	ESCORT: {
+		"opportunity": {"kind": OPPORTUNITY_ATTACK},
 		"tags": [TAG_GUARD, TAG_OPENS_WINDOW],
 		"target": TARGET_NONE,
 		"effects": [{"kind": EFFECT_BLOCK, "amount_key": "block"}, {"kind": EFFECT_BOON}],
@@ -148,6 +155,7 @@ const DEFINITIONS := {
 		"description": "为玩家获得6点格挡；令玩家下回合第一张攻击牌伤害+4。",
 	},
 	HEART_RESONANCE: {
+		"opportunity": {"kind": OPPORTUNITY_ATTACK_WITH_COMBO},
 		"tags": [TAG_OPENS_WINDOW],
 		"target": TARGET_LOWEST_HP,
 		"effects": [{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scale_key": "combo_scale"}, {"kind": EFFECT_COMBO, "mode": COMBO_PRESERVE}],
@@ -208,6 +216,7 @@ const INTENT_DEFINITIONS := {
 		"description": "不造成伤害；小墨下一次伤害技能伤害翻倍，释放后消耗蓄势；重复磨剑不叠加。",
 	},
 	CUT_WATER: {
+		"opportunity": {"kind": OPPORTUNITY_COMBO_PROTECTION},
 		"target": TARGET_NONE,
 		"effects": [{"kind": EFFECT_COMBO_PROTECTION}],
 		"result_template": "玩家下回合防御或状态牌不会清空连击",
@@ -218,6 +227,7 @@ const INTENT_DEFINITIONS := {
 		"description": "不造成伤害；玩家下一回合打出的防御或状态牌均不会清空连击。",
 	},
 	LONG_WIND: {
+		"opportunity": {"kind": OPPORTUNITY_EXTRA_ENERGY, "energy_key": "energy"},
 		"target": TARGET_NONE,
 		"effects": [{"kind": EFFECT_NEXT_TURN_ENERGY, "amount_key": "energy"}],
 		"result_template": "玩家下回合精力 +{energy}",

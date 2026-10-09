@@ -10,6 +10,7 @@ const STATE_FIELDS := [
 	"battle_damage_dealt", "battle_finished", "energy", "player_hp",
 	"companion_last_card_id", "companion_last_reason", "companion_last_source",
 	"battle_companion_card_counts", "random_call_counts",
+	"enemy_intents", "cut_water_active", "long_wind_bonus", "few_return_active", "few_return_used",
 ]
 var fixtures: Dictionary = {}
 var baselines: Dictionary = {}
@@ -72,6 +73,7 @@ func run() -> void:
 	state.suppress_persistence = true
 	state.start_new_run()
 	var ids := Cards.ORDERED_IDS.duplicate()
+	ids.append_array(Cards.INTENT_DEFINITIONS.keys())
 	ids.append("unknown_card")
 	for card_id in ids:
 		for combo_value in [0, 2, 7]:
@@ -110,6 +112,12 @@ func run() -> void:
 	if composed.combo != 3 or composed.enemy_hps[0] != 91 or composed.block != before_block + 4 or text != "9/4/6" or typeof(composed.pending_boon["value"]) != TYPE_INT:
 		failures += 1
 		push_error("composed effects must use current state in array order without card ID branches")
+	state.relationship_facts = {}
+	composed._record_companion_effect_tags("synthetic_finisher", {"tags": [Cards.TAG_FINISHER, Cards.TAG_OPENS_WINDOW]}, 5, 0, composed.block)
+	var stats: Dictionary = state.relationship_facts.get("cooperation", {})
+	if int(stats.get("finishers", 0)) != 1 or int(stats.get("finisher_combo_total", 0)) != 5 or composed.cooperation_windows["resource"]["source"] != "synthetic_finisher":
+		failures += 1
+		push_error("new tagged card must record without existing card ID")
 	for fixture in fixtures.values():
 		fixture.free()
 	await process_frame

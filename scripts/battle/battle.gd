@@ -1196,13 +1196,7 @@ func _apply_companion_card(choice: Dictionary) -> void:
 			CompanionCards.FEW_RETURN:
 				few_return_active = not few_return_used
 				result_text = "本回合受到致命伤害时保留1点生命，并免疫剩余伤害" if few_return_active else "本场战斗已救险，不能再次发动"
-	if card_id in [CompanionCards.TEN_STEPS, CompanionCards.LONE_JUDGMENT]:
-		RunState.record_cooperation("finishers")
-		RunState.record_cooperation("finisher_combo_total", combo_before)
-	if (block > block_before and incoming_before > block_before) or (card_id in [CompanionCards.YIN_MOUNTAIN, CompanionCards.FROST_COLD] and _enemy_intent_damage_total() < incoming_before):
-		RunState.record_cooperation("guards")
-	if CompanionCards.is_investment(card_id) and card_id != CompanionCards.GRIND_SWORD:
-		cooperation_windows["resource"] = {"source": card_id, "used": false, "combo": combo}
+	_record_companion_effect_tags(card_id, definition, combo_before, incoming_before, block_before)
 	companion_last_card_id = card_id
 	if str(choice.get("source", "")) == "llm":
 		RunState.record_spoken_line(str(choice.get("reason", "")))
@@ -1220,6 +1214,18 @@ func _apply_companion_card(choice: Dictionary) -> void:
 		_end_battle(true)
 	else:
 		_refresh_ui()
+
+# 标签描述资格；是否完成防护仍看本次结算实际结果。
+func _record_companion_effect_tags(card_id: String, definition: Dictionary, combo_before: int, incoming_before: int, block_before: int) -> void:
+	var tags: Array = definition.get("tags", [])
+	if CompanionCards.TAG_FINISHER in tags:
+		RunState.record_cooperation("finishers")
+		RunState.record_cooperation("finisher_combo_total", combo_before)
+	if CompanionCards.TAG_GUARD in tags and ((block > block_before and incoming_before > block_before) or _enemy_intent_damage_total() < incoming_before):
+		RunState.record_cooperation("guards")
+	if CompanionCards.TAG_OPENS_WINDOW in tags:
+		cooperation_windows["resource"] = {"source": card_id, "used": false, "combo": combo}
+
 
 # 状态的唯一写入者仍是战斗；解析器只根据显式输入计算一项效果。
 func _execute_companion_effects(definition: Dictionary) -> String:

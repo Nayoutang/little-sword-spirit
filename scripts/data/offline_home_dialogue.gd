@@ -30,6 +30,13 @@ const EVENT_OPENINGS := {
 	"bond_skill_comeback": "刚才那一下配合，总算把局面扳回来了。你接住我的剑了。",
 	"repeated_failure_clear": "前面摔了那么几回，今天总算过去了。你还真没放弃。",
 }
+# 回家时就着这一趟的打法说一句（见 RunState.finish_run 记下的 lean / free_boss）。
+const HABIT_LINES := {
+	"guard": ["这趟挡得我手都酸了。下回你也护着点自己。", "你冲在前面的样子，我都看见了。后背我替你看着。"],
+	"invest": ["这趟我留给你的，你都接住了。", "你接得越稳，我越敢留。这一趟，留得挺痛快。"],
+	"finisher": ["这一路的最后一剑，大多是我出的。你铺路铺得好。", "你给我垫的那几步，我都记着。"],
+}
+const REALM_LINES := ["这一级也过了。往上还有，你想去，我就陪你。", "越往上越难走。不过你没退，我也不退。"]
 const TOPICS := [
 	["你觉得我出剑怎么样？", "陪我坐一会儿吧。"],
 	["下次历练怎么配合？", "说说你喜欢的诗吧。"],
@@ -137,9 +144,20 @@ static func homecoming(journal: Array) -> String:
 	var result := ""
 	var moment := ""
 	var promise := ""
+	var habit := ""
 	for fact: Dictionary in journal:
 		var category := str(fact.get("category", ""))
 		var summary := str(fact.get("summary", ""))
+		if category == "lean":
+			var lean := str(fact.get("details", {}).get("lean", "")) if fact.get("details") is Dictionary else ""
+			if lean.is_empty():
+				lean = "guard" if summary.contains("挡") else ("invest" if summary.contains("让") else "finisher")
+			var lines: Array = HABIT_LINES.get(lean, [])
+			if not lines.is_empty():
+				habit = str(lines[randi_range(0, lines.size() - 1)])
+		elif category == "free_boss":
+			var realm_line: Array = REALM_LINES
+			habit = (habit + " " + str(realm_line[randi_range(0, realm_line.size() - 1)])).strip_edges()
 		if category == "run_result":
 			result = "这趟路走完了。先坐下，别急着再出门。" if summary.contains("通关") else "这回没走到最后也没关系。回来歇好，我们再走。"
 		elif category == "adventure":
@@ -149,4 +167,4 @@ static func homecoming(journal: Array) -> String:
 				moment = "途中那段「%s」，我还记得。" % summary.substr(begin + 1, end - begin - 1)
 		elif category == "promise_result":
 			promise = "答应我的事没做到，下回可要记住。" if summary.contains("未兑现") else "答应我的事，你做到了。我记着呢。"
-	return " ".join([result, moment, promise]).strip_edges() if not result.is_empty() else "回来了。先歇会儿，路上的事慢慢说。"
+	return " ".join([result, moment, promise, habit]).strip_edges() if not result.is_empty() else "回来了。先歇会儿，路上的事慢慢说。"

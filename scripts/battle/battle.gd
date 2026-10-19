@@ -63,7 +63,11 @@ const ROLE_ENEMY_ART := {
 	"thread_master": preload("res://art/enemies/chapter_two/thread_master_sprite_v1.png"),
 	"stand_in_box": preload("res://art/enemies/chapter_two/stand_in_box_sprite_v1.png"),
 	"troupe_watcher": preload("res://art/enemies/chapter_two/troupe_watcher_sprite_v1.png"),
+	# 自由历练独立立绘；配色已烘入原图。
+	"blood_blade": preload("res://art/enemies/free_play/blood_blade_sprite_v1.png"),
+	"ink_healer": preload("res://art/enemies/free_play/ink_healer_sprite_v1.png"),
 }
+const ROLE_TINT := {}
 
 # -----------------------------------------------------------------------------
 # 战斗流程专用参数；卡牌、敌人与全局基础数值分别由三个数据库统一提供。
@@ -207,6 +211,14 @@ var linked_intent_active := false
 var linked_pending := false
 var opportunities_used_this_battle := 0
 var last_lean_line := ""
+# 大话骰练出来的默契：她提前说出下回合想怎么配合，下回合多半照做。
+var promised_kind := ""
+var turn_promised_kind := ""
+const PROMISE_LINES := {
+	"guard": "下回合，我想替你挡。",
+	"invest": "下回合，我把机会留给你。",
+	"finisher": "下回合，最后一剑给我。",
+}
 const LEAN_LINES := {
 	"guard": "你冲吧，后面有我。",
 	"invest": "我留给你的，你都接住了。那我就多留一些。",
@@ -527,8 +539,8 @@ func _assign_roles_and_slots() -> void:
 		var elite := RunState.pending_encounter == RunState.EncounterType.ELITE
 		var role_rng: RandomNumberGenerator = enemy_rng if RunState.has_expedition() else null
 		if chapter_two and RunState.is_free_play() and not on_thread:
-			# 自由历练：线外换成第一章的敌人。
-			enemy_roles = EnemyDatabase.get_encounter_roles(RunState.route_layer, enemy_count, elite, role_rng)
+			# 自由历练：线外换成第一章的敌人，加上血衣刀客、墨医。
+			enemy_roles = EnemyDatabase.get_free_play_roles(RunState.route_layer, enemy_count, elite, role_rng)
 		elif chapter_two:
 			enemy_roles = EnemyDatabase.get_chapter_two_roles(RunState.route_layer, enemy_count, elite, on_thread, role_rng)
 		else:
@@ -1044,6 +1056,7 @@ func _end_turn() -> void:
 			_player_floating_text("收剑 · 你收手，她出剑", Color("#f1ce82"), 1)
 		await _run_companion_turn()
 		shoujian_turn = false
+		_announce_next_intent()
 	companion_turn_damage_bonus = 0
 	companion_turn_block_bonus = 0
 	companion_turn_pending = false
@@ -1067,6 +1080,9 @@ func _prepare_companion_intent() -> void:
 	_refresh_ui()
 	var context := _build_companion_context()
 	context["decision_phase"] = "preview"
+	context["promised_kind"] = promised_kind
+	turn_promised_kind = promised_kind
+	promised_kind = ""
 	var options := CompanionTactics.candidates(context, _allowed_companion_cards())
 	if options.is_empty():
 		options.assign([CompanionCards.GUARD_ECHO])
@@ -1163,6 +1179,7 @@ func _run_companion_turn() -> void:
 		context["affordable_attack_hits"] = 0
 		context["hand_cards"] = "玩家已结束行动，不能继续出牌"
 		context["preview_card_id"] = preview_id
+		context["promised_kind"] = turn_promised_kind
 		context["decision_phase"] = "followup" if companion_bonus_action else "execute"
 		if turn_player_cards.is_empty():
 			context["turn_player_cards"] = "玩家已结束行动，本回合未出牌；不代表放弃后续回合"
@@ -1543,6 +1560,14 @@ func _resolve_enemy_turn() -> void:
 					action_messages.append(_reel_in_xiaomo(index))
 			EnemyIntent.DEFEND:
 				_record_enemy_action({"enemy": index, "type": "defend", "executed": true})
+				if bool(intent.get("heal", false)):
+					var patient := _heal_target(index)
+					var healed := mini(int(intent["value"]), enemy_max_hps[patient] - enemy_hps[patient])
+					enemy_hps[patient] += healed
+					_animate_enemy_action(index, "guard")
+					_enemy_floating_text(patient, "回春 +%d" % healed, Color("#8fd6a8"))
+					action_messages.append("敌人%d给敌人%d回复%d生命" % [index + 1, patient + 1, healed])
+					continue
 				var guard_target := index
 				if bool(intent.get("support", false)) and not _holds_thread(index):
 					guard_target = _guard_target(index)
@@ -1797,6 +1822,31 @@ func _player_effect_context() -> Dictionary:
 		"last_companion_block": last_companion_block, "opportunities_used": opportunities_used_this_battle}
 
 
+# 她出完牌后，提前说出下回合想怎么配合（只说她牌池里有的那种）。
+func _announce_next_intent() -> void:
+	if not RunState.dice_read_unlocked() or battle_finished or fixed_cooperation_test:
+		return
+	var available: Array[String] = []
+	for id in _allowed_companion_cards():
+		var kind := CompanionCards.intent_kind(id)
+		if PROMISE_LINES.has(kind) and not available.has(kind):
+			available.append(kind)
+	if available.is_empty():
+		return
+	var kind := RunState.top_run_lean()
+	if not available.has(kind):
+		if player_hp * 2 <= player_max_hp and available.has("guard"):
+			kind = "guard"
+		elif combo >= 3 and available.has("finisher"):
+			kind = "finisher"
+		elif available.has("invest"):
+			kind = "invest"
+		else:
+			kind = available[0]
+	promised_kind = kind
+	_player_floating_text("小墨：%s" % PROMISE_LINES[kind], Color("#f1ce82"), 1)
+
+
 # 这张牌是否在读她此刻亮出的意向（牌面写着「她要守护时……」那类）。
 func _card_reads_intent(definition: Dictionary, intent: String) -> bool:
 	if intent.is_empty():
@@ -1872,6 +1922,20 @@ func _damage_enemy_at(target_index: int, damage: int, ignore_guard: bool = false
 
 func _is_boss_battle() -> bool:
 	return not fixed_cooperation_test and not troupe_boss and RunState.pending_encounter == RunState.EncounterType.BOSS
+
+
+# 墨医回春：血量比例最低的活着的同伴（没有同伴时给自己）。
+func _heal_target(healer_index: int) -> int:
+	var target := healer_index
+	var lowest := 2.0
+	for index in range(enemy_hps.size()):
+		if enemy_hps[index] <= 0 or index >= enemy_max_hps.size():
+			continue
+		var ratio := float(enemy_hps[index]) / maxf(enemy_max_hps[index], 1.0)
+		if index != healer_index and ratio < lowest:
+			lowest = ratio
+			target = index
+	return target
 
 
 func _guard_target(guardian_index: int) -> int:
@@ -1958,9 +2022,9 @@ func _show_card_in_slot(index: int, card: CardType) -> void:
 	hand_buttons[index].tooltip_text = CardDatabase.get_battle_text(card)
 	hand_buttons[index].get_node("PaintedFace").set_player_card(card)
 	hand_buttons[index].show()
-	if card == CardType.FLOWING_CLOUD and not combo_telemetry.current.is_empty():
+	if CardDatabase.base_id(card) == CardType.FLOWING_CLOUD and not combo_telemetry.current.is_empty():
 		combo_telemetry.current["cloud_in_hand"] = int(combo_telemetry.current.get("cloud_in_hand", 0)) + 1
-	if card == CardType.CHASE_WIND and not combo_telemetry.current.is_empty():
+	if CardDatabase.base_id(card) == CardType.CHASE_WIND and not combo_telemetry.current.is_empty():
 		combo_telemetry.current["wind_drawn"] = int(combo_telemetry.current.get("wind_drawn", 0)) + 1
 
 
@@ -2225,7 +2289,7 @@ func _refresh_ui() -> void:
 			status_parts.append("持线 ×%d · 斩线 %d / %d" % [thread_count, thread_hits[index], RunState.thread_hits_required()])
 			enemy_status_labels[index].tooltip_text = "本回合打中它 %d 次，就能斩断它牵着小墨的线。" % RunState.thread_hits_required()
 		if index < enemy_sprites.size() and enemy_hps[index] > 0:
-			enemy_sprites[index].self_modulate = THREAD_TINT if thread_count > 0 else Color.WHITE
+			enemy_sprites[index].self_modulate = THREAD_TINT if thread_count > 0 else ROLE_TINT.get(_role_of(index), Color.WHITE)
 		enemy_status_labels[index].text = "   ·   ".join(status_parts)
 		var frame_color := Color.TRANSPARENT
 		if enemy_hps[index] <= 0:
@@ -2266,6 +2330,8 @@ func _refresh_ui() -> void:
 						enemy_intent_labels[index].text = "已破势 · 攻击 %d" % intent["value"]
 				EnemyIntent.DEFEND:
 					enemy_intent_labels[index].text = "◆  防御 %d" % intent["value"]
+					if bool(intent.get("heal", false)):
+						enemy_intent_labels[index].text = "✚  回春 %d · 给敌人%d" % [intent["value"], _heal_target(index) + 1]
 					if bool(intent.get("support", false)):
 						enemy_intent_labels[index].text = "护卫敌人%d · 格挡%d" % [_guard_target(index) + 1, intent["value"]]
 						if _holds_thread(index):
@@ -2377,7 +2443,7 @@ func _record_player_card(card_id: int) -> void:
 func _visible_wind_count() -> int:
 	var count := 0
 	for index in range(hand.size()):
-		if hand[index] == CardType.CHASE_WIND and index < hand_buttons.size() and hand_buttons[index].visible:
+		if CardDatabase.base_id(hand[index]) == CardType.CHASE_WIND and index < hand_buttons.size() and hand_buttons[index].visible:
 			count += 1
 	return count
 
@@ -2385,7 +2451,7 @@ func _visible_wind_count() -> int:
 func _visible_cloud_count() -> int:
 	var count := 0
 	for index in range(hand.size()):
-		if hand[index] == CardType.FLOWING_CLOUD and index < hand_buttons.size() and hand_buttons[index].visible:
+		if CardDatabase.base_id(hand[index]) == CardType.FLOWING_CLOUD and index < hand_buttons.size() and hand_buttons[index].visible:
 			count += 1
 	return count
 

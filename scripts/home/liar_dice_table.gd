@@ -512,6 +512,10 @@ func _record_result() -> void:
 	result_recorded = true
 	if is_instance_valid(RunState):
 		RunState.record_minigame_result(game.result_summary())
+		# 看穿她够多次：往后战斗里她会提前说出下回合的打算。
+		if RunState.record_dice_caught(game.caught_bluffs):
+			speech.text = "“……你现在打仗的时候，大概也能看出我想干嘛了。”"
+			gesture.text = "（之后的战斗里，她会提前告诉你下回合的打算）"
 
 
 func _on_next() -> void:

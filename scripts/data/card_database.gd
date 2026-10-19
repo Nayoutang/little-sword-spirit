@@ -51,6 +51,70 @@ const ROUTE_GUARD := [BORROW_MOMENTUM, SIDE_BY_SIDE, UNMOVED, SHIELD_STRIKE, RET
 const ROUTE_INVEST := [YIELD_TURN, ATTUNE, HAND_SWORD, SHADOW_STEP, TUNE_BREATH, GO_WITH_FLOW, BORROW_BLOSSOM, HEART_SYNC]
 const ROUTE_FINISHER := [CLEAR_PATH, CLOSE_FORM, INTENT_HOLD, COMBO_BOOST, BREAK_EDGE, HIDE_EDGE, ALL_IN, STEP_PAD, FINAL_TOUCH, LINKED_INTENT]
 const ROUTE_ENGINES := {ENTRUST: ROUTE_GUARD, HEART_SYNC: ROUTE_INVEST, LINKED_INTENT: ROUTE_FINISHER}
+# 磨剑：每张可升级牌只改数值（必要时连同牌面文字一起写）。心魔、流光、华彩不可升级。
+const UPGRADE_OFFSET := 100
+const UPGRADES := {
+	ATTACK: {"damage": 9},
+	DEFENSE: {"block": 8},
+	STATUS: {"draw": 2},
+	HEAVY_ATTACK: {"damage": 22},
+	HEAVY_DEFENSE: {"block": 16},
+	SWEEP: {"damage": 5},
+	COMBO_BOOST: {"damage": 8},
+	TUNE_BREATH: {"draw": 2},
+	SHADOW_STEP: {"draw": 3},
+	BREAK_EDGE: {"damage": 10, "vulnerable": 3,
+		"battle": "[破锋+·攻击]\n费1 基础伤害10 / 连击+1\n给予3层易伤，敌方回合末易伤-1层",
+		"reward": "破锋+\n费1 / 基础伤害10 / 连击+1 / 3层易伤\n敌方回合末易伤-1层"},
+	UNLOAD_FORCE: {"attack_reduction": 8},
+	HIDE_EDGE: {"block": 9},
+	FLOWING_CLOUD: {"cost": 0},
+	CHASE_WIND: {"damage": 9},
+	SHIELD_STRIKE: {"shield_percent": 130,
+		"face": ["当前护盾130%伤害", "不耗盾·连击+1·不吃连击加伤"],
+		"battle": "[护盾攻击+·攻击]\n费1 造成当前护盾130%的伤害\n不消耗护盾 / 不吃连击加伤\n连击+1；享受第一张攻击牌增益",
+		"reward": "护盾攻击+\n费1 / 当前护盾130%伤害 / 不耗盾 / 连击+1"},
+	RETAIN_SHIELD: {"cost": 0},
+	PARRY: {"block": 7, "reaction_damage": 6,
+		"face": ["格挡7·反击6伤至多2次", "清空连击·反击积势至下回合"],
+		"battle": "[回锋+·防御]\n费1 格挡7 / 清空连击\n本轮每受一段攻击，存活后反击6伤\n反击至多2次；命中给下回合连击+1，至多+2",
+		"reward": "回锋+\n费1 / 格挡7 / 本轮反击6伤至多2次\n反击命中给下回合连击+1，至多+2"},
+	BORROW_MOMENTUM: {"damage": 9},
+	CLEAR_PATH: {"damage": 7, "companion_damage": 7,
+		"face": ["基础伤害 7·连击+1", "她要攻击时：她这击+7"],
+		"battle": "[开路+·攻击]\n费1 基础伤害7 / 连击+1\n小墨本回合要攻击时，她这一击伤害+7",
+		"reward": "开路+\n费1 / 基础伤害7 / 连击+1\n她要攻击时，她这一击+7"},
+	HAND_SWORD: {"block": 8},
+	YIELD_TURN: {"draw": 3},
+	CLOSE_FORM: {"damage": 14},
+	SIDE_BY_SIDE: {"block": 11},
+	INTENT_HOLD: {"cost": 1},
+	UNMOVED: {"block": 5, "companion_block": 5,
+		"face": ["每回合开始格挡 5", "她每次护你再+5"],
+		"battle": "[不动+·能力]\n费1 本场生效，同名不叠加\n每回合开始获得5格挡\n小墨每次给你护盾，额外+5",
+		"reward": "不动+\n费1 / 每回合开始格挡5\n她护你时再+5 / 能力"},
+	HEAR_WIND: {"cost": 0},
+	ATTUNE: {"cost": 1},
+	ALL_IN: {"combo_scale": 7,
+		"face": ["伤害 连击×7", "连击清零·本场移除"],
+		"battle": "[孤注+·攻击]\n费0 伤害=连击×7 / 连击清零\n打出后本场移除",
+		"reward": "孤注+\n费0 / 伤害=连击×7 / 连击清零\n打出后本场移除"},
+	LATE_STRIKE: {"damage": 14},
+	PICK_THREAD: {"damage": 7},
+	GUARD_HEART: {"block": 9},
+	BACK_TO_WATER: {"damage": 10},
+	LEAN_ON_SWORD: {"damage": 12},
+	ENTRUST: {"cost": 1},
+	GO_WITH_FLOW: {"draw": 2},
+	BORROW_BLOSSOM: {"damage": 9},
+	HEART_SYNC: {"cost": 0},
+	STEP_PAD: {"combo": 3},
+	FINAL_TOUCH: {"combo_scale": 3, "finisher_scale": 4,
+		"face": ["她这一击+连击×3", "她要收尾时：+连击×4"],
+		"battle": "[点睛+·技巧]\n费1 小墨本回合的攻击伤害+连击×3\n她要收尾时改为+连击×4",
+		"reward": "点睛+\n费1 / 她这一击+连击×3\n她要收尾时改为×4"},
+	LINKED_INTENT: {"cost": 1},
+}
 
 # 小墨亮出的意向类别（battle.gd 的 _companion_intent_kind 给出）。
 const INTENT_GUARD := "guard"
@@ -580,13 +644,13 @@ const DEFINITIONS := {
 	GO_WITH_FLOW: {
 		"effects": [
 			{"kind": EFFECT_DRAW, "amount_key": "draw", "mode": DRAW_EMPTY_SLOTS},
-			{"kind": EFFECT_DRAW, "amount_key": "draw", "mode": DRAW_EMPTY_SLOTS, "requires_intent": [INTENT_INVEST]},
+			{"kind": EFFECT_DRAW, "amount_key": "bonus_draw", "mode": DRAW_EMPTY_SLOTS, "requires_intent": [INTENT_INVEST]},
 			{"kind": EFFECT_ENERGY, "amount_key": "energy", "requires_intent": [INTENT_INVEST]},
 		],
 		"result_template": "顺势：抽取 {drawn} 张牌{energy_note}",
 		"target": TARGET_NONE,
 		"name": "顺势", "type": "技巧", "cost": 0, "rarity": RARITY_COMMON,
-		"draw": 1, "energy": 1,
+		"draw": 1, "bonus_draw": 1, "energy": 1,
 		"face": ["抽牌 1", "她让给你：抽1·精力+1"],
 		"battle": "[顺势·技巧]\n费0 抽1张\n小墨本回合要让给你时，再抽1张、精力+1",
 		"reward": "顺势\n费0 / 抽1张\n她让给你时再抽1、精力+1",
@@ -697,7 +761,83 @@ const LEGACY_RARITY := {
 
 
 func get_definition(card_id: int) -> Dictionary:
+	if card_id >= UPGRADE_OFFSET and UPGRADES.has(card_id - UPGRADE_OFFSET):
+		return _upgraded_definition(card_id - UPGRADE_OFFSET)
 	return DEFINITIONS.get(card_id, DEFINITIONS[CURSE])
+
+
+# ---- 磨剑（卡牌升级）----
+# 升级后的牌 id = 原 id + UPGRADE_OFFSET，牌组和存档仍然只存整数。
+
+func base_id(card_id: int) -> int:
+	return card_id - UPGRADE_OFFSET if card_id >= UPGRADE_OFFSET else card_id
+
+
+func is_upgraded(card_id: int) -> bool:
+	return card_id >= UPGRADE_OFFSET
+
+
+func can_upgrade(card_id: int) -> bool:
+	return card_id < UPGRADE_OFFSET and UPGRADES.has(card_id)
+
+
+func upgraded_id(card_id: int) -> int:
+	return card_id + UPGRADE_OFFSET if can_upgrade(card_id) else card_id
+
+
+func is_valid_card(card_id: int) -> bool:
+	return DEFINITIONS.has(card_id) or (card_id >= UPGRADE_OFFSET and UPGRADES.has(card_id - UPGRADE_OFFSET))
+
+
+var _upgrade_cache := {}
+# 文字里跟着数字的说法（只换第一处，避免改到"她要……时再+1"之类的附加条件）。
+const UPGRADE_TEXT_LABELS := {
+	"damage": "(伤害|全体基础)", "block": "(格挡)", "draw": "(抽牌|抽)", "cost": "(费)",
+	"combo": "(连击)", "attack_reduction": "(伤害|敌攻)",
+}
+
+
+func _upgraded_definition(base: int) -> Dictionary:
+	if _upgrade_cache.has(base):
+		return _upgrade_cache[base]
+	var definition: Dictionary = DEFINITIONS[base].duplicate(true)
+	var spec: Dictionary = UPGRADES[base]
+	var changes: Array = []
+	for key in spec:
+		if key in ["face", "battle", "reward"]:
+			continue
+		changes.append([key, int(definition.get(key, 0)), int(spec[key])])
+		definition[key] = spec[key]
+	definition["name"] = str(definition["name"]) + "+"
+	definition["upgraded"] = true
+	for field in ["battle", "reward"]:
+		if spec.has(field):
+			definition[field] = spec[field]
+		else:
+			definition[field] = _retext(str(definition.get(field, "")), changes).replace(str(DEFINITIONS[base]["name"]), str(definition["name"]))
+	if spec.has("face"):
+		definition["face"] = spec["face"]
+	elif definition.has("face"):
+		var face: Array = definition["face"].duplicate()
+		for change in changes:
+			for index in range(face.size()):
+				var replaced := _retext(str(face[index]), [change])
+				if replaced != str(face[index]):
+					face[index] = replaced
+					break
+		definition["face"] = face
+	_upgrade_cache[base] = definition
+	return definition
+
+
+func _retext(text: String, changes: Array) -> String:
+	for change in changes:
+		if not UPGRADE_TEXT_LABELS.has(change[0]):
+			continue
+		var regex := RegEx.new()
+		regex.compile("(%s\\s?[+-]?)%d(?![0-9])" % [UPGRADE_TEXT_LABELS[change[0]], int(change[1])])
+		text = regex.sub(text, "${1}%d" % int(change[2]))
+	return text
 
 
 func get_battle_text(card_id: int) -> String:
@@ -725,7 +865,7 @@ func get_reward_card_ids(owned_cards: Array[int] = [], chapter: int = 1) -> Arra
 	for card_id in REWARD_CARD_IDS:
 		var definition := get_definition(card_id)
 		# 能力牌同名不叠加，拿过就不再出；第二章紫线牌只在第二章出现。
-		if definition.get("type", "") == "能力" and card_id in owned_cards:
+		if definition.get("type", "") == "能力" and (card_id in owned_cards or upgraded_id(card_id) in owned_cards):
 			continue
 		if int(definition.get("chapter", 1)) > chapter:
 			continue
@@ -734,6 +874,7 @@ func get_reward_card_ids(owned_cards: Array[int] = [], chapter: int = 1) -> Arra
 
 
 func get_rarity(card_id: int) -> String:
+	card_id = base_id(card_id)
 	return str(get_definition(card_id).get("rarity", LEGACY_RARITY.get(card_id, RARITY_COMMON)))
 
 
@@ -745,7 +886,7 @@ func reward_weight(card_id: int, owned_cards: Array[int], realm: int = 0) -> int
 	if rarity != RARITY_COMMON and realm >= 2:
 		weight += 2
 	for engine in ROUTE_ENGINES:
-		if engine in owned_cards and card_id in ROUTE_ENGINES[engine]:
+		if (engine in owned_cards or upgraded_id(engine) in owned_cards) and card_id in ROUTE_ENGINES[engine]:
 			weight = int(weight * 1.5)
 			break
 	return weight

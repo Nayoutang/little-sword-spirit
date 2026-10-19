@@ -9,6 +9,7 @@ extends RefCounted
 #   {"max_hp": n}       生命上限与当前生命 +n
 #   {"card": "any"}     三选一加牌；"rare" 只出罕见与稀有
 #   {"remove": true}    从牌组移除一张（玩家自选）
+#   {"upgrade": true}   磨剑：升级一张牌（玩家自选）
 #   {"bond": n}         羁绊 +n（不显示）
 #   {"hidden": [信, 执]} 暗线变化（不显示）
 #   {"branch": {"if": "chance:0.5" | "trust:20", "then": [...], "else": [...], "then_line": "", "else_line": ""}}
@@ -83,6 +84,56 @@ const EVENTS := {
 			{"text": "让她守夜，自己睡个好觉", "effects": [{"hp": 20}, {"hidden": [0, 1]}], "line": "小墨：睡吧。有我在，什么都进不来。"},
 		],
 	},
+	"roadside_smith": {
+		"title": "路边铁匠",
+		"text": "岔路口搭着个铁匠棚，炉子烧得正旺。老铁匠瞄了一眼小墨：「好剑。磨一磨？不收钱，看着顺眼。」\n小墨：……他跟镇口那个，长得有点像。",
+		"options": [
+			{"text": "请他磨一磨", "effects": [{"upgrade": true}], "line": "小墨：手艺不错。不过下回，还是你来磨。"},
+			{"text": "谢过，继续赶路", "effects": [], "line": "小墨：嗯。别人的炉子，我不太习惯。"},
+		],
+	},
+	"blank_stele": {
+		"title": "无字剑碑",
+		"text": "山坳里立着一块碑，一个字也没有，只有满面的剑痕，深深浅浅，像是很多人对着它练过剑。",
+		"options": [
+			{"text": "对着碑练一回剑", "requires": {"hp_above": 6}, "effects": [{"hp": -6}, {"upgrade": true}], "line": "小墨：最后那一下收得好。你自己感觉到了吗？"},
+			{"text": "让小墨对着碑站一会儿", "effects": [{"bond": 2}, {"hidden": [1, 0]}], "line": "小墨：这里面有一道，是他的。我认得。……走吧。", "moment": "无字剑碑前，小墨认出了一道前主人留下的剑痕。"},
+		],
+	},
+	"lost_child": {
+		"title": "迷路的孩子",
+		"text": "一个孩子蹲在路边哭，说跟着货郎出来，回不去村子了。\n小墨：别看我。我又不会哄小孩。",
+		"options": [
+			{"text": "送他回村", "requires": {"hp_above": 5}, "effects": [{"hp": -5}, {"card": "any"}, {"bond": 1}], "line": "村口的老人塞给你们一包东西。小墨：……你哄小孩倒是有一手。"},
+			{"text": "给他指了路", "effects": [], "line": "小墨：他会走回去的。……大概吧。"},
+		],
+	},
+	"tea_stall": {
+		"title": "茶摊说书",
+		"text": "路边茶摊上，说书人正讲到一个银发剑客，说他一人一剑，走遍了七州十三县。",
+		"options": [
+			{"text": "歇脚，喝碗茶", "effects": [{"hp": 12}], "line": "小墨：茶是凉的。你倒喝得挺香。"},
+			{"text": "坐下来，听他讲完", "effects": [{"bond": 2}, {"hidden": [0, 1]}], "line": "小墨：七州十三县？他没去过那么多地方。……不过故事里，就让他去吧。", "moment": "茶摊上，你们听说书人讲了一个银发剑客的故事。"},
+		],
+	},
+	"night_wolves": {
+		"title": "夜狼",
+		"text": "夜里林子边上亮起几双绿眼睛，绕着你们打转。\n小墨：别怕。它们比你更怕我。",
+		"options": [
+			{"text": "拔剑赶走它们（一半可能挨咬，一半可能捡到东西）", "requires": {"hp_above": 10}, "effects": [{"branch": {"if": "chance:0.5",
+				"then": [{"card": "rare"}], "then_line": "狼群散了，林子里落着一个旧包袱。小墨：运气不错。",
+				"else": [{"hp": -10}], "else_line": "有一只扑上来，咬了你一口。小墨：我说什么来着，站我后面。"}}], "line": ""},
+			{"text": "生起火，守到天亮", "effects": [{"hp": 6}, {"bond": 1}], "line": "小墨：火别灭了。我替你看着。"},
+		],
+	},
+	"poor_scholar": {
+		"title": "落魄书生",
+		"text": "破庙里缩着个书生，背着一箱子书，说要进京赶考，盘缠早花光了。",
+		"options": [
+			{"text": "和他对两句诗", "effects": [{"bond": 1}, {"card": "any"}], "line": "书生送了你们一页抄来的剑诀。小墨：他对得比你好。"},
+			{"text": "分他些干粮", "effects": [{"max_hp": 4}], "line": "书生千恩万谢。小墨：做好事也会饿的，你多吃点。"},
+		],
+	},
 	"foggy_fork": {
 		"title": "雾中岔路",
 		"text": "雾起得很快，两条岔路都看不清尽头。\n小墨：往左。我说不上来为什么，就是觉得该往左。",
@@ -135,6 +186,8 @@ static func describe(option: Dictionary, halved_heal: bool = false) -> String:
 			parts.append("选一张罕见以上的牌" if str(effect.card) == "rare" else "选一张牌")
 		elif effect.has("remove"):
 			parts.append("移除一张牌")
+		elif effect.has("upgrade"):
+			parts.append("升级一张牌")
 	var label := str(option.get("text", ""))
 	if parts.is_empty() or label.contains("（"):
 		return label

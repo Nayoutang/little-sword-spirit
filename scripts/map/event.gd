@@ -17,6 +17,7 @@ var road_notes: Array[String] = []
 var road_choice := ""
 var road_buttons: Array[Button] = []
 var removal_scroll: ScrollContainer
+var upgrade_scroll: ScrollContainer
 var continue_button: Button
 var relic_view: Node
 @onready var skip_button: Button = $EventUI/SkipCard
@@ -41,6 +42,8 @@ func _ready() -> void:
 		_restore_road_state(saved)
 	if saved.get("removing", false):
 		_show_removal_choices()
+	elif saved.get("upgrading", false):
+		_show_upgrade_choices()
 	elif saved.get("card_choices", false):
 		_show_card_choices(bool(saved.get("rare", false)))
 	elif RunState.pending_event == RunState.EventType.UNKNOWN:
@@ -62,6 +65,20 @@ func _add_relic_choice() -> void:
 	button.disabled = Relics.roll(RunState.run_relics).is_empty()
 	button.pressed.connect(_choose_relic)
 	main_choices.add_child(button)
+	# 磨剑：升级一张牌。
+	var grind := Button.new()
+	grind.name = "Grind"
+	grind.text = "磨剑：升级一张牌"
+	grind.custom_minimum_size = Vector2(600, 70)
+	RewardSkin.style_button(grind)
+	grind.disabled = not RunState.has_upgradable_card()
+	grind.pressed.connect(_show_upgrade_choices)
+	main_choices.add_child(grind)
+	# 五个选项：收紧一点，免得最后一个压到卷轴边。
+	main_choices.add_theme_constant_override("separation", 8)
+	for child in main_choices.get_children():
+		(child as Button).custom_minimum_size = Vector2(600, 60)
+	main_choices.position.y -= 24
 
 
 func _choose_relic() -> void:
@@ -82,7 +99,18 @@ func _choose_relic() -> void:
 
 
 func _on_skip_pressed() -> void:
-	if removal_scroll != null and removal_scroll.visible:
+	if upgrade_scroll != null and upgrade_scroll.visible:
+		if road_event_id.is_empty():
+			# 宝箱里反悔：回到宝箱的几个选项。
+			upgrade_scroll.queue_free()
+			upgrade_scroll = null
+			skip_button.hide()
+			main_choices.show()
+			message_label.text = "山路所得，择一带走。"
+			RunState.checkpoint("event", {})
+			return
+		_finish_road_event("没有磨剑")
+	elif removal_scroll != null and removal_scroll.visible:
 		_finish_road_event("跳过移除")
 	else:
 		_finish_road_event("跳过选卡")
@@ -163,7 +191,7 @@ func _choose_road_option(index: int) -> void:
 		button.disabled = true
 	road_choice = str(option.text)
 	road_line = str(option.get("line", ""))
-	var pending := {"card": "", "remove": false}
+	var pending := {"card": "", "remove": false, "upgrade": false}
 	_apply_road_effects(option.get("effects", []), pending)
 	if option.has("moment"):
 		RunState.record_moment(str(option.moment), 2)
@@ -173,6 +201,8 @@ func _choose_road_option(index: int) -> void:
 		_show_card_choices(str(pending.card) == "rare")
 	elif pending.remove:
 		_show_removal_choices()
+	elif pending.upgrade:
+		_show_upgrade_choices()
 	else:
 		_finish_road_event("")
 
@@ -197,6 +227,8 @@ func _apply_road_effects(effects: Array, pending: Dictionary) -> void:
 			pending.card = str(effect.card)
 		elif effect.has("remove"):
 			pending.remove = true
+		elif effect.has("upgrade"):
+			pending.upgrade = RunState.has_upgradable_card()
 		elif effect.has("branch"):
 			var branch: Dictionary = effect.branch
 			var passed := _branch_passes(str(branch.get("if", "")))
@@ -263,6 +295,47 @@ func _show_removal_choices() -> void:
 		button.pressed.connect(_remove_card.bind(index))
 	skip_button.text = "跳过移除"
 	skip_button.show()
+
+
+func _show_upgrade_choices() -> void:
+	main_choices.hide()
+	card_choices.hide()
+	RunState.checkpoint("event", _road_state({"upgrading": true}) if not road_event_id.is_empty() else {"upgrading": true})
+	message_label.text = (road_line + "\n" if not road_line.is_empty() else "") + "磨剑：选一张牌升级"
+	upgrade_scroll = ScrollContainer.new()
+	upgrade_scroll.name = "UpgradeChoices"
+	upgrade_scroll.position = Vector2(460, 410)
+	upgrade_scroll.size = Vector2(1000, 330)
+	$EventUI.add_child(upgrade_scroll)
+	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	upgrade_scroll.add_child(list)
+	var shown: Array[int] = []
+	for index in range(RunState.deck.size()):
+		var card_id: int = RunState.deck[index]
+		# 同名牌只列一次，升级其中一张。
+		if not CardDatabase.can_upgrade(card_id) or shown.has(card_id):
+			continue
+		shown.append(card_id)
+		var button := Button.new()
+		button.text = "%s → %s" % [CardDatabase.get_card_name(card_id), CardDatabase.get_reward_text(CardDatabase.upgraded_id(card_id)).replace("\n", " / ")]
+		button.custom_minimum_size = Vector2(960, 65)
+		button.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		list.add_child(button)
+		RewardSkin.style_button(button)
+		button.pressed.connect(_upgrade_card.bind(index))
+	skip_button.text = "先不磨"
+	skip_button.show()
+
+
+func _upgrade_card(index: int) -> void:
+	if finishing:
+		return
+	var before: int = RunState.deck[index] if index < RunState.deck.size() else -1
+	if RunState.upgrade_run_card(index) < 0:
+		return
+	upgrade_scroll.hide()
+	_finish_road_event("磨了「%s」" % CardDatabase.get_card_name(before))
 
 
 func _remove_card(index: int) -> void:
@@ -360,6 +433,8 @@ func _finish_event(message: String, display: String = "", details: Dictionary = 
 	skip_button.hide()
 	if removal_scroll != null:
 		removal_scroll.hide()
+	if upgrade_scroll != null:
+		upgrade_scroll.hide()
 	message_label.text = display if not display.is_empty() else message
 	var event_name := "问号事件" if RunState.pending_event == RunState.EventType.UNKNOWN else "宝箱事件"
 	var recorded := message if not road_event_id.is_empty() else "%s：%s" % [event_name, message]

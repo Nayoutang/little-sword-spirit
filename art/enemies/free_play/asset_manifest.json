@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-19",
+  "assets": [
+    {
+      "role": "blood_blade",
+      "source": "art/enemies/free_play/sources/blood_blade_source_v1.png",
+      "file": "art/enemies/free_play/blood_blade_sprite_v1.png",
+      "size": [
+        768,
+        896
+      ],
+      "anchor": [
+        384,
+        848
+      ],
+      "alpha_bounds": [
+        80,
+        48,
+        687,
+        848
+      ],
+      "source_tool": "built-in image_gen",
+      "generation_note": "AI generated for project; dark wuxia painterly ink, blood-red saber duelist / ivory-jade physician with medicine gourd and needles",
+      "normalization": "alpha bounds crop, Lanczos fit 672x800, centered on transparent 768x896 canvas; feet baseline 848",
+      "status": "Godot import and battle screenshot visually checked"
+    },
+    {
+      "role": "ink_healer",
+      "source": "art/enemies/free_play/sources/ink_healer_source_v1.png",
+      "file": "art/enemies/free_play/ink_healer_sprite_v1.png",
+      "size": [
+        768,
+        896
+      ],
+      "anchor": [
+        384,
+        848
+      ],
+      "alpha_bounds": [
+        80,
+        48,
+        675,
+        848
+      ],
+      "source_tool": "built-in image_gen",
+      "generation_note": "AI generated for project; dark wuxia painterly ink, blood-red saber duelist / ivory-jade physician with medicine gourd and needles",
+      "normalization": "alpha bounds crop, Lanczos fit 672x800, centered on transparent 768x896 canvas; feet baseline 848",
+      "status": "Godot import and battle screenshot visually checked"
+    }
+  ],
+  "validation": {
+    "engine": "Godot 4.7.2",
+    "preview": "tools/free_play_art_preview.gd",
+    "screenshot": ".godot/free-play-art-preview.png",
+    "checks": [
+      "RGBA alpha and exact dimensions",
+      "shared bottom baseline",
+      "native battle scale silhouettes, no clipping or UI overlap"
+    ]
+  }
+}

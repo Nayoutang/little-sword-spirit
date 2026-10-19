@@ -16,6 +16,7 @@ ISOLATED = {
     "chapter_three_smoke": "chapter-three-user",
     "liar_dice_smoke": "liar-dice-user",
     "build_routes_smoke": "build-routes-user",
+    "increments_smoke": "increments-user",
     "road_events_smoke": "road-events-user",
     "main_menu_smoke": "main-menu-user",
     "expedition_save_smoke": "expedition-save-user",
@@ -27,6 +28,10 @@ ISOLATED = {
     "finale_flow_smoke": "finale-save-user",
     "natural_relationship_smoke": "natural-relationship-user",
 }
+
+
+# 用例多、在慢机器上容易超时的，单独放宽时限。
+SLOW_CASES = {"player_stage2_smoke": 120, "road_events_smoke": 90}
 
 
 def run_case(name: str, engine: Path, run_dir: Path) -> dict:
@@ -47,7 +52,7 @@ def run_case(name: str, engine: Path, run_dir: Path) -> dict:
         code = 0
         for case in cases:
             result = subprocess.run(case, cwd=ROOT, env=env, capture_output=True,
-                                    text=True, encoding="utf-8", errors="replace", timeout=45)
+                                    text=True, encoding="utf-8", errors="replace", timeout=SLOW_CASES.get(name, 45))
             outputs.append(result.stdout + result.stderr)
             code = result.returncode
             if code:
@@ -64,7 +69,7 @@ def run_case(name: str, engine: Path, run_dir: Path) -> dict:
             errors = [line for line in errors if not line.startswith("ERROR: ConfigFile parse error")]
         passed = code == 0 and not errors
     except subprocess.TimeoutExpired as exc:
-        output = "TIMEOUT (45s)\n" + str(exc.stdout or "") + str(exc.stderr or "")
+        output = "TIMEOUT (%ds)\n" % SLOW_CASES.get(name, 45) + str(exc.stdout or "") + str(exc.stderr or "")
         passed = False
         code = -1
     (run_dir / (name + ".log")).write_text(output, encoding="utf-8")

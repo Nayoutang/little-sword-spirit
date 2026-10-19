@@ -49,6 +49,10 @@ func run() -> void:
 		var keys := profile.get_section_keys(section)
 		# 新增字段：飞花令开放进度（旧档缺省时按进度推算）。
 		keys.erase("feihualing")
+		# 新增字段：大话骰看穿次数、剑境进度。
+		keys.erase("dice_caught")
+		for realm_key in ["realm_unlocked", "realm_cleared", "last_free_boss"]:
+			keys.erase(realm_key)
 		assert(keys == baseline.get_section_keys(section))
 		for key in baseline.get_section_keys(section):
 			assert(profile.get_value(section, key) == baseline.get_value(section, key), section + "/" + key)

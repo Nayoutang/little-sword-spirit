@@ -54,7 +54,12 @@ const ROLES := {
 	THREADER: {"name": "线师", "attack": 3, "fallback": 3, "hp_offset": -10, "rule": "每回合抛线；她身上线满时改为出手 3"},
 	BOX: {"name": "替身箱偶", "attack": 6, "guard": 8, "hp_offset": 4, "rule": "护卫与普攻交替；同伴抛出的线由它替持，持线时只护自己"},
 	WATCHER: {"name": "戏班的看台人", "attack": 0, "hp_offset": 0, "rule": "不出手，每回合抛线；线满时给刀手各加 6 护盾"},
+	# 自由历练 · 线外新敌人（独立立绘见 battle.gd ROLE_ENEMY_ART）
+	BLOODBLADE: {"name": "血衣刀客", "attack": 5, "ramp": 2, "hp_offset": -4, "rule": "每回合攻击 +2，越拖越疼"},
+	HEALER: {"name": "墨医", "attack": 4, "heal": 8, "hp_offset": -8, "rule": "回春与普攻交替；回春给血最少的同伴回血"},
 }
+const BLOODBLADE := "blood_blade"
+const HEALER := "ink_healer"
 const PUPPET := "thread_puppet"
 const BLADE := "puppet_blade"
 const THREADER := "thread_master"
@@ -81,6 +86,20 @@ func get_encounter_roles(layer: int, count: int, elite: bool, rng: RandomNumberG
 		var pair: Array = pairs[randi_range(0, pairs.size() - 1) if rng == null else rng.randi_range(0, pairs.size() - 1)]
 		for index in range(count):
 			result.append(pair[index % pair.size()])
+	return result
+
+
+# 自由历练线外：第一章的敌人，加上血衣刀客、墨医。
+func get_free_play_roles(layer: int, count: int, elite: bool, rng: RandomNumberGenerator = null) -> Array[String]:
+	var pairs := [[SWORDSMAN, GUARDIAN], [GUARDIAN, HEXER], [SWORDSMAN, HEXER],
+		[BLOODBLADE, HEALER], [BLOODBLADE, GUARDIAN], [HEALER, SWORDSMAN], [BLOODBLADE, HEXER]]
+	if layer <= 1 and not elite:
+		pairs = [[SWORDSMAN], [BLOODBLADE]]
+	role_random_calls += 1
+	var pair: Array = pairs[randi_range(0, pairs.size() - 1) if rng == null else rng.randi_range(0, pairs.size() - 1)]
+	var result: Array[String] = []
+	for index in range(count):
+		result.append(str(pair[index % pair.size()]))
 	return result
 
 
@@ -113,6 +132,10 @@ func get_role_intent(role: String, step: int, elite: bool, layer: int = 1) -> Di
 	var definition: Dictionary = ROLES[role]
 	var bonus := 2 if elite else 0
 	var depth := int(maxi(clampi(layer, 1, BalanceConfig.ROUTE_TOTAL_LAYERS - 1) - 1, 0) / 4.0)
+	if role == BLOODBLADE:
+		return {"type": 0, "value": int(definition["attack"]) + bonus + depth + int(definition["ramp"]) * mini(step, 6), "ramping": true}
+	if role == HEALER and step % 2 == 0:
+		return {"type": 1, "value": int(definition["heal"]) + bonus + depth * 2, "heal": true}
 	if role in [THREADER, WATCHER] or (role == PUPPET and step % 2 == 0):
 		var intent := thread_intent(role)
 		intent["fallback"] = int(intent["fallback"]) + (bonus + depth if int(intent["fallback"]) > 0 else 0)

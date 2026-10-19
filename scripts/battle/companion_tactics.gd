@@ -7,6 +7,7 @@ const HIDDEN_TRUST_INVEST := 12.0
 const HIDDEN_ATTACHMENT_GUARD := 2.0
 const LEAN_WEIGHT := 1.5
 const LEAN_CAP := 12.0
+const PROMISE_BONUS := 18.0
 
 
 static func interruption_prevention(context: Dictionary, card_id: String) -> int:
@@ -120,6 +121,9 @@ static func choose(context: Dictionary, options: Array[String]) -> Dictionary:
 		# 默契倾向：这一趟你常接住哪种意向，她就更常那样配合（封顶，战况仍优先）。
 		var lean: Dictionary = context.get("run_lean", {})
 		score += minf(float(lean.get(Cards.intent_kind(id), 0)) * LEAN_WEIGHT, LEAN_CAP)
+		# 上回合她亲口说过的打算，这回合多半照做（战况紧急时仍可能改）。
+		if not str(context.get("promised_kind", "")).is_empty() and Cards.intent_kind(id) == str(context.get("promised_kind", "")):
+			score += PROMISE_BONUS
 		if score > best_score:
 			best_score = score
 			best = id

@@ -61,7 +61,7 @@ static func valid(snapshot: Variant) -> bool:
 	if not data.deck is Array or data.deck.size() > 2000:
 		return false
 	for id in data.deck:
-		if not id is int or not CardDatabase.DEFINITIONS.has(id): return false
+		if not id is int or not (CardDatabase.DEFINITIONS.has(id) or (id >= CardDatabase.UPGRADE_OFFSET and CardDatabase.UPGRADES.has(id - CardDatabase.UPGRADE_OFFSET))): return false
 	if not data.run_adventures is Array or data.run_adventures.size() > 5:
 		return false
 	for id in data.run_adventures:
@@ -96,6 +96,7 @@ static func valid(snapshot: Variant) -> bool:
 	if room.has("story") and room.story not in ["ch2_blacksmith", "ch2_troupe", "ch3_sword_tomb"]: return false
 	if room.has("on_thread") and not room.on_thread is bool: return false
 	if room.has("removing") and not room.removing is bool: return false
+	if room.has("upgrading") and not room.upgrading is bool: return false
 	if room.has("reward_message") and not room.reward_message is String: return false
 	if room.has("card_choices") and not room.card_choices is bool: return false
 	if room.has("settlement_result") and not room.settlement_result is Dictionary: return false

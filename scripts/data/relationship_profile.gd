@@ -30,6 +30,7 @@ static func encode(state: Node) -> ConfigFile:
 	config.set_value("memory", "promise_broken", int(state.relationship_facts.get("promise_broken", 0)))
 	config.set_value("memory", "companion_card_counts", state.relationship_facts.get("companion_card_counts", {}))
 	config.set_value("memory", "minigame_results", state.relationship_facts.get("minigame_results", []))
+	config.set_value("memory", "dice_caught", int(state.relationship_facts.get("dice_caught", 0)))
 	config.set_value("run_journal", "last_completed", state.last_run_journal)
 	config.set_value("chapter", "chapter", state.chapter)
 	config.set_value("chapter", "trip", state.chapter_trip)
@@ -60,7 +61,7 @@ static func decode(config: ConfigFile) -> Dictionary:
 	var bond := clampi(_number(config, "relationship", "bond_value", BalanceConfig.BOND_MIN), BalanceConfig.BOND_MIN, BalanceConfig.BOND_MAX)
 	var stage := clampi(_number(config, "relationship", "bond_stage", stage_index(bond)), 0, BalanceConfig.BOND_STAGE_NAMES.size() - 1)
 	var facts := empty_facts()
-	for key in ["battles_won", "battles_lost", "promise_kept", "promise_broken"]:
+	for key in ["battles_won", "battles_lost", "promise_kept", "promise_broken", "dice_caught"]:
 		facts[key] = maxi(_number(config, "memory", key), 0)
 	var cooperation := _dictionary(config, "memory", "cooperation")
 	for key in ["opportunities_used", "opportunities_wasted", "finisher_combo_total", "finishers", "guards"]:

@@ -61,7 +61,7 @@ const COMPANION_FILES := {
 static var _textures: Dictionary = {}
 
 static func player_path(card_id: int) -> String:
-	return str(PLAYER_FILES.get(card_id, ""))
+	return str(PLAYER_FILES.get(card_id % 100 if card_id >= 100 else card_id, ""))
 
 static func companion_path(card_id: String) -> String:
 	return str(COMPANION_FILES.get(card_id, ""))

@@ -240,16 +240,39 @@ static func choose_fallback(context: Dictionary, allowed_ids: Array[String]) -> 
 	var close := int(context.get("bond_stage", 0)) >= 2
 	var trusting := int(context.get("hidden_trust", 0)) >= 40
 	var clinging := int(context.get("hidden_attachment", 0)) >= 40
-	if CompanionCards.is_investment(card_id):
-		if trusting:
-			choice.reason = "留给你了。我信你接得住。"
-		else:
-			choice.reason = "剑势替你留好了，下一剑放心出。" if close else "给你留个机会，别浪费。"
-	elif CompanionCards.TAG_GUARD in definition.get("tags", []):
-		if clinging:
-			choice.reason = "别动。这回我挡前面。"
-		else:
-			choice.reason = "靠过来，这一下我替你挡。" if close else "先站稳，别急着往前冲。"
+	var kind := CompanionCards.intent_kind(card_id)
+	var lean: Dictionary = context.get("run_lean", {})
+	var leaning := int(lean.get(kind, 0)) >= 6
+	var pool: Array
+	if kind == "invest":
+		pool = FALLBACK_LINES.invest_lean if leaning else (FALLBACK_LINES.invest_trust if trusting else (FALLBACK_LINES.invest_close if close else FALLBACK_LINES.invest_far))
+	elif kind == "guard":
+		pool = FALLBACK_LINES.guard_lean if leaning else (FALLBACK_LINES.guard_cling if clinging else (FALLBACK_LINES.guard_close if close else FALLBACK_LINES.guard_far))
+	elif kind == "finisher" and (leaning or close):
+		pool = FALLBACK_LINES.finisher
 	else:
-		choice.reason = "你的剑势，我接着。" if close else "看准了，这一剑我来。"
+		pool = FALLBACK_LINES.attack_close if close else FALLBACK_LINES.attack_far
+	choice.reason = pick_line(pool, context)
 	return choice
+
+
+# 离线出牌理由：按意向、关系深浅、这一趟的倾向分组，尽量不重复最近说过的话。
+const FALLBACK_LINES := {
+	"guard_far": ["先站稳，别急着往前冲。", "这一下我来挡，你看清它怎么出手。", "往后半步。", "别硬接，交给我。"],
+	"guard_close": ["靠过来，这一下我替你挡。", "别动，我在前面。", "你只管看准，挡的事交给我。", "护着你呢，放心。"],
+	"guard_cling": ["别动。这回我挡前面。", "伤成这样还往前冲？站我后面。", "这一下，谁也别想碰你。"],
+	"guard_lean": ["你冲吧，后面有我。", "又是我挡？行，习惯了。", "你出剑的时候，别回头。", "背后交给我。"],
+	"invest_far": ["给你留个机会，别浪费。", "这个空子给你，接不接看你。", "我先不动，看你的。"],
+	"invest_close": ["剑势替你留好了，下一剑放心出。", "我退半步，这一剑让你。", "给你留着呢。", "你来，我看着。"],
+	"invest_trust": ["留给你了。我信你接得住。", "你接得住，我才敢留。", "这一手，只给你。"],
+	"invest_lean": ["你总能接住，那我就多留一些。", "又给你留了。别让我白等。", "这回也让你，谁让你接得好。"],
+	"finisher": ["你把路铺好了，最后一剑给我。", "收了。", "就等你这一下。", "剩下的，我来。"],
+	"attack_far": ["看准了，这一剑我来。", "我先上，你跟着。", "跟紧。"],
+	"attack_close": ["你的剑势，我接着。", "跟上，别落下。", "这一下，替你收了。", "一起。"],
+}
+
+
+# 由战况决定挑哪一句：同一战况总说同一句（可复现），回合与战况一变就换一句。
+static func pick_line(pool: Array, context: Dictionary) -> String:
+	var seed_value := int(context.get("player_hp", 0)) + int(context.get("combo", 0)) * 7 + int(context.get("incoming_damage", 0)) * 3 + int(context.get("block", 0)) * 5
+	return str(pool[posmod(seed_value, pool.size())])

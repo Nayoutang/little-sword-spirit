@@ -56,6 +56,12 @@ func run() -> void:
 			elif event.removal_scroll != null and event.removal_scroll.visible:
 				event._remove_card(0)
 				check(state.deck.size() == deck_before - 1, event_id + " 移除")
+			elif event.upgrade_scroll != null and event.upgrade_scroll.visible:
+				var upgradable := -1
+				for i in range(state.deck.size()):
+					if root.get_node("CardDatabase").can_upgrade(state.deck[i]): upgradable = i; break
+				event._upgrade_card(upgradable)
+				check(root.get_node("CardDatabase").is_upgraded(state.deck[upgradable]), event_id + " 磨剑")
 			check(event.finishing and event.continue_button != null, "%s/%d 结算并等待继续" % [event_id, index])
 			check(state.expedition_checkpoint.phase == "map", event_id + " 回到地图存档点")
 			var last: Dictionary = state.current_run_journal.back()

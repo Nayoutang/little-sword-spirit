@@ -163,10 +163,22 @@ func prepare_event(event_type: EventType) -> void:
 
 
 func add_run_card(card_id: int) -> bool:
-	if not CardDatabase.DEFINITIONS.has(card_id):
+	if not CardDatabase.is_valid_card(card_id):
 		return false
 	deck.append(card_id)
 	return true
+
+
+# 磨剑：把牌组里第 index 张换成升级版。返回新 id，不能升级时返回 -1。
+func upgrade_run_card(index: int) -> int:
+	if index < 0 or index >= deck.size() or not CardDatabase.can_upgrade(deck[index]):
+		return -1
+	deck[index] = CardDatabase.upgraded_id(deck[index])
+	return deck[index]
+
+
+func has_upgradable_card() -> bool:
+	return deck.any(func(id): return CardDatabase.can_upgrade(id))
 
 
 func remove_run_card(index: int) -> int:
@@ -202,6 +214,38 @@ func add_run_lean(kind: String, amount: int = 1) -> bool:
 
 func run_lean_value(kind: String) -> int:
 	return int(run_lean.get(kind, 0))
+
+
+# 这一趟她最常怎么配合你（都很低时为空）。
+func top_run_lean() -> String:
+	var best := ""
+	var best_value := 2
+	for kind in LEAN_KINDS:
+		if run_lean_value(kind) > best_value:
+			best = kind
+			best_value = run_lean_value(kind)
+	return best
+
+
+# ---- 大话骰 → 战斗：骰局里看穿她够多次，战斗里她会提前说出下回合的打算 ----
+const DICE_READ_AT := 5
+
+func dice_caught() -> int:
+	return int(relationship_facts.get("dice_caught", 0))
+
+
+func dice_read_unlocked() -> bool:
+	return dice_caught() >= DICE_READ_AT
+
+
+# 记下这局看穿她几次；第一次越过门槛返回 true。
+func record_dice_caught(count: int) -> bool:
+	if count <= 0:
+		return false
+	var before := dice_caught()
+	relationship_facts["dice_caught"] = before + count
+	_save_relationship()
+	return before < DICE_READ_AT and dice_caught() >= DICE_READ_AT
 
 
 func set_player_hp(value: int) -> void:
@@ -717,6 +761,11 @@ func finish_run(won: bool) -> void:
 		"run_result",
 		"本趟远征最终%s，结束时生命为 %d/%d。" % ["通关" if won else "失败", player_hp, player_max_hp]
 	)
+	# 给回家后的离线台词用：这一趟她最常怎么配合你、自由历练的首领与剑境。
+	if not top_run_lean().is_empty():
+		record_run_fact("lean", "这一趟，小墨最常%s。" % {"guard": "替你挡", "invest": "把机会让给你", "finisher": "替你收尾"}[top_run_lean()], {"lean": top_run_lean()})
+	if is_free_play() and won:
+		record_run_fact("free_boss", "自由历练打赢了剑境%s的首领。" % realm_name(sword_realm), {"boss": free_boss, "realm": sword_realm})
 	run_journal_finished = true
 	last_run_journal = current_run_journal.duplicate(true)
 	_save_relationship()

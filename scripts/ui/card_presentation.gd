@@ -56,6 +56,7 @@ static func describe(player_card_id: int, companion_card_id: String, effective_c
 static func _player_stats(card_id: int, definition: Dictionary) -> Array[String]:
 	if definition.has("face"):
 		return [str(definition["face"][0]), str(definition["face"][1])]
+	card_id = CardDatabase.base_id(card_id)
 	match card_id:
 		CardDatabase.PARRY: return ["格挡5·反击4伤至多2次", "清空连击·反击积势至下回合"]
 		CardDatabase.RETAIN_SHIELD: return ["剩余护盾跨回合保留", "能力·包括小墨护盾"]

@@ -2,6 +2,11 @@ class_name CompanionTactics
 extends RefCounted
 
 const Cards = preload("res://scripts/data/companion_card_database.gd")
+# 暗线权重：信满时投资牌最多 +12 分；执满且玩家濒危时，挡伤每点最多再 +2 分。
+const HIDDEN_TRUST_INVEST := 12.0
+const HIDDEN_ATTACHMENT_GUARD := 2.0
+const LEAN_WEIGHT := 1.5
+const LEAN_CAP := 12.0
 
 
 static func interruption_prevention(context: Dictionary, card_id: String) -> int:
@@ -73,6 +78,11 @@ static func choose(context: Dictionary, options: Array[String]) -> Dictionary:
 	var average_combo := float(memory.get("finisher_combo_total", 0)) / maxf(finishers, 1.0)
 	var guard_history := float(memory.get("guards", 0))
 	var threat := maxi(int(context.get("incoming_damage", 0)) - int(context.get("block", 0)), 0)
+	# 信：越信你接得住，越肯把机会留给你。执：你伤得越重，越想替你挡。
+	var trust := clampf(float(context.get("hidden_trust", 0)) / 100.0, 0.0, 1.0)
+	var attachment := clampf(float(context.get("hidden_attachment", 0)) / 100.0, 0.0, 1.0)
+	var max_hp := maxi(int(context.get("player_max_hp", 1)), 1)
+	var wounded := clampf(1.0 - float(context.get("player_hp", max_hp)) / float(max_hp), 0.0, 1.0)
 	var best := options[0]
 	var best_score := -INF
 	for id in options:
@@ -94,9 +104,9 @@ static func choose(context: Dictionary, options: Array[String]) -> Dictionary:
 			if id != Cards.BEHEAD_LOULAN and context.get("companion_target_role", "") in ["guardian", "hexer"]:
 				score += 4.0
 		if Cards.is_investment(id):
-			score += 5.0 + confidence * 14.0
+			score += 5.0 + confidence * 14.0 + trust * HIDDEN_TRUST_INVEST
 		if id == Cards.GRIND_SWORD:
-			score = 5.0 + confidence * 14.0
+			score = 5.0 + confidence * 14.0 + trust * HIDDEN_TRUST_INVEST
 		var shield := float(d.get("block", 0))
 		if id == Cards.YIN_MOUNTAIN:
 			shield = float(context.get("strongest_attack", 0))
@@ -106,7 +116,10 @@ static func choose(context: Dictionary, options: Array[String]) -> Dictionary:
 			shield = float(threat) if threat >= int(context.get("player_hp", 0)) else 0.0
 		if id == Cards.OATH_GUARD and context.get("active_promise", "") == "protect":
 			shield += float(d.get("promise_bonus", 0))
-		score += minf(shield, threat) * (2.0 + guard_history / (guard_history + 10.0) * 0.25)
+		score += minf(shield, threat) * (2.0 + guard_history / (guard_history + 10.0) * 0.25 + attachment * wounded * HIDDEN_ATTACHMENT_GUARD)
+		# 默契倾向：这一趟你常接住哪种意向，她就更常那样配合（封顶，战况仍优先）。
+		var lean: Dictionary = context.get("run_lean", {})
+		score += minf(float(lean.get(Cards.intent_kind(id), 0)) * LEAN_WEIGHT, LEAN_CAP)
 		if score > best_score:
 			best_score = score
 			best = id

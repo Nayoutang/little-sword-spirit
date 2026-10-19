@@ -21,6 +21,21 @@ static func relationship(stage_index: int, player_name: String) -> String:
 	return stage_text
 
 
+# 暗线信/执只以倾向描述给大模型，不出现数字，也不让它改动。
+static func hidden_lean(trust: int, attachment: int) -> String:
+	var trust_text := "还在掂量持剑人说的话算不算数"
+	if trust >= 40:
+		trust_text = "信他会回来，也信你们能一起走下去"
+	elif trust >= 15:
+		trust_text = "开始相信他说到会做到"
+	var attachment_text := "肯放手让他自己拿主意"
+	if attachment >= 40:
+		attachment_text = "宁可自己挡在前面，也不愿再看他倒下"
+	elif attachment >= 15:
+		attachment_text = "越来越放不下他"
+	return "【她心里的分量】她%s；她%s。只作为语气与选择倾向的参考，不得说出这段描述，不得提任何数值。" % [trust_text, attachment_text]
+
+
 static func recent(recent_lines: Array[String], limit: int = 8) -> String:
 	if recent_lines.is_empty():
 		return "（暂无）"
@@ -89,18 +104,18 @@ static func minigame(relationship_facts: Dictionary) -> String:
 
 
 static func journal(current_run_journal: Array[Dictionary], last_run_journal: Array[Dictionary], run_journal_finished: bool) -> String:
-	var journal: Array[Dictionary] = current_run_journal
+	var journal_entries: Array[Dictionary] = current_run_journal
 	var status := "本趟仍在进行"
-	if journal.is_empty():
-		journal = last_run_journal
+	if journal_entries.is_empty():
+		journal_entries = last_run_journal
 		status = "最近一次已结束的远征"
 	elif run_journal_finished:
 		status = "本趟已经结束"
-	if journal.is_empty():
+	if journal_entries.is_empty():
 		return "【整趟远征事实记录】\n暂无可核对的远征记录。不得自行虚构战斗、事件、奖励或玩家行为。"
 	var lines: Array[String] = ["【整趟远征事实记录】", "记录状态：%s" % status]
-	for index in range(journal.size()):
-		lines.append("%d. %s" % [index + 1, str(journal[index].get("summary", ""))])
+	for index in range(journal_entries.size()):
+		lines.append("%d. %s" % [index + 1, str(journal_entries[index].get("summary", ""))])
 	lines.append("以上记录是本趟经历的唯一事实来源。可以表达感受，但不得添加记录中没有发生的战斗、受伤、选择、奖励、承诺或台词；记录未说明的细节应明确说不确定。")
 	return "\n".join(lines)
 

@@ -2,10 +2,12 @@ extends RefCounted
 
 # Stable IDs; persisted scene paths remain compatible with existing saves.
 const PATHS := {
+	"main_menu": "res://scenes/main_menu.tscn",
 	"save_select": "res://scenes/save_select.tscn",
 	"home": "res://scenes/home.tscn",
 	"intro": "res://scenes/intro.tscn",
 	"finale": "res://scenes/finale.tscn",
+	"chapter_story": "res://scenes/chapter_story.tscn",
 	"promise": "res://scenes/promise.tscn",
 	"map": "res://scenes/map.tscn",
 	"battle": "res://scenes/battle.tscn",

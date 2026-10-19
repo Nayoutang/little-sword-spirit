@@ -339,3 +339,18 @@ static func get_prompt_catalog(card_ids: Array[String]) -> String:
 			origin,
 		])
 	return "\n".join(lines)
+
+
+# 她这张牌对应的意向类别（与 battle.gd _companion_intent_kind 一致）。
+static func intent_kind(card_id: String) -> String:
+	var definition := get_definition(card_id)
+	if definition.is_empty():
+		return ""
+	var tags: Array = definition.get("tags", [])
+	if TAG_FINISHER in tags:
+		return "finisher"
+	if definition.get("stance", "") == STANCE_INVEST:
+		return "invest"
+	if TAG_GUARD in tags:
+		return "guard"
+	return "attack"

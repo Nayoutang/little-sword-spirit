@@ -163,9 +163,9 @@ texture_margin_bottom = 14.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rwtbh"]
 content_margin_left = 10.0
-content_margin_top = 10.0
+content_margin_top = 2.0
 content_margin_right = 10.0
-content_margin_bottom = 10.0
+content_margin_bottom = 18.0
 texture = ExtResource("10_ekamt")
 texture_margin_left = 18.0
 texture_margin_top = 14.0
@@ -498,7 +498,7 @@ custom_minimum_size = Vector2(260, 70)
 layout_mode = 2
 tooltip_text = "[特殊技·流光]
 费1 基础伤害15
-需2连击 / 消耗2连击 / 相识解锁"
+需2连击 / 消耗2连击 / 羁绊15解锁"
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_disabled_color = Color(0.4509804, 0.5568628, 0.52156866, 1)
 theme_override_font_sizes/font_size = 20
@@ -514,7 +514,7 @@ custom_minimum_size = Vector2(260, 70)
 layout_mode = 2
 tooltip_text = "[终极技·华彩]
 费0 基础伤害35
-需3连击 / 连击清零 / 交心解锁"
+需3连击 / 连击清零 / 羁绊30解锁"
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_disabled_color = Color(0.4509804, 0.5568628, 0.52156866, 1)
 theme_override_font_sizes/font_size = 20

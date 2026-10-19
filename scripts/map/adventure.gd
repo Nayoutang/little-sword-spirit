@@ -120,7 +120,7 @@ func _ready() -> void:
 	_refresh_bond()
 
 func _set_choice_hover(button: Button, active: bool) -> void:
-	var previous: Tween = button.get_meta("hover_tween", null)
+	var previous: Tween = button.get_meta("hover_tween") if button.has_meta("hover_tween") else null
 	if previous != null:
 		previous.kill()
 	button.pivot_offset = button.size * 0.5
@@ -171,7 +171,7 @@ func _resolve_choice(choice: Dictionary) -> void:
 	var old_hp := RunState.player_hp
 	var heal := int(choice.get("heal", 0))
 	if heal > 0:
-		RunState.adjust_player_hp(heal)
+		RunState.adjust_player_hp(RunState.rest_heal(heal))
 	var bond_gain := int(choice.get("bond", 0))
 	RunState.add_bond(bond_gain)
 	RunState.record_moment("奇遇「%s」里，你选择了「%s」：%s" % [

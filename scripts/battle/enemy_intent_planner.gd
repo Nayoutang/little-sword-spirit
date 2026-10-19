@@ -20,17 +20,29 @@ static func roll(context: Dictionary, random_roll: Callable) -> Dictionary:
 		var action: int = context.boss_step % 3
 		result.boss_step += 1
 		var config: Dictionary = EnemyDatabase.get_boss_config(context.layer)
-		if action == 1:
+		if action == 1 and bool(context.get("thread_boss", false)):
+			# 第二章「牵线的刀客」：布防换成抛线。
+			intents.append(EnemyDatabase.thread_intent("boss"))
+		elif action == 1:
 			intents.append({"type": Intent.DEFEND, "value": int(config.guard)})
 		else:
 			var charging := action == 2
 			var enraged: bool = context.hps[0] * 2 <= context.max_hps[0]
+			if bool(context.get("early_enrage", false)):
+				enraged = context.hps[0] * 3 <= context.max_hps[0] * 2
 			var damage := int(config.attack)
 			if charging:
 				damage = int(config.enraged_heavy if enraged else config.heavy)
+			# 第三章「戏先生」：重斩换成收线——伤害只按普攻算，没打断就把小墨整个牵走。
+			var reel: bool = charging and bool(context.get("puppeteer", false))
+			if reel:
+				damage = int(config.attack)
 			damage = maxi(damage - reductions[0], 0)
 			reductions[0] = 0
-			intents.append({"type": Intent.ATTACK, "value": damage, "charging": charging})
+			var intent := {"type": Intent.ATTACK, "value": damage, "charging": charging}
+			if reel:
+				intent["reel"] = true
+			intents.append(intent)
 		return result
 	result.role_step += 1
 	for index in range(context.hps.size()):
@@ -38,7 +50,9 @@ static func roll(context: Dictionary, random_roll: Callable) -> Dictionary:
 			intents.append({"type": Intent.OTHER, "value": 0})
 			continue
 		if index < context.roles.size():
-			var intent: Dictionary = EnemyDatabase.get_role_intent(context.roles[index], context.role_step, context.elite, context.layer)
+			# 两个刀手错开一步，不在同一回合一起重击。
+			var step_offset: int = context.roles.slice(0, index).count(EnemyDatabase.BLADE) if context.roles[index] == EnemyDatabase.BLADE else 0
+			var intent: Dictionary = EnemyDatabase.get_role_intent(context.roles[index], context.role_step + step_offset, context.elite, context.layer)
 			if intent.type == Intent.ATTACK:
 				Segments.reduce_next(intent, reductions[index])
 				reductions[index] = 0

@@ -27,7 +27,9 @@ func run() -> void:
 	await process_frame
 	await process_frame
 	assert(current_scene.scene_file_path == "res://scenes/save_select.tscn")
-	assert(current_scene.slot_buttons[0].text.contains("继续远征"))
+	# Resume availability is a behavior contract; menu wording can change.
+	assert(not current_scene.slot_buttons[0].disabled)
+	assert(state.get_save_slot_summary(1)["expedition"])
 	current_scene._open_slot(1)
 	await process_frame
 	await process_frame

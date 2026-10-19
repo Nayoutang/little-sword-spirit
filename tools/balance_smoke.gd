@@ -33,7 +33,7 @@ func run() -> void:
 	state.suppress_persistence = true
 	state.start_new_run()
 	check(state.deck.size() == 15, "起始牌组不变")
-	check(cards.get_reward_card_ids().size() == 14, "奖励池十四张，含行云、追风、护盾攻击、留盾与招架")
+	check(cards.get_reward_card_ids().size() == 35 and cards.get_reward_card_ids([] as Array[int], 2).size() == 37, "奖励池第一章35张、第二章另加两张紫线牌")
 	for id in [cards.ATTACK, cards.DEFENSE, cards.STATUS]:
 		check(id not in cards.get_reward_card_ids(), "基础牌不进入奖励池")
 	check(enemies.get_normal_config(1)["hp_min"] == 34, "首战生命下界")
@@ -157,14 +157,16 @@ func run() -> void:
 	battle.locked_companion_choice = {"card_id": "quick_slash", "reason": "固定补击计划", "source": "fallback", "plan": {"kind": "boss_interrupt", "required_total": 3, "companion_hits": 1}}
 	battle._damage_enemy_at(0, 6)
 	battle._run_companion_turn()
-	check(battle.companion_last_card_id == "quick_slash" and not battle.enemy_intents[0].get("interrupted", false), "非致命配合未达成仍遵守攻击意向")
+	check(battle.companion_last_card_id == "guard_echo" and not battle.enemy_intents[0].get("interrupted", false), "配合未达成时重新评估重斩，改用防御")
+	check(not battle.companion_intent_notice.is_empty(), "执行改招显示提示")
 	battle.start_battle()
 	battle._roll_enemy_intents()
 	battle._roll_enemy_intents()
 	battle.player_hp = 14
 	battle.locked_companion_choice = {"card_id": "quick_slash", "reason": "固定补击计划", "source": "fallback"}
 	battle._run_companion_turn()
-	check(battle.companion_last_card_id == "guard_echo" and battle.companion_last_reason.contains("致命"), "可救致命危险改盾并解释")
+	check(battle.companion_last_card_id == "guard_echo" and battle.player_hp + battle.block > int(battle.enemy_intents[0]["value"]), "可救致命危险改盾且足以存活")
+	check(not battle.companion_last_reason.is_empty() and not battle.companion_intent_notice.is_empty(), "救命改招有对白与提示")
 	var director = load("res://scripts/battle/companion_card_director.gd")
 	check(director.build_prompt(battle._build_companion_context(), legal).contains("boss_hits"), "在线提示包含机制状态")
 	check(tactics.cooperation_plan({"combo": 2}, "grind_sword").get("kind", "") == "charge_attack", "磨剑积蓄小墨下次伤害")

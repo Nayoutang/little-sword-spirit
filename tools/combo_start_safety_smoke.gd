@@ -16,7 +16,7 @@ func initial() -> Dictionary:
 		"cloud": false, "triggered": false, "refund": false, "preserve": false, "cut_water": false,
 		"tuned": false, "hand": [15,4], "deck": [], "discard": [], "enemy_hp": [1000,1000],
 		"guard": [0,0], "vulnerable": [0,0], "intents": [{"type":0,"value":18},{"type":0,"value":9}],
-		"roles": ["swordsman","guardian"], "step": 0, "layer": 8, "stage": 2, "allowed": ["clean_cut"],
+		"roles": ["swordsman","guardian"], "step": 0, "layer": 8, "stage": 2, "bond": 0, "allowed": ["clean_cut"],
 		"locked": "clean_cut", "boon": {}, "cooperation": {}, "promise": "", "reductions": [0,0],
 		"damage": 0, "loss": 0, "round": 0, "first": {}, "extra_energy": 0}
 

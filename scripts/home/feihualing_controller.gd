@@ -41,6 +41,8 @@ func _ready() -> void:
 func start(chosen_keyword: String = "") -> void:
 	if busy or game != null:
 		return
+	OfflinePoetry.load_library()
+	chosen_keyword = OfflinePoetry.normalize(chosen_keyword)
 	var next_keyword := chosen_keyword if FeihualingGame.is_valid_keyword(chosen_keyword) else _draw_keyword()
 	if FeihualingGame.is_valid_keyword(chosen_keyword):
 		remaining_keywords.erase(chosen_keyword)
@@ -52,7 +54,7 @@ func start(chosen_keyword: String = "") -> void:
 
 func _draw_keyword() -> String:
 	if remaining_keywords.is_empty():
-		for character in FeihualingGame.CHARACTERS:
+		for character in OfflinePoetry.keywords():
 			remaining_keywords.append(character)
 		remaining_keywords.shuffle()
 		if remaining_keywords.size() > 1 and remaining_keywords.back() == last_keyword:
@@ -86,6 +88,27 @@ func submit(text: String) -> void:
 
 
 func _send_round(next_action: String, next_player_text: String, retry: bool = false) -> void:
+	if not LLMConfig.is_available():
+		action = next_action
+		player_text = next_player_text
+		var canonical := OfflinePoetry.find(player_text)
+		if not canonical.is_empty():
+			player_text = str(canonical.line)
+		intent_hint = game.classify_input(player_text) if action == "turn" else ""
+		local_result = game.local_verdict(player_text)
+		_prepare_intent_cue()
+		if player_text in ["提示", "给个提示"]:
+			var hint := OfflinePoetry.choose(game)
+			spoken.emit("想不起来就看看这句：%s（%s）。提示不算出句。" % [hint.get("line", "已经没有未用的句子了"), hint.get("source", "诗卷")])
+			return
+		var outcome := OfflinePoetry.play(game, action, player_text)
+		if not pending_intent_id.is_empty() and int(outcome.get("finished", false)) == 0 and game.player_rounds > rounds_before_turn:
+			outcome.speech = str(outcome.get("speech", "")) + " " + str(CompanionCardDatabase.get_definition(pending_intent_id).get("hint", ""))
+		if outcome.get("unsupported", false):
+			_abort_opening()
+		else:
+			_apply_outcome(outcome)
+		return
 	if not retry:
 		action = next_action
 		player_text = next_player_text

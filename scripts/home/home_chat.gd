@@ -25,6 +25,12 @@ var greeting_in_flight := false
 var variety_retried := false
 var reply_pages: Array[String] = []
 var reply_page_index := 0
+var offline_choices: HBoxContainer
+var offline_topic := 0
+var offline_conversation_open := false
+var offline_event_id := ""
+# 错误提示不是小墨在说话，不念音节。
+var reply_is_voiced := true
 
 
 func _ready() -> void:
@@ -33,6 +39,12 @@ func _ready() -> void:
 	# 新存档第一次进家前，先播初遇剧情。
 	if RunState.needs_intro():
 		RunState.navigate("intro", self)
+		return
+	# 第一章同归后进入第二章；本章剧情（章首、归途、章末）回家时先播。
+	RunState.maybe_begin_chapter_two()
+	RunState.maybe_begin_chapter_three()
+	if not RunState.pending_story.is_empty() and not RunState.has_expedition():
+		RunState.navigate("chapter_story", self)
 		return
 	if SpecialEventManager.activate_next():
 		RunState.save_persistent_state()
@@ -53,11 +65,11 @@ func _ready() -> void:
 	add_child(card_library)
 	$ChatUI/ChatPanel/CardLibraryButton.pressed.connect(card_library.open)
 	for button: Button in [depart_button, feihualing_button, $ChatUI/ChatPanel/SaveSlotsButton, $ChatUI/ChatPanel/CardLibraryButton]:
+		button.tooltip_text = ""
 		button.mouse_entered.connect(_set_menu_hover.bind(button, true))
 		button.mouse_exited.connect(_set_menu_hover.bind(button, false))
 	send_button.pressed.connect(_send_message)
 	depart_button.pressed.connect(_go_to_map)
-	feihualing_button.tooltip_text = "随机令字；也可在聊天中输入“飞花令，以柳为令”来自选。"
 	feihualing_button.pressed.connect(_start_feihualing)
 	game_again_button.pressed.connect(_on_game_again)
 	game_exit_button.pressed.connect(_on_game_leave)
@@ -66,6 +78,7 @@ func _ready() -> void:
 	$ChatUI/ChatPanel/SaveSlotsButton.pressed.connect(_return_to_save_slots)
 	input.text_submitted.connect(_on_text_submitted)
 	http_request.request_completed.connect(_on_request_completed)
+	_create_dice_button()
 	game_controller = FeihualingController.new()
 	add_child(game_controller)
 	game_controller.spoken.connect(_on_game_spoken)
@@ -74,17 +87,38 @@ func _ready() -> void:
 	game_controller.finished.connect(_on_game_finished)
 	game_controller.opening_failed.connect(_on_game_opening_failed)
 	game_controller.intent_learned.connect(_on_intent_learned)
-	depart_button.text = "继续远征" if RunState.has_expedition() else "出发"
+	depart_button.text = "历\n练"
+	_add_chapter_label()
+	_apply_feihualing_visibility()
 	_refresh_bond_display()
-	if SpecialEventManager.has_active_event():
+	if not LLMConfig.is_available():
+		_setup_offline_chat()
+	if LLMConfig.is_available() and SpecialEventManager.has_active_event():
 		chat_log.append_text("[特殊对话] 小墨似乎有一件刚才发生的事想和你谈谈。\n\n")
-	input.grab_focus()
+	if not WindowMode.is_mobile():
+		input.grab_focus()
 	if RunState.finale_state != "invited" and not preview_offline and RunState.consume_homecoming():
 		_request_homecoming_greeting()
+	_maybe_reveal_feihualing()
 
 
 # 远征归来后，小墨先就着这一趟里某件具体的事开口；失败时静默跳过，不用代码替她说话。
 func _request_homecoming_greeting() -> void:
+	if not LLMConfig.is_available():
+		var reply := OfflineHomeDialogue.homecoming(RunState.last_run_journal)
+		offline_event_id = SpecialEventManager.get_active_event_id()
+		offline_topic = OfflineHomeDialogue.pick_topic(RunState.bond_stage, RunState.recent_lines)
+		offline_conversation_open = true
+		var reveal := offline_event_id.is_empty() and _feihualing_reveal_due()
+		if not offline_event_id.is_empty():
+			reply += " " + OfflineHomeDialogue.event_opening(offline_event_id)
+		elif reveal:
+			reply += _feihualing_reveal_line()
+		_offline_speak(reply)
+		if reveal:
+			_unlock_feihualing_button()
+		_refresh_offline_choices()
+		return
 	if preview_offline or not LLMConfig.is_available():
 		return
 	var cue := "【旁白，不是持剑人说的话】持剑人刚结束第%d趟远征回到家，还没开口。你可以先随口说一两句，接着本趟某件真实的事，也可以只是轻轻招呼他休息。让熟悉程度自然体现在语气里，不报血量和羁绊数字，不宣布关系升级，不复述流水账，不要求他回答、道歉或作出承诺。不是每件经历都需要当场谈清楚，也不要把每次回家都写成严肃谈心。" % RunState.expedition_count
@@ -166,7 +200,24 @@ func _go_to_map() -> void:
 	if RunState.has_expedition():
 		RunState.navigate(RunState.resume_expedition(), self)
 		return
-	RunState.start_new_run()
+	# 自由历练解锁了剑境二以上：先选剑境。
+	if RunState.is_free_play() and RunState.realm_unlocked > 1:
+		realm_picker = preload("res://scripts/home/realm_picker.gd").new()
+		realm_picker.picked.connect(_depart_with_realm)
+		realm_picker.cancelled.connect(func():
+			realm_picker = null
+			depart_button.disabled = false)
+		add_child(realm_picker)
+		return
+	_depart_with_realm(1)
+
+
+var realm_picker: Node
+
+
+func _depart_with_realm(level: int) -> void:
+	realm_picker = null
+	RunState.start_new_run(level)
 	RunState.navigate("promise", self)
 
 
@@ -200,6 +251,8 @@ func _requested_feihualing_keyword(player_text: String) -> String:
 
 
 func _start_feihualing(chosen_keyword: String = "") -> void:
+	if not RunState.is_feihualing_unlocked():
+		return
 	if request_in_flight or game_controller.busy or game_controller.game != null:
 		return
 	game_choice_pending = false
@@ -209,11 +262,7 @@ func _start_feihualing(chosen_keyword: String = "") -> void:
 	game_input.clear()
 	game_screen.show()
 	$ChatUI/ChatPanel.hide()
-	if preview_offline or not LLMConfig.is_available():
-		game_status.text = "暂时无法开始"
-		game_log.text = "飞花令需要配置对话服务，配置完成后再来对诗吧。"
-		_refresh_game_controls()
-		return
+	game_log.text = "诗卷收录唐诗三百首、千家诗及剑意诗句。请接完整一联，可输入“提示”；未收录诗句不计输赢。\n\n"
 	input.release_focus()
 	game_input.grab_focus()
 	game_controller.start(chosen_keyword)
@@ -250,6 +299,7 @@ func _send_game_message() -> void:
 
 
 func _on_game_spoken(text: String) -> void:
+	Sfx.voice(text)
 	game_log.append_text("小墨：%s\n\n" % text)
 
 
@@ -263,8 +313,8 @@ func _on_intent_learned(card_id: String, _player_line: String) -> void:
 	])
 
 
-func _on_game_hud_changed(label: String, visible: bool) -> void:
-	game_status.text = label if visible else "令字待揭晓"
+func _on_game_hud_changed(label: String, hud_visible: bool) -> void:
+	game_status.text = label if hud_visible else "令字待揭晓"
 
 
 func _on_game_busy_changed(_busy: bool) -> void:
@@ -281,8 +331,8 @@ func _refresh_game_controls() -> void:
 
 
 func _on_game_opening_failed(_keyword: String) -> void:
-	game_status.text = "开场出句失败 · 不计胜负"
-	game_log.add_text("\n[开场失败] 未收到合规的开场诗句，可以重新开始或退出。本次不计胜负。\n")
+	game_status.text = "这个令字暂无可用诗句 · 不计胜负"
+	game_log.add_text("\n换个令字或随机再来，本次不计胜负。\n")
 	game_again_button.show()
 	_refresh_game_controls()
 
@@ -303,7 +353,7 @@ func _send_message() -> void:
 	var player_text := input.text.strip_edges()
 	if player_text.is_empty():
 		return
-	if _is_feihualing_invitation(player_text):
+	if RunState.is_feihualing_unlocked() and _is_feihualing_invitation(player_text):
 		input.clear()
 		_start_feihualing(_requested_feihualing_keyword(player_text))
 		return
@@ -451,11 +501,76 @@ func _set_request_in_flight(value: bool) -> void:
 		send_button.text = "发送中…"
 	else:
 		send_button.text = "发送"
+	if not LLMConfig.is_available():
+		input.editable = false
+		send_button.hide()
+		if offline_choices != null:
+			for button in offline_choices.get_children():
+				button.disabled = blocked
+
+
+func _setup_offline_chat() -> void:
+	input.hide()
+	send_button.hide()
+	$ChatUI/ChatPanel/InputArt.hide()
+	offline_choices = HBoxContainer.new()
+	offline_choices.name = "OfflineChoices"
+	offline_choices.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	offline_choices.offset_left = -1070
+	offline_choices.offset_top = -140
+	offline_choices.offset_right = -45
+	offline_choices.offset_bottom = -40
+	offline_choices.add_theme_constant_override("separation", 16)
+	$ChatUI/ChatPanel.add_child(offline_choices)
+	_refresh_offline_choices()
+	_offline_speak(OfflineHomeDialogue.greeting(RunState.bond_stage, RunState.recent_lines))
+
+
+func _refresh_offline_choices() -> void:
+	for child in offline_choices.get_children():
+		offline_choices.remove_child(child)
+		child.queue_free()
+	offline_choices.visible = offline_conversation_open
+	if not offline_conversation_open:
+		return
+	var choices := OfflineHomeDialogue.choices(offline_event_id, RunState.bond_stage, offline_topic)
+	for index in range(choices.size()):
+		var button := Button.new()
+		button.text = choices[index]
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", 24)
+		preload("res://scripts/ui/ink_ui_skin.gd").style_button(button)
+		button.pressed.connect(_choose_offline_topic.bind(index))
+		offline_choices.add_child(button)
+
+
+func _choose_offline_topic(index: int) -> void:
+	if not offline_conversation_open or index not in [0, 1] or request_in_flight or game_controller.busy or game_controller.game != null:
+		return
+	offline_conversation_open = false
+	var event_id := offline_event_id
+	var choices := OfflineHomeDialogue.choices(event_id, RunState.bond_stage, offline_topic)
+	chat_log.add_text("你：%s\n\n" % choices[index])
+	_offline_speak(OfflineHomeDialogue.answer(event_id, RunState.bond_stage, offline_topic, index))
+	if not event_id.is_empty() and SpecialEventManager.choice_resolves(index):
+		var outcome := SpecialEventManager.validate_and_resolve({"event_id": event_id, "resolved": true, "resolution": "offline_choice"}, index)
+		if outcome.get("resolved", false):
+			chat_log.add_text("[心事已解] 这段共同经历已经被记住。\n\n")
+	# 一次归来只谈一件事；其余心事在下次归来时按原优先级启用。
+	_refresh_offline_choices()
+
+
+func _offline_speak(reply: String) -> void:
+	chat_log.add_text("小墨：%s\n\n" % reply)
+	_show_home_reply(reply)
+	RunState.record_spoken_line(reply)
 
 
 func _show_error(message: String) -> void:
 	chat_log.append_text("[错误] %s\n\n" % message)
+	reply_is_voiced = false
 	_show_home_reply(message)
+	reply_is_voiced = true
 
 
 func _show_home_reply(reply: String) -> void:
@@ -498,6 +613,8 @@ func _advance_reply() -> void:
 
 func _display_reply_page() -> void:
 	$ChatUI/ChatPanel/CurrentReply.text = reply_pages[reply_page_index]
+	if reply_is_voiced:
+		Sfx.voice(reply_pages[reply_page_index])
 	$ChatUI/ChatPanel/ReplyNext.visible = reply_page_index + 1 < reply_pages.size()
 
 
@@ -516,9 +633,152 @@ func _toggle_history() -> void:
 
 func _set_menu_hover(button: Button, hovered: bool) -> void:
 	button.pivot_offset = button.size * 0.5
-	var previous: Tween = button.get_meta("hover_tween", null)
+	var previous: Tween = button.get_meta("hover_tween") if button.has_meta("hover_tween") else null
 	if previous != null and previous.is_valid():
 		previous.kill()
 	var tween := create_tween()
 	button.set_meta("hover_tween", tween)
 	tween.tween_property(button, "scale", Vector2.ONE * (1.04 if hovered else 1.0), 0.14)
+
+# ---- 飞花令开放：历练里第一次遇到对诗后，回家由小墨引出 ----
+
+func _apply_feihualing_visibility() -> void:
+	feihualing_button.visible = RunState.is_feihualing_unlocked()
+	if dice_button != null:
+		dice_button.visible = _dice_unlocked()
+	_layout_menu_plaques()
+
+
+# 右上角挂牌从右往左排：存档、飞花令、骰局、历练、剑谱。没开放的不占位；
+# 五块都挂上时间距收窄，免得压到小墨的对话气泡。
+func _layout_menu_plaques() -> void:
+	var order: Array[Button] = [$ChatUI/ChatPanel/SaveSlotsButton, feihualing_button]
+	if dice_button != null:
+		order.append(dice_button)
+	order.append_array([depart_button, $ChatUI/ChatPanel/CardLibraryButton])
+	var shown := order.filter(func(b): return b.visible)
+	var step := 170.0 if shown.size() <= 4 else 150.0
+	var width: float = $ChatUI/ChatPanel/SaveSlotsButton.offset_right - $ChatUI/ChatPanel/SaveSlotsButton.offset_left
+	var right: float = $ChatUI/ChatPanel/SaveSlotsButton.offset_right
+	for index in range(shown.size()):
+		var button: Button = shown[index]
+		button.offset_right = right - index * step
+		button.offset_left = button.offset_right - width
+	_reposition_chapter_label()
+
+
+# ---- 大话骰：相识之后在家里能玩 ----
+
+var dice_button: Button
+var dice_table: Node
+
+
+func _dice_unlocked() -> bool:
+	return RunState.get_bond_stage_index() >= 1
+
+
+func _create_dice_button() -> void:
+	dice_button = feihualing_button.duplicate()
+	dice_button.name = "DiceButton"
+	dice_button.text = "骰\n局"
+	feihualing_button.get_parent().add_child(dice_button)
+	dice_button.tooltip_text = ""
+	dice_button.mouse_entered.connect(_set_menu_hover.bind(dice_button, true))
+	dice_button.mouse_exited.connect(_set_menu_hover.bind(dice_button, false))
+	dice_button.pressed.connect(_open_liar_dice)
+
+
+func _open_liar_dice() -> void:
+	if dice_table != null or request_in_flight or (game_controller != null and game_controller.game != null):
+		return
+	dice_table = preload("res://scripts/home/liar_dice_table.gd").new()
+	dice_table.closed.connect(_on_liar_dice_closed)
+	add_child(dice_table)
+
+
+func _on_liar_dice_closed() -> void:
+	dice_table = null
+
+
+func _feihualing_reveal_due() -> bool:
+	return RunState.feihualing_state == "pending" and RunState.finale_state != "invited" and not SpecialEventManager.has_active_event()
+
+
+func _feihualing_reveal_line() -> String:
+	if RunState.has_minigame_history("飞花令"):
+		return "对了，路上在亭子边对的那几句诗，我还没尽兴。往后在家闲着，也陪我玩玩飞花令吧。"
+	return "对了，路上经过那座亭子，你急着赶路，我本来想拉你对几句诗的。在家总不赶时间了吧？陪我玩玩飞花令。"
+
+
+func _unlock_feihualing_button() -> void:
+	RunState.unlock_feihualing()
+	_apply_feihualing_visibility()
+	chat_log.add_text("（飞花令已开放：之后在家可以随时和小墨对诗。）\n\n")
+	feihualing_button.modulate = Color(1.6, 1.4, 0.9)
+	var tween := create_tween()
+	tween.set_loops(3)
+	tween.tween_property(feihualing_button, "modulate", Color.WHITE, 0.45)
+	tween.tween_property(feihualing_button, "modulate", Color(1.6, 1.4, 0.9), 0.45)
+	tween.finished.connect(func(): feihualing_button.modulate = Color.WHITE)
+
+
+# 不是归来时（中途回家、或联网对话）也要引出；离线归来时已并进归来那句话里。
+func _maybe_reveal_feihualing() -> void:
+	if not _feihualing_reveal_due():
+		return
+	var line := _feihualing_reveal_line()
+	if LLMConfig.is_available():
+		chat_log.append_text("小墨：%s\n\n" % line)
+		messages.append({"role": "assistant", "content": line})
+	else:
+		_offline_speak(line)
+	_unlock_feihualing_button()
+
+
+# 第二章起在「历练」下方标出章节进度。
+func _reposition_chapter_label() -> void:
+	var label := $ChatUI/ChatPanel.get_node_or_null("ChapterLabel")
+	if label == null:
+		return
+	label.offset_left = depart_button.offset_left - 90.0
+	label.offset_right = depart_button.offset_right + 90.0
+
+
+func _add_chapter_label() -> void:
+	var text := RunState.chapter_label()
+	if text.is_empty():
+		return
+	var label := Label.new()
+	label.name = "ChapterLabel"
+	label.text = text
+	label.anchor_left = 1.0
+	label.anchor_right = 1.0
+	label.offset_left = depart_button.offset_left - 90.0
+	label.offset_right = depart_button.offset_right + 90.0
+	label.offset_top = depart_button.offset_bottom + 6.0
+	label.offset_bottom = depart_button.offset_bottom + 46.0
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_override("font", preload("res://ui/shared/comic_font.tres"))
+	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_color_override("font_color", Color("#f3e8ff"))
+	var pill := StyleBoxFlat.new()
+	pill.bg_color = Color(0.24, 0.15, 0.34, 0.82)
+	pill.border_color = Color("#c9a8f0")
+	pill.set_border_width_all(1)
+	pill.set_corner_radius_all(16)
+	pill.content_margin_left = 14
+	pill.content_margin_right = 14
+	label.add_theme_stylebox_override("normal", pill)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	depart_button.get_parent().add_child(label)
+
+
+# 手机返回键：先收起骰局。
+func handle_mobile_back() -> bool:
+	if dice_table != null and is_instance_valid(dice_table):
+		dice_table.handle_back()
+		return true
+	if realm_picker != null and is_instance_valid(realm_picker):
+		realm_picker._cancel()
+		return true
+	return false

@@ -19,8 +19,9 @@ func _ready() -> void:
 		if not RunState.has_expedition():
 			RunState.prepare_finale_battle()
 		RunState.navigate("battle", self)
+	elif RunState.finale_state == "completed": return
 	elif RunState.finale_state == "accepted": $Journey.show()
-	elif RunState.bond_value >= 100:
+	elif RunState.finale_state == "invited" or RunState.bond_value >= 100:
 		RunState.set_finale_state("invited")
 		$Invite.show()
 		get_parent().get_node("ChatUI/ChatPanel").hide()

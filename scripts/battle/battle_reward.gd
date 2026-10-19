@@ -8,6 +8,8 @@ var removing := false
 var reward_message := ""
 var skip_button: Button
 var removal_scroll: ScrollContainer
+# 精英战掉落的信物（战斗结束时已经拿到，这里只负责展示）。
+var relic_reward := ""
 
 @onready var card_choices: HBoxContainer = $RewardUI/CardChoices
 @onready var message_label: Label = $RewardUI/Message
@@ -15,6 +17,7 @@ var removal_scroll: ScrollContainer
 func _ready() -> void:
 	preload("res://scripts/ui/save_exit_button.gd").install(self, $RewardUI, Vector2(1330, 24))
 	preload("res://scripts/ui/card_library.gd").install_deck_view(self, $RewardUI, Vector2(1600, 24))
+	preload("res://scripts/ui/relic_view.gd").install(self, $RewardUI, Vector2(1080, 24))
 	card_choices.hide()
 	skip_button = Button.new()
 	skip_button.text = "跳过选卡"
@@ -32,6 +35,9 @@ func _ready() -> void:
 		else:
 			message_label.text = "这场战斗没能守住约定。选择一张卡牌，或跳过。"
 	var saved := RunState.room_checkpoint("reward")
+	relic_reward = str(saved.get("relic", ""))
+	if not relic_reward.is_empty():
+		message_label.text = "获得信物%s\n%s" % [RelicDatabase.describe(relic_reward), message_label.text]
 	if saved.get("removing", false):
 		finishing = true
 		reward_message = str(saved.get("reward_message", ""))
@@ -50,11 +56,11 @@ func _show_card_choices() -> void:
 	if saved.has("cards"):
 		candidates.assign(saved.cards)
 	else:
-		for card_type in CardDatabase.get_reward_card_ids(RunState.deck):
-			candidates.append(card_type)
-		candidates.shuffle()
-		candidates.resize(card_choices.get_child_count())
-	RunState.checkpoint("reward", {"cards": candidates})
+		candidates = CardDatabase.roll_reward_cards(RunState.deck, card_choices.get_child_count(), RunState.chapter, null, RunState.sword_realm)
+	var room := {"cards": candidates}
+	if not relic_reward.is_empty():
+		room["relic"] = relic_reward
+	RunState.checkpoint("reward", room)
 	for index in range(card_choices.get_child_count()):
 		var button := card_choices.get_child(index) as Button
 		var card_type := candidates[index]

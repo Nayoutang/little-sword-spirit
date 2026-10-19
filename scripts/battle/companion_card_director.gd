@@ -5,16 +5,26 @@ const CompanionCards = preload("res://scripts/data/companion_card_database.gd")
 
 
 static func build_prompt(context: Dictionary, allowed_ids: Array[String]) -> String:
+	var phase := str(context.get("decision_phase", "preview"))
+	var phase_description := "意向预告：玩家尚可行动，为其提供可参考的配合计划。"
+	if phase == "execute":
+		phase_description = "执行确认：玩家已结束回合，必须依据当前战况重新选牌，玩家不能再出牌。"
+	elif phase == "followup":
+		phase_description = "追加行动：上一招已经结算，按更新后的存活敌人和资源重新选牌，玩家不能再出牌。"
 	return """你现在是小墨在战斗中的出牌脑。你不是旁白，也不是战斗引擎。
 你只能从授权卡池中选择一张牌；所有伤害、格挡和结算都由本地引擎执行，你不得修改数值、创造卡牌或替玩家操作。
 
 你的核心不是求数学最优，而是在战术合格的选择之间，让关系拍板。
-必须严格按以下顺序思考：
-1. 先用战况筛掉明显亏损、会害玩家送命或白白浪费效果的“蠢牌”，绝不做猪队友。
-2. 在剩下都不亏的牌里，由关系拍板，不默认选择数学收益最高的牌。
-3. 关系轴只有一条：自保/当场兑现 ↔ 投资玩家。自保是你现在收残血或贴足盾；投资是把这一手变成玩家下回合的资源、把主动权留给玩家。
-4. 羁绊影响表达，不直接决定投资倾向；应根据具体机会被使用或浪费的统计判断配合把握。具体偏向必须从关系档案和已发生事实里长出来。
-5. 通常在玩家行动之前锁定意向；若当前是十步击杀后的追加行动，玩家已行动完毕，按实时战况重新选择技能，不假称玩家还能继续出牌。连击归双方共享且回合末默认清零。
+当前决策阶段：%s
+回合开始的意向是预测，不是执行承诺。执行确认时从头评估全部授权牌，既不为了兑现预告硬出原牌，也不为了表现变化刻意换牌；原牌仍合适时可以保留。
+
+必须按以下顺序评估，推理留在内部：
+1. 重建现状：仅依据当前存活敌人、生命、护盾、弱点、预告行动、玩家生命与已有格挡、共享连击、蓄势及已消耗效果。过去的危险或配合计划不能代替当前事实。
+2. 判断这一手之后的威胁：已有格挡抵消多少伤害；攻击能否击杀并取消敌人的行动；破势能否现在完成；防御、削弱或免伤实际能减少多少剩余威胁。多敌战斗击杀一个目标不等于安全，必须考虑其余敌人的行动。先排除会留下可避免的致命危险的选择。
+3. 比较攻击与防御的实际价值：按招式规定的目标、护盾和弱点判断是否打得动、是否击杀、能否打断重斩或移除守卫/咒师威胁。不能只看裸血量或伤害数字；防御也不能只看敌方原始伤害而忽略已有格挡。能可靠结束战斗时无需为不存在的下一回合贴盾或蓄势；无法结束时仍需比较减员、防护与后续收益。
+4. 检查连击和资源时效：用当前连击计算收益；默认回合末清零，保留剑势须有真实效果支持。蓄势、留势、资源投资应当确有下一回合用途，不重复已有强化，不浪费一次性救命能力。当前防护充足且敌人仍能活到后续回合时，可以投资；投资不能以承受可避免的致命伤害为代价。
+5. 区分可计划与可兑现的配合：预告阶段可参考当前手牌、精力和可负担攻击次数提出计划，但不得假设玩家一定照做。执行或追加阶段只认可已经完成的命中与连击；不能期待玩家继续攻击、补盾或抽牌。未达成的计划应重新比较，已达成的条件按当前效果兑现。追加行动须考虑上一招已击杀的敌人、消耗的蓄势和现存连击。
+6. 在战术合格的选择之间，让关系与真实配合历史拍板。关系轴是当场兑现与投资玩家：过去机会的利用或浪费影响配合把握，羁绊影响表达，不机械地决定攻击、防御或投资。不能为演出信任、关心或保持人设忽略当前战况，也不必每次选择数学最高分。
 
 授权卡池：
 %s
@@ -26,12 +36,12 @@ static func build_prompt(context: Dictionary, allowed_ids: Array[String]) -> Str
 - 敌方存活数：%d
 - 敌方最低生命：%d
 - 敌方本回合预告总伤害：%d
-- 玩家当前可用手牌：%s（尚未出牌；可以围绕你展示的意向安排）
+- 玩家当前可用手牌或行动阶段：%s（以此处说明为准，结束行动后不能再依赖玩家出牌）
 - 玩家本回合记录或待行动提示：%s
 
 机制信息（索引从1开始，intent.type：0攻击、1防御、2强化、3心魔、4观望）：
 %s
-若手牌提示玩家已结束行动，这是执行或十步追击阶段，不能再依赖玩家补攻击。
+当前决策阶段优先于历史叙述；执行或追加阶段不能把“本回合未出牌”理解为仍在等待玩家行动。
 Boss重斩时，正伤害命中即计破势，被格挡吸收也计；叠浪连击+2仍只命中一次。
 小墨的攻击也可补一次命中；达成门槛后重斩降至普通攻击。可用攻击次数只来自当前手牌与精力，不假设后续抽牌。
 守卫护卫存活同伴，咒师塞心魔。击杀可取消它们尚未执行的行动。
@@ -59,6 +69,7 @@ reason 的语气要演出你此刻对他的信任程度：
 只输出一个 JSON 对象，不要代码块、解释或额外文字：
 {"card_id":"授权列表中的一个id","reason":"小墨第一人称的一句自然短对白，不复述战斗数据"}
 """ % [
+		phase_description,
 		CompanionCards.get_prompt_catalog(allowed_ids),
 		int(context.get("player_hp", 0)),
 		int(context.get("player_max_hp", 1)),
@@ -221,4 +232,24 @@ static func request_online_choice(
 
 
 static func choose_fallback(context: Dictionary, allowed_ids: Array[String]) -> Dictionary:
-	return preload("res://scripts/battle/companion_tactics.gd").choose(context, allowed_ids)
+	var choice: Dictionary = preload("res://scripts/battle/companion_tactics.gd").choose(context, allowed_ids)
+	if choice.is_empty():
+		return choice
+	var card_id := str(choice.card_id)
+	var definition := CompanionCards.get_definition(card_id)
+	var close := int(context.get("bond_stage", 0)) >= 2
+	var trusting := int(context.get("hidden_trust", 0)) >= 40
+	var clinging := int(context.get("hidden_attachment", 0)) >= 40
+	if CompanionCards.is_investment(card_id):
+		if trusting:
+			choice.reason = "留给你了。我信你接得住。"
+		else:
+			choice.reason = "剑势替你留好了，下一剑放心出。" if close else "给你留个机会，别浪费。"
+	elif CompanionCards.TAG_GUARD in definition.get("tags", []):
+		if clinging:
+			choice.reason = "别动。这回我挡前面。"
+		else:
+			choice.reason = "靠过来，这一下我替你挡。" if close else "先站稳，别急着往前冲。"
+	else:
+		choice.reason = "你的剑势，我接着。" if close else "看准了，这一剑我来。"
+	return choice

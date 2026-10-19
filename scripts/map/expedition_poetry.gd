@@ -16,8 +16,11 @@ func _ready() -> void:
 	controller = FeihualingController.new()
 	controller.scene_context = "当前在远征途中歇脚对诗，不在家中；结束后继续赶路，不要把对诗结果说成远征结算。"
 	add_child(controller)
-	controller.spoken.connect(func(text: String): log_text.add_text("小墨：%s\n\n" % text))
-	controller.hud_changed.connect(func(text: String, visible: bool): status.text = text if visible else "途中飞花令")
+	controller.spoken.connect(func(text: String):
+		log_text.add_text("小墨：%s\n\n" % text)
+		Sfx.voice(text)
+	)
+	controller.hud_changed.connect(func(text: String, hud_visible: bool): status.text = text if hud_visible else "途中飞花令")
 	controller.busy_changed.connect(func(_busy: bool): _refresh_controls())
 	controller.finished.connect(_on_finished)
 	controller.opening_failed.connect(_on_opening_failed)
@@ -29,7 +32,7 @@ func _ready() -> void:
 	send.pressed.connect(_submit)
 	input.text_submitted.connect(func(_text: String): _submit())
 	status.text = "奇遇 · 途中飞花令"
-	log_text.text = "赶路间，你们在亭边稍作停留。\n\n小墨：总盯着前面的路做什么？歇一会儿，接几句诗再走。\n\n可以留空随机抽令字，或输入一个汉字自选。对出特定诗句时，小墨有机会领悟剑意；不想对诗也可以继续赶路。\n"
+	log_text.text = "赶路间，你们在亭边稍作停留。\n\n小墨：总盯着前面的路做什么？歇一会儿，接几句诗再走。\n\n可以留空随机抽令字，或输入一个汉字自选。诗卷收录唐诗三百首、千家诗及剑意诗句，请接完整一联；未收录的诗句不计输赢。输入“提示”可查看可用诗句。对出特定诗句时，小墨有机会领悟剑意；不想对诗也可以继续赶路。\n"
 	input.placeholder_text = "输入一个令字（如：柳），或留空随机…"
 	send.text = "开始对诗"
 	if not _service_available():
@@ -38,7 +41,7 @@ func _ready() -> void:
 
 
 func _service_available() -> bool:
-	return not force_offline and LLMConfig.is_available()
+	return true
 
 
 func _submit() -> void:
@@ -74,8 +77,8 @@ func _on_opening_failed(keyword: String) -> void:
 	input.text = keyword
 	input.placeholder_text = "输入一个令字，或留空随机…"
 	send.text = "重试开场"
-	status.text = "开场出句失败 · 不计胜负"
-	log_text.add_text("\n[开场失败] 未收到符合令字的开场诗句，本次不计胜负。可以重试、换个令字，或继续赶路。\n")
+	status.text = "诗卷里没有可用的开场句 · 不计胜负"
+	log_text.add_text("\n这个令字暂无可用诗句，本次不计胜负。请换个字或留空随机。支持唐诗三百首、千家诗及剑意诗句；输入“提示”可查看可用诗句。\n")
 	_refresh_controls()
 
 

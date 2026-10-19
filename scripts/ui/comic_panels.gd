@@ -13,7 +13,7 @@ func _ready() -> void:
 	self_modulate.a = 0.0
 	resized.connect(_layout_panels)
 
-func begin(new_texture: Texture2D) -> void:
+func begin(new_texture: Texture2D, text_entries: Array = []) -> void:
 	if reveal_tween != null:
 		reveal_tween.kill()
 	for panel in panels:
@@ -35,14 +35,14 @@ func begin(new_texture: Texture2D) -> void:
 		panel.modulate.a = 0.0
 		add_child(panel)
 		panels.append(panel)
-	_add_crisp_text(key)
+	_add_crisp_text(key, text_entries)
 	_layout_panels()
 	reveal_next()
 
-func _add_crisp_text(key: String) -> void:
+func _add_crisp_text(key: String, text_entries: Array = []) -> void:
 	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(text_file))
 	var narration_font = load("res://ui/shared/comic_font.tres")
-	for entry in data.get(key, []):
+	for entry in data.get(key, []) + text_entries:
 		var rect: Array = entry["rect"]
 		var label := Label.new()
 		label.text = str(entry["text"])
@@ -50,6 +50,7 @@ func _add_crisp_text(key: String) -> void:
 		label.size = Vector2(rect[2], rect[3]) * texture.get_size()
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_color_override("font_color", Color(0.99, 0.97, 0.9))
 		label.add_theme_color_override("font_outline_color", Color(0.06, 0.08, 0.08, 0.85))
 		label.add_theme_constant_override("outline_size", 3)
@@ -57,6 +58,9 @@ func _add_crisp_text(key: String) -> void:
 		label.add_theme_font_override("font", narration_font)
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		panels[int(entry["panel"])].add_child(label)
+
+func add_ending_title(title: String) -> void:
+	_add_crisp_text("", [{"panel": panels.size() - 1, "rect": [0.04, 0.72, 0.5, 0.06], "text": title}])
 
 func _layout_panels() -> void:
 	if texture == null:

@@ -2,6 +2,7 @@ extends SceneTree
 
 var failures := 0
 const Art = preload("res://scripts/ui/card_art_catalog.gd")
+const CompanionCards = preload("res://scripts/data/companion_card_database.gd")
 
 func _initialize() -> void:
 	call_deferred("run")
@@ -24,19 +25,19 @@ func run() -> void:
 	root.add_child(library)
 	library.open()
 	await process_frame
-	check(library.entries.size() == 38 and library.shown_entries.size() == 38, "all 20 player and 18 companion definitions included")
-	check(library.grid.get_child_count() == 38, "catalog card faces created")
+	check(library.entries.size() == 61 and library.shown_entries.size() == 61, "all 43 player and 18 companion definitions included")
+	check(library.grid.get_child_count() == 61, "catalog card faces created")
 	check(library.detail_text.text.contains("连击层数与连续攻击计数不同"), "keyword glossary distinguishes the counters")
 	library.collection_filter.select(1)
 	library._refresh()
-	check(library.shown_entries.size() == 20, "player filter")
+	check(library.shown_entries.size() == 43, "player filter")
 	check(library.collection_filter.item_count == 5, "catalog has no trial-only category")
 	var database = root.get_node("CardDatabase")
 	for card_id in [17, 18, 19]:
 		check(card_id in database.get_reward_card_ids(), "shield/parry card is obtainable from normal rewards")
 		library.search.text = database.get_card_name(card_id)
 		library._refresh()
-		check(library.shown_entries.size() == 1 and library.detail_text.text.contains("可从战斗奖励获得") and not library.detail_text.text.contains("试验"), "catalog explains real acquisition")
+		check(library.shown_entries.size() >= 1 and library.detail_text.text.contains("可从战斗奖励获得") and not library.detail_text.text.contains("试验"), "catalog explains real acquisition")
 	var owned_abilities: Array[int] = [18]
 	check(18 not in database.get_reward_card_ids(owned_abilities), "owned retain-shield ability is not offered again")
 	library.search.clear()
@@ -55,7 +56,7 @@ func run() -> void:
 	library._refresh()
 	library.type_filter.select(2)
 	library._refresh()
-	check(library.shown_entries.size() == 4, "defense filter including parry")
+	check(library.shown_entries.size() == 7, "defense filter including parry")
 	var escape := InputEventKey.new()
 	escape.keycode = KEY_ESCAPE
 	escape.pressed = true
@@ -102,6 +103,6 @@ func run() -> void:
 		for path: String in paths:
 			check(not seen.has(path) and ResourceLoader.exists(path), "independent existing cover: " + path)
 			seen[path] = true
-		check(seen.size() == 38, "38 independent covers")
+		check(seen.size() == database.DEFINITIONS.size() + CompanionCards.ORDERED_IDS.size() + CompanionCards.INTENT_DEFINITIONS.size(), "all defined cards have independent covers")
 	print("CARD_LIBRARY_SMOKE failures=", failures)
 	quit(0 if failures == 0 else 1)

@@ -15,12 +15,30 @@ func run() -> void:
 	state.suppress_persistence = true
 	state.intro_done = true
 	state.homecoming_pending = false
+	state.feihualing_state = "locked"
 	var home = load("res://scenes/home.tscn").instantiate()
 	home.preview_offline = true
 	root.add_child(home)
 	await process_frame
 	check(home.get_node("Background").size == root.get_visible_rect().size, "背景未铺满视口")
+	var hover_button: Button = home.get_node("ChatUI/ChatPanel/CardLibraryButton")
+	check(not hover_button.has_meta("hover_tween"), "首次悬停测试按钮已初始化动画")
+	home._set_menu_hover(hover_button, true)
+	check(hover_button.has_meta("hover_tween"), "首次悬停未创建动画")
+	home._set_menu_hover(hover_button, false)
+	home._set_menu_hover(hover_button, true)
+	await create_timer(0.2).timeout
+	check(hover_button.scale.is_equal_approx(Vector2.ONE * 1.04), "快速移入移出后悬停缩放不正确")
+	home._set_menu_hover(hover_button, false)
+	await create_timer(0.2).timeout
+	check(hover_button.scale.is_equal_approx(Vector2.ONE), "移出后没有恢复按钮大小")
 	check(not home.game_screen.visible, "飞花令提前显示")
+	check(not home.feihualing_button.visible, "历练中未遇到对诗前，家中已显示飞花令")
+	home._start_feihualing()
+	check(not home.game_screen.visible, "飞花令未开放时仍能进入")
+	state.feihualing_state = "unlocked"
+	home._apply_feihualing_visibility()
+	check(home.feihualing_button.visible, "飞花令开放后按钮未显示")
 	check(not home.chat_log.visible, "历史默认展开")
 	var message_count: int = home.messages.size()
 	home._toggle_history()

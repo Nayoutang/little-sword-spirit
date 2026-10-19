@@ -1,0 +1,198 @@
+[
+	{
+		"alpha": 2,
+		"id": 20.0,
+		"path": "art/cards/player/20_borrow_momentum_v1.png",
+		"sha256": "a61f392dd41f7303eadeaac468d48ed1f9fd3255c413dd6f382b3c42a665398b",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 21.0,
+		"path": "art/cards/player/21_clear_path_v1.png",
+		"sha256": "1b69bd1d1df8a1675821073c7e44ba0fd7031dfc01eeefc601baa68cb2ee730b",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 22.0,
+		"path": "art/cards/player/22_hand_sword_v1.png",
+		"sha256": "83b4a072cb115c3f5c5c6d2152e3f10ef23db8dc7d92f5bae81212ee42f4226e",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 23.0,
+		"path": "art/cards/player/23_yield_turn_v1.png",
+		"sha256": "9367131096049c4dbdb7c4085bb7dcf2de78d2473959ecea5af1291a63ab7ff0",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 24.0,
+		"path": "art/cards/player/24_close_form_v1.png",
+		"sha256": "a49dcdf3ea53232ea9b6e34dc3f7e3599b3a8d4981b0bd2a85c392440408b983",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1349,
+			1166
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 25.0,
+		"path": "art/cards/player/25_side_by_side_v1.png",
+		"sha256": "374da2885d0432b65b9506778ecbc419d4c0fa412385d7cc6727ea2f863cf8e3",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 26.0,
+		"path": "art/cards/player/26_intent_hold_v1.png",
+		"sha256": "c427adcbbbbca085d0584696c768476e1c96cd073f6a04ada16b53cbd65666f9",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 27.0,
+		"path": "art/cards/player/27_unmoved_v1.png",
+		"sha256": "c950c80c598908ae4b2a460bb837e0704197e8476cac2f7def06daebc9cacde7",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 28.0,
+		"path": "art/cards/player/28_hear_wind_v1.png",
+		"sha256": "21378d8ffc907ca1270a13da2918109a9b986cf5e606aa6281d6d1327b14ae61",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 29.0,
+		"path": "art/cards/player/29_attune_v1.png",
+		"sha256": "3c19683ce83affda8b0e1dca3b664382bea7759cf0e049a16cfc6d675f030cf7",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 30.0,
+		"path": "art/cards/player/30_all_in_v1.png",
+		"sha256": "d102544d2eb49b183bf2ed4c0cc4e7d38cba8f232f8ce0cca87c0f00332039fc",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 31.0,
+		"path": "art/cards/player/31_late_strike_v1.png",
+		"sha256": "f6eaf73f8a513c43f47fabbef96d085040e975133bd45b7ddc61f4645bf529ac",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 32.0,
+		"path": "art/cards/player/32_pick_thread_v1.png",
+		"sha256": "002bf82030445463a5bbae16042887838062508b3cba9555a2d5f397acb86ab3",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	},
+	{
+		"alpha": 2,
+		"id": 33.0,
+		"path": "art/cards/player/33_guard_heart_v1.png",
+		"sha256": "0d1873ef6fb33b2ad0863337555dc267c7f79d13018c72e6efdd7b91f1cac52c",
+		"size": [
+			512,
+			442
+		],
+		"source_size": [
+			1350,
+			1165
+		]
+	}
+]

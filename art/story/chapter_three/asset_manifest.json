@@ -1,0 +1,227 @@
+{
+  "common_prompt": "Chinese fantasy painterly illustration matching chapter two references. Preserve Xiaomo brown hair, amber eyes, white teal gold hanfu; preserve puppeteer rooftop identity. No UI, captions, borders or watermark. Story 16:9 with lower dialogue-safe area; items and enemies true transparent alpha.",
+  "references": [
+    "art/story/chapter_two/ch2_opening_window_v1.png",
+    "art/story/chapter_two/ch2_ending_rooftop_v1.png",
+    "art/enemies/ink_swordsman_sprite_v1.png",
+    "art/enemies/chapter_two/thread_master_sprite_v1.png",
+    "art/story/chapter_two/scroll_duansi_v1.png"
+  ],
+  "provenance": "AI-generated with built-in imagegen; existing project assets used as references; no external stock assets.",
+  "assets": [
+    {
+      "id": "ch3_opening_dawn",
+      "kind": "story",
+      "path": "art/story/chapter_three/ch3_opening_dawn_v1.png",
+      "source": "art/story/chapter_three/sources/ch3_opening_dawn_source_v1.png",
+      "generation_id": "3e7ffe29-7dce-4d3e-acca-3b19566146a9",
+      "prompt_subject": "清晨解下紫线，桌上平放带鞘剑",
+      "size": [
+        1920,
+        1080
+      ],
+      "alpha_extrema": null,
+      "sha256": "b2cb642a34fa76a489d6cc8f43e868211c0b1417deafe00787501d4cec4c82b5",
+      "status": "normalized; desktop in-engine screenshot reviewed",
+      "source_tool": "built-in imagegen",
+      "date": "2026-10-17",
+      "pivot": "center",
+      "collision": "none; presentation only"
+    },
+    {
+      "id": "ch3_sword_tomb",
+      "kind": "story",
+      "path": "art/story/chapter_three/ch3_sword_tomb_v1.png",
+      "source": "art/story/chapter_three/sources/ch3_sword_tomb_source_v1.png",
+      "generation_id": "b4b20733-c19e-499c-996d-ae1a0fa4cc99",
+      "prompt_subject": "山谷缠线群剑，小墨倾听，远方戏台",
+      "size": [
+        1920,
+        1080
+      ],
+      "alpha_extrema": null,
+      "sha256": "d285b335836c86489dc1e84e6f01abb547b57f7b9abd071420e64a80d0d596b4",
+      "status": "normalized; desktop in-engine screenshot reviewed",
+      "source_tool": "built-in imagegen",
+      "date": "2026-10-17",
+      "pivot": "center",
+      "collision": "none; presentation only"
+    },
+    {
+      "id": "ch3_old_sword_letter",
+      "kind": "story",
+      "path": "art/story/chapter_three/ch3_old_sword_letter_v1.png",
+      "source": "art/story/chapter_three/sources/ch3_old_sword_letter_source_v1.png",
+      "generation_id": "1a86418c-bcdc-4ab7-84a8-53ebdd0c0bc1",
+      "prompt_subject": "无紫线的旧剑，布条绑信与剑谱，小墨解下",
+      "size": [
+        1920,
+        1080
+      ],
+      "alpha_extrema": null,
+      "sha256": "908663550cb8951967c53d3e0eddc1b61d5cf4e258093e24915c0c2cfc112b9c",
+      "status": "normalized; desktop in-engine screenshot reviewed",
+      "source_tool": "built-in imagegen",
+      "date": "2026-10-17",
+      "pivot": "center",
+      "collision": "none; presentation only"
+    },
+    {
+      "id": "ch3_tomb_departure",
+      "kind": "story",
+      "path": "art/story/chapter_three/ch3_tomb_departure_v1.png",
+      "source": "art/story/chapter_three/sources/ch3_tomb_departure_source_v1.png",
+      "generation_id": "c283ac0a-f3fd-4293-aa0f-c79378924326",
+      "prompt_subject": "背身出谷不回头，怀抱信件，身后剑鸣",
+      "size": [
+        1920,
+        1080
+      ],
+      "alpha_extrema": null,
+      "sha256": "6b0b8a6f5eb0e02f9a5fb49e67efd747597659cda6b5fc1798883f8ecae6fe5d",
+      "status": "normalized; desktop in-engine screenshot reviewed",
+      "source_tool": "built-in imagegen",
+      "date": "2026-10-17",
+      "pivot": "center",
+      "collision": "none; presentation only"
+    },
+    {
+      "id": "ch3_final_thread",
+      "kind": "story",
+      "path": "art/story/chapter_three/ch3_final_thread_v1.png",
+      "source": "art/story/chapter_three/sources/ch3_final_thread_source_v1.png",
+      "generation_id": "d68b0293-c0d4-493f-ad59-5707080866ce",
+      "prompt_subject": "戏台最后紫线断裂，戏先生垂首看空手，小墨持剑",
+      "size": [
+        1920,
+        1080
+      ],
+      "alpha_extrema": null,
+      "sha256": "83f20602dc89ee85d81bd57dcfef1466b36aa9c54e91435f5fdedc6df68b131f",
+      "status": "normalized; desktop in-engine screenshot reviewed",
+      "source_tool": "built-in imagegen",
+      "date": "2026-10-17",
+      "pivot": "center",
+      "collision": "none; presentation only"
+    },
+    {
+      "id": "ch3_lamplit_letter",
+      "kind": "story",
+      "path": "art/story/chapter_three/ch3_lamplit_letter_v1.png",
+      "source": "art/story/chapter_three/sources/ch3_lamplit_letter_source_v1.png",
+      "generation_id": "04437d83-d9b8-4cd0-b249-4c969c8dfbe2",
+      "prompt_subject": "家中夜灯下拆信，小墨克制微笑，桌上完整带鞘剑",
+      "size": [
+        1920,
+        1080
+      ],
+      "alpha_extrema": null,
+      "sha256": "22d1c060a89dcd10c2eeb134c9207ec1472936c36c32ef9310f1c86c5c42acc0",
+      "status": "normalized; desktop in-engine screenshot reviewed",
+      "source_tool": "built-in imagegen",
+      "date": "2026-10-17",
+      "pivot": "center",
+      "collision": "none; presentation only"
+    },
+    {
+      "id": "puppeteer",
+      "kind": "enemy",
+      "path": "art/enemies/chapter_three/puppeteer_sprite_v1.png",
+      "source": "art/enemies/chapter_three/sources/puppeteer_source_v1.png",
+      "generation_id": "440e3ad4-159b-4a88-9113-ca8ed4f35d6e",
+      "prompt_subject": "人类戏先生，黑发黑白长衫紫袖，双手操细线，无面具无剑",
+      "size": [
+        768,
+        896
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "sha256": "8da2f9ff771bc738b60964d1448aea7baa567b66300e8c5850e093b93a30ef74",
+      "status": "normalized; desktop in-engine screenshot reviewed",
+      "source_tool": "built-in imagegen",
+      "date": "2026-10-17",
+      "pivot": "bottom center, baseline y=848",
+      "collision": "none; presentation only"
+    },
+    {
+      "id": "bound_spirit",
+      "kind": "enemy",
+      "path": "art/enemies/chapter_three/bound_spirit_sprite_v1.png",
+      "source": "art/enemies/chapter_three/sources/bound_spirit_source_v1.png",
+      "generation_id": "bcb817ab-68ff-4e3d-a0ff-8433558e8345",
+      "prompt_subject": "被牵剑灵，银灰长发，灰白破衣，持直剑，被紫线牵住手腕肩部",
+      "size": [
+        768,
+        896
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "sha256": "98e1506eaac6a3fdb2663cce3e2f5422e07b796ab18a0487cbc4f70f24326d78",
+      "status": "normalized; desktop in-engine screenshot reviewed",
+      "source_tool": "built-in imagegen",
+      "date": "2026-10-17",
+      "pivot": "bottom center, baseline y=848",
+      "collision": "none; presentation only"
+    },
+    {
+      "id": "scroll_jiesi",
+      "kind": "scroll",
+      "path": "art/story/chapter_three/scroll_jiesi_v1.png",
+      "source": "art/story/chapter_three/sources/scroll_jiesi_source_v1.png",
+      "generation_id": "0577917e-9fe3-45c9-a5f4-e560b70834a2",
+      "prompt_subject": "旧纸水墨图，剑断紫线，青色气流托起一张卡牌",
+      "size": [
+        768,
+        896
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "sha256": "5689998c80affe80b34e8c421f363f0640a8e184c0852266d399c935e362414c",
+      "status": "normalized; desktop in-engine screenshot reviewed",
+      "source_tool": "built-in imagegen",
+      "date": "2026-10-17",
+      "pivot": "center",
+      "collision": "none; presentation only"
+    },
+    {
+      "id": "scroll_shoujian",
+      "kind": "scroll",
+      "path": "art/story/chapter_three/scroll_shoujian_v1.png",
+      "source": "art/story/chapter_three/sources/scroll_shoujian_source_v1.png",
+      "generation_id": "2b966e95-b9a2-4503-91c2-7d1057380363",
+      "prompt_subject": "旧纸水墨图，收鞘直剑，两人并肩，剑灵出剑，青色守护弧",
+      "size": [
+        768,
+        896
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "sha256": "81b0cd83a638d371c2fcd9bed1f52063d5ef9a6afad0306ead4b7a3f5df379e9",
+      "status": "normalized; desktop in-engine screenshot reviewed",
+      "source_tool": "built-in imagegen",
+      "date": "2026-10-17",
+      "pivot": "center",
+      "collision": "none; presentation only"
+    }
+  ],
+  "validation": {
+    "engine": "Godot 4.7.2",
+    "tests": [
+      "chapter_three_smoke",
+      "chapter_two_smoke",
+      "card_library_smoke"
+    ],
+    "result": "3/3 passed",
+    "screenshots": 12,
+    "contact_sheet": "art/previews/chapter-three-in-game-v1.jpg",
+    "mobile_device_review": false
+  }
+}

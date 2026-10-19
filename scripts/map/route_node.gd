@@ -21,6 +21,9 @@ var layer_index := 0
 var is_selectable := false
 var is_visited := false
 var is_current := false
+var touch_index := -1
+var touch_origin := Vector2.ZERO
+var touch_dragged := false
 
 
 func setup(type: NodeType, layer: int) -> void:
@@ -29,7 +32,7 @@ func setup(type: NodeType, layer: int) -> void:
 
 	var collision := CollisionShape2D.new()
 	var circle_shape := CircleShape2D.new()
-	circle_shape.radius = NODE_RADIUS
+	circle_shape.radius = 58.0 if _is_mobile() else NODE_RADIUS
 	collision.shape = circle_shape
 	add_child(collision)
 
@@ -59,7 +62,7 @@ func _ready() -> void:
 
 
 func _hover(hovered: bool) -> void:
-	if layer_index >= 0:
+	if layer_index >= 0 and not _is_mobile():
 		scale = Vector2.ONE * (1.08 if hovered and is_selectable else 1.0)
 
 
@@ -177,6 +180,26 @@ func _draw_boss_icon(ink: Color) -> void:
 
 
 func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> void:
+	if _is_mobile():
+		if is_selectable and event is InputEventScreenTouch and event.pressed and touch_index == -1:
+			touch_index = event.index
+			touch_origin = event.position
+			touch_dragged = false
+		return
 	if is_selectable and event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			selected.emit(self)
+
+static func _is_mobile() -> bool:
+	# RouteNode can be loaded by standalone SceneTree tools before autoloads exist.
+	return OS.has_feature("android") or "--mobile-preview" in OS.get_cmdline_user_args()
+
+func _input(event: InputEvent) -> void:
+	if touch_index == -1:
+		return
+	if event is InputEventScreenDrag and event.index == touch_index:
+		touch_dragged = touch_dragged or event.position.distance_to(touch_origin) > 24.0
+	elif event is InputEventScreenTouch and event.index == touch_index and not event.pressed:
+		touch_index = -1
+		if not event.canceled and not touch_dragged and event.position.distance_to(touch_origin) <= 24.0 and is_selectable and visible:
 			selected.emit(self)

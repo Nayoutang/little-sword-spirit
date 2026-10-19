@@ -79,13 +79,20 @@ func run() -> void:
 	check(cautious["card_id"] != trusting["card_id"], "相同战况不同配合历史产生不同离线倾向")
 	context.merge({"player_hp": 5, "incoming_damage": 14, "strongest_attack": 8, "frost_prevention": 4}, true)
 	check(Cards.GRIND_SWORD not in Tactics.candidates(context, options), "致命危险过滤无防护投资")
-	# 已亮出的意向只有明确失效才改牌，并提供原因。
+	# 玩家结束行动后按实时战况重新确认，不沿用预告。
 	battle.start_battle()
 	battle.locked_companion_choice = {"card_id": Cards.GRIND_SWORD, "source": "fallback"}
 	battle.combo = 0
 	battle.grind_sword_ready = true
 	await battle._run_companion_turn()
-	check(battle.companion_last_card_id != Cards.GRIND_SWORD and battle.companion_last_reason.contains("失效"), "重复蓄势意向失效后解释改牌")
+	check(battle.companion_last_card_id != Cards.GRIND_SWORD, "重新确认时排除重复蓄势")
+	battle.start_battle()
+	battle.locked_companion_choice = {"card_id": Cards.GUARD_ECHO, "source": "fallback"}
+	battle.enemy_hps.assign([2, 0])
+	battle.enemy_guards.assign([0, 0])
+	battle.block = 100
+	await battle._run_companion_turn()
+	check(battle.enemy_hps[0] <= 0, "玩家留下残血时重新确认攻击补刀，不沿用防御预告")
 	battle.start_battle()
 	var used_before := int(state.relationship_facts["cooperation"].get("opportunities_used", 0))
 	var wasted_before := int(state.relationship_facts["cooperation"].get("opportunities_wasted", 0))

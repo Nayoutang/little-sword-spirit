@@ -1,0 +1,209 @@
+[
+  {
+    "id": 34,
+    "path": "art/cards/player/34_backwater_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "source_size": [
+      1350,
+      1165
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      503,
+      430
+    ],
+    "sha256": "ffcb4cea7d7662ae2e470eee019e8f084daf134e741468814fc796afaa91453d"
+  },
+  {
+    "id": 35,
+    "path": "art/cards/player/35_lean_sword_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "source_size": [
+      1351,
+      1164
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      15,
+      503,
+      430
+    ],
+    "sha256": "6f49d5224ae3c21dd1ff2bf84b444e3121a7c01553ed622e57592b33aafa48db"
+  },
+  {
+    "id": 36,
+    "path": "art/cards/player/36_entrust_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "source_size": [
+      1350,
+      1165
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      12,
+      503,
+      431
+    ],
+    "sha256": "5a179351b263e309b36826829462b0af4ef52a8e1fb0daa14711af87f0e67b26"
+  },
+  {
+    "id": 37,
+    "path": "art/cards/player/37_follow_flow_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "source_size": [
+      1350,
+      1165
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      19,
+      503,
+      434
+    ],
+    "sha256": "83f4b5c735669780e7a1d0791da523d027294bda280112cf5e4bd4f2e2df237f"
+  },
+  {
+    "id": 38,
+    "path": "art/cards/player/38_borrow_blossom_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "source_size": [
+      1350,
+      1165
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      14,
+      8,
+      503,
+      434
+    ],
+    "sha256": "1d3ab5552eb9b51489a85e15ca023fc82e5ee8aa8a105412ba2931528bd371c6"
+  },
+  {
+    "id": 39,
+    "path": "art/cards/player/39_understanding_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "source_size": [
+      1350,
+      1165
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      12,
+      8,
+      503,
+      434
+    ],
+    "sha256": "1e9a0ae734433babd73b3583a774bdb20d32db513c880995ecb9f8ae190bb41c"
+  },
+  {
+    "id": 40,
+    "path": "art/cards/player/40_setup_step_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "source_size": [
+      1350,
+      1165
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      8,
+      503,
+      430
+    ],
+    "sha256": "c508f54a1305058fef32e41099b7f89299b9818e05935a4a55745a766d0e878d"
+  },
+  {
+    "id": 41,
+    "path": "art/cards/player/41_finishing_touch_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "source_size": [
+      1351,
+      1164
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      18,
+      503,
+      429
+    ],
+    "sha256": "9801f1f46fe2013c0f18d78b5054cf49572dd80d8556eb3efde3dcab2de73099"
+  },
+  {
+    "id": 42,
+    "path": "art/cards/player/42_linked_intent_v1.png",
+    "size": [
+      512,
+      442
+    ],
+    "source_size": [
+      1351,
+      1164
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "bbox": [
+      9,
+      14,
+      503,
+      427
+    ],
+    "sha256": "459b14318d8de6f6f82dcc77c5353d8aec9c83fb3d811d35b9ea3ee74f8a2407"
+  }
+]

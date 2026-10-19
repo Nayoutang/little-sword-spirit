@@ -13,6 +13,7 @@ func run() -> void:
 	state.clear_expedition()
 	state.player_name = "格式兼容测试"
 	state.intro_done = true
+	state.feihualing_state = "unlocked"
 	state.bond_value = 50
 	state.bond_stage = 2
 	state.pending_bond_stage = -1
@@ -34,9 +35,21 @@ func run() -> void:
 	var profile: ConfigFile = state._profile_config()
 	var baseline := ConfigFile.new()
 	assert(baseline.load(BASELINE) == OK)
-	assert(profile.get_sections() == baseline.get_sections())
+	# 第二章增加独立分区；旧分区顺序与所有旧字段仍必须保持原样。
+	var legacy_sections := profile.get_sections()
+	assert(legacy_sections.has("chapter"))
+	legacy_sections.erase("chapter")
+	# 暗线信/执：独立分区，旧档缺省为 0。
+	assert(legacy_sections.has("hidden"))
+	legacy_sections.erase("hidden")
+	assert(legacy_sections == baseline.get_sections())
+	assert(profile.get_value("chapter", "chapter") == state.chapter)
+	assert(profile.get_value("chapter", "trip") == state.chapter_trip)
 	for section in baseline.get_sections():
-		assert(profile.get_section_keys(section) == baseline.get_section_keys(section))
+		var keys := profile.get_section_keys(section)
+		# 新增字段：飞花令开放进度（旧档缺省时按进度推算）。
+		keys.erase("feihualing")
+		assert(keys == baseline.get_section_keys(section))
 		for key in baseline.get_section_keys(section):
 			assert(profile.get_value(section, key) == baseline.get_value(section, key), section + "/" + key)
 	state.current_save_slot = 1
@@ -47,5 +60,6 @@ func run() -> void:
 	for section in baseline.get_sections():
 		for key in baseline.get_section_keys(section):
 			assert(profile.get_value(section, key) == baseline.get_value(section, key), "round trip: " + section + "/" + key)
+	assert(state.feihualing_state == "unlocked")
 	print("PROFILE FORMAT: PASS (all prior fields equal, isolated disk round trip)")
 	quit(0)

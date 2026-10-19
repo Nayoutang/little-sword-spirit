@@ -24,6 +24,9 @@ var current_node: RouteNode
 var player_marker: Sprite2D
 var layer_node_types: Array[Array] = []
 var map_rng := RandomNumberGenerator.new()
+# 第二章：从起点牵到首领的一条紫线；线上的战斗会缠住小墨。
+const THREAD_COLOR := Color(0.55, 0.32, 0.78, 0.85)
+var thread_nodes: Array[RouteNode] = []
 
 
 
@@ -36,6 +39,7 @@ func _ready() -> void:
 	_build_legend()
 	preload("res://scripts/ui/card_library.gd").install_deck_view(self, $MapUI, Vector2(1490, 24))
 	preload("res://scripts/ui/save_exit_button.gd").install(self, $MapUI, Vector2(1240, 24))
+	preload("res://scripts/ui/relic_view.gd").install(self, $MapUI, Vector2(1020, 24))
 	RunState.checkpoint("map")
 
 
@@ -95,6 +99,9 @@ func _generate_map() -> void:
 
 	_build_connections()
 	_draw_connections()
+	if RunState.uses_thread_rules():
+		_build_thread_path()
+		_draw_thread_path()
 	var restored_layer := mini(RunState.map_layer, layers.size() - 1)
 	var restored_index := mini(RunState.map_node, layers[restored_layer].size() - 1)
 	current_node = layers[restored_layer][restored_index]
@@ -103,8 +110,10 @@ func _generate_map() -> void:
 	_create_player_marker()
 	_refresh_node_states()
 	_set_map_scroll(restored_layer * LAYER_SPACING - 340)
-	$MapUI/Title.text = "山行图卷 · %d / %d" % [restored_layer, TOTAL_LAYERS - 1]
-	$MapUI/Hint.text = "青色标记可前往 · 滚轮或↑↓展开图卷"
+	$MapUI/Title.text = "%s · %d / %d" % ["追线图卷" if RunState.uses_thread_rules() else "山行图卷", restored_layer, TOTAL_LAYERS - 1]
+	$MapUI/Hint.text = "青色标记可前往 · 上下滑动展开图卷" if WindowMode.is_mobile() else "青色标记可前往 · 滚轮或↑↓展开图卷"
+	if RunState.uses_thread_rules():
+		$MapUI/Hint.text = "紫线上的战斗会缠住小墨，奖励更多 · " + $MapUI/Hint.text
 
 
 func _set_map_scroll(value: float) -> void:
@@ -121,7 +130,10 @@ func _set_map_scroll(value: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
+	if event is InputEventScreenDrag:
+		_set_map_scroll(map_scroll + event.relative.y)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_set_map_scroll(map_scroll + 120)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
@@ -273,6 +285,41 @@ func _draw_connections() -> void:
 			$MapContent.add_child(line)
 
 
+# 紫线路径只由地图种子决定，重新进入地图时得到同一条线。
+func _build_thread_path() -> void:
+	thread_nodes.clear()
+	var thread_rng := RandomNumberGenerator.new()
+	thread_rng.seed = RunState.ensure_map_seed() ^ 0x2d2d5a5a
+	var node: RouteNode = layers[0][0]
+	while true:
+		var next: Array = connections.get(node, [])
+		if next.is_empty():
+			break
+		node = next[thread_rng.randi_range(0, next.size() - 1)]
+		thread_nodes.append(node)
+
+
+func is_on_thread(route_node: RouteNode) -> bool:
+	return thread_nodes.has(route_node)
+
+
+func _draw_thread_path() -> void:
+	var previous: RouteNode = layers[0][0]
+	for node in thread_nodes:
+		var line := Line2D.new()
+		line.z_index = 1
+		line.width = 6.0
+		line.default_color = THREAD_COLOR
+		var midpoint := (previous.position + node.position) * 0.5
+		line.points = PackedVector2Array([previous.position, midpoint + Vector2(0, 12), node.position])
+		line.antialiased = true
+		line.set_meta("from", previous)
+		line.set_meta("to", node)
+		line.set_meta("thread", true)
+		$MapContent.add_child(line)
+		previous = node
+
+
 func _create_player_marker() -> void:
 	player_marker = Sprite2D.new()
 	player_marker.z_index = 3
@@ -296,6 +343,7 @@ func _on_node_selected(route_node: RouteNode) -> void:
 		return
 	current_node = route_node
 	RunState.visit_map_node(current_node.layer_index, layers[current_node.layer_index].find(current_node))
+	RunState.node_on_thread = is_on_thread(current_node)
 	player_marker.position = _marker_position(current_node)
 	_refresh_node_states()
 	enter_node(current_node.node_type)
@@ -306,7 +354,7 @@ func _refresh_node_states() -> void:
 			var is_current := route_node == current_node
 			route_node.set_map_state(available_nodes.has(route_node), route_node.is_visited or is_current, is_current)
 	for child in $MapContent.get_children():
-		if child is Line2D:
+		if child is Line2D and not child.has_meta("thread"):
 			var from_node: RouteNode = child.get_meta("from")
 			var to_node: RouteNode = child.get_meta("to")
 			child.default_color = Color("#368e86") if from_node == current_node and available_nodes.has(to_node) else Color(0.40, 0.33, 0.23, 0.30)
@@ -345,7 +393,14 @@ func enter_node(node_type: RouteNode.NodeType) -> void:
 			else:
 				start_event(RunState.EventType.UNKNOWN)
 		RouteNode.NodeType.ADVENTURE:
+			var chapter_story := RunState.chapter_layer_story() if RunState.route_layer == COMIC_ADVENTURE_LAYER else ""
+			if not chapter_story.is_empty():
+				RunState.checkpoint("story", {"story": chapter_story})
+				RunState.navigate("chapter_story", self)
+				return
 			var destination := "poetry" if RunState.route_layer in POETRY_LAYERS else "adventure"
+			if destination == "poetry":
+				RunState.note_feihualing_met()
 			RunState.checkpoint("poetry" if RunState.route_layer in POETRY_LAYERS else "adventure")
 			RunState.navigate(destination, self)
 
@@ -353,7 +408,7 @@ func enter_node(node_type: RouteNode.NodeType) -> void:
 # 所有战斗节点共用入口，通过 RunState 把遭遇类型传给战斗场景。
 func start_battle(encounter_type: RunState.EncounterType) -> void:
 	RunState.prepare_encounter(encounter_type)
-	RunState.checkpoint("battle")
+	RunState.checkpoint("battle", {"on_thread": RunState.node_on_thread} if RunState.uses_thread_rules() else {})
 	RunState.navigate("battle", self)
 
 

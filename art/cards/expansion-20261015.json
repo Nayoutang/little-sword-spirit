@@ -1,0 +1,131 @@
+{
+  "date": "2026-10-15",
+  "tool": "built-in imagegen",
+  "reference": "E:/GameDev/Projects/Godot/little-sword-spirit/art/cards/player/16_chase_wind_v1.png",
+  "normalization": {
+    "canvas": [
+      512,
+      442
+    ],
+    "content_max": [
+      496,
+      426
+    ],
+    "alpha": true,
+    "method": "Godot Image Lanczos, aspect-preserving fit, transparent padding"
+  },
+  "assets": [
+    {
+      "id": 20,
+      "name": "借势",
+      "source": "art/cards/sources/expansion_20261015/20_borrow_momentum_source_v1.png",
+      "runtime": "art/cards/player/20_borrow_momentum_v1.png",
+      "generation_id": "afdb354a-37e0-41f9-b3bf-fe34b7a2bf70",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '借势': Xiaomo thrusts a straight sword forward from behind a translucent teal shield crescent on her left; the defensive arc feeds into a single sweeping forward sword stroke. Low diagonal stance, determined face. Show borrowing protection to gain attack momentum, one character only, no second person."
+    },
+    {
+      "id": 21,
+      "name": "开路",
+      "source": "art/cards/sources/expansion_20261015/21_clear_path_source_v1.png",
+      "runtime": "art/cards/player/21_clear_path_v1.png",
+      "generation_id": "aaf8751a-e128-4601-a63c-4ef77fbdf019",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '开路': Xiaomo sweeps her straight jian horizontally to part a dense black ink barrier into two open halves, creating a bright clear teal corridor behind her for the next strike. Broad left-to-right action, visible face three quarter, distant mountains only inside ink vignette."
+    },
+    {
+      "id": 22,
+      "name": "递剑",
+      "source": "art/cards/sources/expansion_20261015/22_hand_sword_source_v1.png",
+      "runtime": "art/cards/player/22_hand_sword_v1.png",
+      "generation_id": "9b06c5a8-890c-48ca-9070-a30a5fd20751",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '递剑': Xiaomo stands turned three quarter toward viewer, gently extends a straight jian HILT FIRST toward an unseen ally outside the image; her hand supports the FLAT of blade carefully with cloth while other hand gestures open. Clear handoff gesture, calm trust, small teal protective crescent curves behind shoulders. Do not draw another character, avoid pointing sword tip at viewer."
+    },
+    {
+      "id": 23,
+      "name": "承让",
+      "source": "art/cards/sources/expansion_20261015/23_yield_turn_source_v1.png",
+      "runtime": "art/cards/player/23_yield_turn_v1.png",
+      "generation_id": "51d41578-c3c2-4fd4-af5a-aea3deca353a",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '承让': Xiaomo steps aside toward right with graceful small bow and open inviting palm, leaves a clear luminous stepping-stone path on left foreground for unseen ally. Sword held lowered safely in other hand, teal wind and two loose paper-like ink leaves flow into open space. Playful composed expression; theme handing opportunity to partner."
+    },
+    {
+      "id": 24,
+      "name": "收势",
+      "source": "art/cards/sources/expansion_20261015/24_close_form_source_v1.png",
+      "runtime": "art/cards/player/24_close_form_v1.png",
+      "generation_id": "2ac47bcc-1129-4d78-8771-cc71de78b0f7",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '收势': Xiaomo ends a powerful sword sweep in a low settled stance, straight sword held low across side, THREE previous teal sword arcs converge into a compact golden spark at sword tip rather than exploding. Face focused, controlled finishing movement and momentum left ready for an ally, dark ink mountains behind."
+    },
+    {
+      "id": 25,
+      "name": "并肩",
+      "source": "art/cards/sources/expansion_20261015/25_side_by_side_source_v1.png",
+      "runtime": "art/cards/player/25_side_by_side_v1.png",
+      "generation_id": "4da156dd-02c2-4090-bff2-1447842d64ff",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '并肩': Xiaomo braces with sword horizontally in front of chest, TWO adjacent interlocking teal shield arcs bloom to left and right as though guarding beside an unseen ally. One character only, firm wide stance, warm determined amber eyes. Bilateral defensive composition clearly different from single shield."
+    },
+    {
+      "id": 26,
+      "name": "蓄意",
+      "source": "art/cards/sources/expansion_20261015/26_intent_hold_source_v1.png",
+      "runtime": "art/cards/player/26_intent_hold_v1.png",
+      "generation_id": "9bfa246d-eeb2-4cb0-9af7-232439a5a7ca",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '蓄意': Xiaomo stands poised with jian lowered, calm eyes, a spiraling chain of teal brushstroke sword trails coils tightly around her like a compressed spring, half remains luminous and half fades to grey ink showing retained momentum. Upright central composition, no attack release, charcoal mountain rocks and small gold sparks."
+    },
+    {
+      "id": 27,
+      "name": "不动",
+      "source": "art/cards/sources/expansion_20261015/27_unmoved_source_v1.png",
+      "runtime": "art/cards/player/27_unmoved_v1.png",
+      "generation_id": "c382e15f-6680-4d37-b111-c9ac66e3cb6a",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '不动': Xiaomo plants both boots on a broad dark ink rock, sword vertical before her body, still grounded posture while teal wind and falling leaves rush past. A layered translucent teal dome shields her without hiding face, stable square composition, stoic determination, no motion blur on character."
+    },
+    {
+      "id": 28,
+      "name": "听风",
+      "source": "art/cards/sources/expansion_20261015/28_hear_wind_source_v1.png",
+      "runtime": "art/cards/player/28_hear_wind_v1.png",
+      "generation_id": "ad459652-9f5c-475b-b5c1-f4fbe213acad",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '听风': Xiaomo turns head attentively with eyes half closed, holds one hand beside ear listening, other hand carries straight sword downward; THREE thin teal wind ribbons curve past her ear then coil toward sword tip with small amber resonance spark. Quiet alert ready-to-counter pose; bamboo and sparse ink leaves."
+    },
+    {
+      "id": 29,
+      "name": "同调",
+      "source": "art/cards/sources/expansion_20261015/29_attune_source_v1.png",
+      "runtime": "art/cards/player/29_attune_v1.png",
+      "generation_id": "70041b41-f85e-4ec1-bc0a-9c27169811a9",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '同调': Xiaomo holds straight jian close to heart with serene trusting gaze, TWO teal concentric wave rings of different origins meet in one warm gold resonance point on blade, ribbons form a balanced interlocking loop. One character only, inviting subtle open palm, ink lotus water motif in small vignette."
+    },
+    {
+      "id": 30,
+      "name": "孤注",
+      "source": "art/cards/sources/expansion_20261015/30_all_in_source_v1.png",
+      "runtime": "art/cards/player/30_all_in_v1.png",
+      "generation_id": "840acf29-7330-4ba4-a446-ada14d7beb19",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '孤注': Xiaomo lunges with both hands driving ONE straight jian in a decisive diagonal thrust, all surrounding teal sword arcs funnel into ONE brilliant gold-white point while their tails dissolve into black ink fragments. Fierce resolved face, high contrast burst, expend all accumulated momentum, no gore no extra weapons."
+    },
+    {
+      "id": 31,
+      "name": "后发",
+      "source": "art/cards/sources/expansion_20261015/31_late_strike_source_v1.png",
+      "runtime": "art/cards/player/31_late_strike_v1.png",
+      "generation_id": "99f68c02-60ea-47ff-a290-6f6bca4c059d",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '后发': Xiaomo pivots out from THREE layered fading teal defensive crescents behind her, swings straight jian in a precise golden counterattack toward lower left. Defensive arcs visibly become forward teal blade trail, firm feet and patient concentrated expression, clear counterattack after waiting."
+    },
+    {
+      "id": 32,
+      "name": "挑丝",
+      "source": "art/cards/sources/expansion_20261015/32_pick_thread_source_v1.png",
+      "runtime": "art/cards/player/32_pick_thread_v1.png",
+      "generation_id": "16143969-f12c-4a0e-8cb7-5f4fde6ab4c4",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD '挑丝': Xiaomo delicately flicks straight jian upward beneath TWO fine violet puppet strings at upper right, severing them with clear broken ends and tiny violet recoil sparks. Focused determined eyes looking at cut, elegant rising motion and teal blade trail, wood puppet control cross faintly visible in ink vignette far upper right. No threads around neck."
+    },
+    {
+      "id": 33,
+      "name": "护心",
+      "source": "art/cards/sources/expansion_20261015/33_guard_heart_source_v1.png",
+      "runtime": "art/cards/player/33_guard_heart_v1.png",
+      "generation_id": "2134b66a-bea0-4f15-8d96-5acb52a74b37",
+      "prompt": "Production game card COVER illustration ONLY, no card frame, no text numbers symbols lettering watermark or UI. Single image near-square landscape 512:442 aspect, actual TRANSPARENT background outside irregular torn rice-paper ink-wash vignette. Use attached image ONLY as identity and art-style reference, not pose: SAME adorable compact chibi Xiaomo, big amber eyes, long dark-brown ponytail, white flower gold hairpins, teal ribbons, white/teal/gold martial dress dark boots; same painterly Chinese ink scenery, charcoal splashes, teal sword energy and restrained gold sparks. One coherent bold action, readable at 176x152 px, complete head hands sword and feet in frame with margins, illustration fills most of cover. Chinese straight double-edged jian, short handle one crossguard, never katana. New unique composition, not copy reference pose. CARD GUARD HEART. Simple front-facing compact chibi Xiaomo, ONLY TWO ARMS and TWO HANDS clearly visible. BOTH HANDS clasp the SAME sword handle together directly in front of chest, blade vertical points upward, arms symmetrical bent naturally close to torso. No free hand, no rear arm, no extended arm. Two thin violet puppet strings wrap around the sword blade ABOVE her hands, pulling toward upper left. Large teal-and-gold protective dome behind her, gold shield reinforcement light around chest. Firm wide stance, determined amber eyes looking straight forward, long hair flows behind her without any limbs behind it. Exactly two hands on ONE sword handle, simple clean anatomy. Ink mountain vignette transparent edges."
+    }
+  ]
+}

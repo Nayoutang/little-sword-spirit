@@ -10,8 +10,15 @@ func run() -> void:
 	var controller = load("res://scripts/home/feihualing_controller.gd").new()
 	var seen := {}
 	var previous := ""
-	for index in range(FeihualingGame.CHARACTERS.size()):
+	var keywords := OfflinePoetry.keywords()
+	if keywords.is_empty():
+		push_error("离线令字池不能为空")
+		failed = true
+	for index in range(keywords.size()):
 		var keyword: String = controller._draw_keyword()
+		if keyword not in keywords:
+			push_error("抽到离线诗库不支持的令字：%s" % keyword)
+			failed = true
 		if seen.has(keyword):
 			push_error("令字池尚未抽完就重复：%s" % keyword)
 			failed = true

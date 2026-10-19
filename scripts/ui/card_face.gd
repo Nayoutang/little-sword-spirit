@@ -57,15 +57,45 @@ func _card_info() -> Dictionary:
 
 func _draw_full(info: Dictionary) -> void:
 	var font := FONT
+	var accent: Color = info["accent"]
 	draw_texture_rect(FRAME_ART, Rect2(0, 0, 200, 280), false)
 	_draw_cover(Rect2(12, 12, 176, 152))
-	draw_circle(Vector2(25, 25), 20, Color("#163f3c"))
-	draw_arc(Vector2(25, 25), 20, 0, TAU, 36, Color("#c9a569"), 2, true)
+	# 类型色描边：远看也能分出攻击 / 防御 / 技巧 / 能力
+	var edge := StyleBoxFlat.new()
+	edge.bg_color = Color(0, 0, 0, 0)
+	edge.draw_center = false
+	edge.set_border_width_all(5)
+	edge.set_corner_radius_all(12)
+	edge.border_color = accent
+	draw_style_box(edge, Rect2(2, 2, 196, 276))
+	draw_rect(Rect2(12, 12, 176, 152), Color(accent.r, accent.g, accent.b, 0.85), false, 2.0)
+	# 费用圆圈跟随类型色
+	draw_circle(Vector2(25, 25), 20, accent.darkened(0.55))
+	draw_arc(Vector2(25, 25), 20, 0, TAU, 36, accent.lightened(0.15), 2.5, true)
 	draw_string(font, Vector2(6, 33), str(info["cost"]), HORIZONTAL_ALIGNMENT_CENTER, 38, 24, Color("#fff6e6"))
+	# 右上角类型印章：同一类型同一个字
+	var seal := StyleBoxFlat.new()
+	seal.bg_color = accent.darkened(0.5)
+	seal.set_border_width_all(2)
+	seal.border_color = accent.lightened(0.1)
+	seal.set_corner_radius_all(4)
+	draw_style_box(seal, Rect2(158, 9, 32, 32))
+	draw_string(font, Vector2(158, 33), _seal_char(str(info["type"])), HORIZONTAL_ALIGNMENT_CENTER, 32, 21, Color("#fff6e6"))
 	draw_string(font, Vector2(13, 190), str(info["name"]), HORIZONTAL_ALIGNMENT_CENTER, 174, 23, Color("#182826"))
 	_draw_fitted_text(str(info["primary"]), Vector2(15, 221), 170, 17, Color("#223531"))
 	_draw_fitted_text(str(info["secondary"]), Vector2(15, 244), 170, 15, Color("#304941"))
-	draw_string(font, Vector2(15, 265), str(info["type"]), HORIZONTAL_ALIGNMENT_CENTER, 170, 11, Color("#665433"))
+	# 底部类型色带
+	var ribbon := StyleBoxFlat.new()
+	ribbon.bg_color = accent.darkened(0.35)
+	ribbon.set_corner_radius_all(6)
+	draw_style_box(ribbon, Rect2(55, 252, 90, 20))
+	draw_string(font, Vector2(55, 267), str(info["type"]), HORIZONTAL_ALIGNMENT_CENTER, 90, 14, Color("#fff6e6"))
+
+
+func _seal_char(card_type: String) -> String:
+	const SEALS := {"攻击": "攻", "防御": "守", "技巧": "技", "能力": "能", "诅咒": "咒",
+		"特殊技": "流", "终极技": "华", "自保": "守", "援护": "援", "剑意": "意"}
+	return SEALS.get(card_type, card_type.left(1))
 
 
 func _draw_cover(rect: Rect2) -> void:

@@ -21,6 +21,46 @@ const CHASE_WIND := 16
 const SHIELD_STRIKE := 17
 const RETAIN_SHIELD := 18
 const PARRY := 19
+# 2026-10-15 扩充：读小墨意向的配合牌、流派引擎、新动作、第二章紫线牌。
+const BORROW_MOMENTUM := 20
+const CLEAR_PATH := 21
+const HAND_SWORD := 22
+const YIELD_TURN := 23
+const CLOSE_FORM := 24
+const SIDE_BY_SIDE := 25
+const INTENT_HOLD := 26
+const UNMOVED := 27
+const HEAR_WIND := 28
+const ATTUNE := 29
+const ALL_IN := 30
+const LATE_STRIKE := 31
+const PICK_THREAD := 32
+const GUARD_HEART := 33
+# 2026-10-19 构筑路线：守护流（背水、倚剑、托付）、让给你流（顺势、借花、心照）、收尾流（垫步、点睛、剑意相连）。
+const BACK_TO_WATER := 34
+const LEAN_ON_SWORD := 35
+const ENTRUST := 36
+const GO_WITH_FLOW := 37
+const BORROW_BLOSSOM := 38
+const HEART_SYNC := 39
+const STEP_PAD := 40
+const FINAL_TOUCH := 41
+const LINKED_INTENT := 42
+# 构筑路线（奖励权重用）
+const ROUTE_GUARD := [BORROW_MOMENTUM, SIDE_BY_SIDE, UNMOVED, SHIELD_STRIKE, RETAIN_SHIELD, BACK_TO_WATER, LEAN_ON_SWORD, ENTRUST]
+const ROUTE_INVEST := [YIELD_TURN, ATTUNE, HAND_SWORD, SHADOW_STEP, TUNE_BREATH, GO_WITH_FLOW, BORROW_BLOSSOM, HEART_SYNC]
+const ROUTE_FINISHER := [CLEAR_PATH, CLOSE_FORM, INTENT_HOLD, COMBO_BOOST, BREAK_EDGE, HIDE_EDGE, ALL_IN, STEP_PAD, FINAL_TOUCH, LINKED_INTENT]
+const ROUTE_ENGINES := {ENTRUST: ROUTE_GUARD, HEART_SYNC: ROUTE_INVEST, LINKED_INTENT: ROUTE_FINISHER}
+
+# 小墨亮出的意向类别（battle.gd 的 _companion_intent_kind 给出）。
+const INTENT_GUARD := "guard"
+const INTENT_ATTACK := "attack"
+const INTENT_INVEST := "invest"
+const INTENT_FINISHER := "finisher"
+const RARITY_COMMON := "common"
+const RARITY_UNCOMMON := "uncommon"
+const RARITY_RARE := "rare"
+const RARITY_WEIGHTS := {"common": 6, "uncommon": 3, "rare": 1}
 
 # 可打出的手牌统一按效果顺序执行；数值与展示共用同条定义字段。
 const TARGET_NONE := "none"
@@ -34,6 +74,10 @@ const EFFECT_BATTLE_STATE := "battle_state"
 const EFFECT_REACTION := "reaction"
 const EFFECT_VULNERABLE := "vulnerable"
 const EFFECT_REDUCE_ATTACK := "reduce_attack"
+const EFFECT_ENERGY := "energy"
+const EFFECT_COMPANION_DAMAGE := "companion_damage"
+const EFFECT_COMPANION_BLOCK := "companion_block"
+const EFFECT_THREAD_PIERCE := "thread_pierce"
 const COMBO_PRESERVE := "preserve"
 const COMBO_ADD := "add"
 const COMBO_CLEAR := "clear"
@@ -310,6 +354,303 @@ const DEFINITIONS := {
 		"battle": "[藏锋·防御]\n费1 格挡6\n本回合结束连击不清零",
 		"reward": "藏锋\n费1 / 格挡6 / 回合结束保留连击",
 	},
+	BORROW_MOMENTUM: {
+		"effects": [
+			{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scaled": true},
+			{"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount_key": "combo"},
+		],
+		"cost_rule": {"free_when_intent": [INTENT_GUARD]},
+		"result_template": "借势：攻击敌人{target}，造成 {damage} 伤害，连击 +1",
+		"target": TARGET_SELECTED_ENEMY,
+		"name": "借势", "type": "攻击", "cost": 1, "rarity": RARITY_COMMON,
+		"damage": 6, "combo": 1,
+		"face": ["基础伤害 6·连击+1", "她要守护时：费用 0"],
+		"battle": "[借势·攻击]\n费1 基础伤害6 / 连击+1\n小墨本回合意向为守护时，费用0",
+		"reward": "借势\n费1 / 基础伤害6 / 连击+1\n她要守护时费用0",
+	},
+	CLEAR_PATH: {
+		"effects": [
+			{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scaled": true},
+			{"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount_key": "combo"},
+			{"kind": EFFECT_COMPANION_DAMAGE, "amount_key": "companion_damage", "requires_intent": [INTENT_ATTACK, INTENT_FINISHER]},
+		],
+		"result_template": "开路：攻击敌人{target}，造成 {damage} 伤害，连击 +1{companion}",
+		"target": TARGET_SELECTED_ENEMY,
+		"name": "开路", "type": "攻击", "cost": 1, "rarity": RARITY_COMMON,
+		"damage": 5, "combo": 1, "companion_damage": 5,
+		"face": ["基础伤害 5·连击+1", "她要攻击时：她这击+5"],
+		"battle": "[开路·攻击]\n费1 基础伤害5 / 连击+1\n小墨本回合要攻击时，她这一击伤害+5",
+		"reward": "开路\n费1 / 基础伤害5 / 连击+1\n她要攻击时，她这一击+5",
+	},
+	HAND_SWORD: {
+		"combo_protection_candidate": true,
+		"effects": [
+			{"kind": EFFECT_BLOCK, "amount_key": "block"},
+			{"kind": EFFECT_COMBO, "mode": COMBO_CLEAR, "respect_combo_protection": true, "consume_protection": true, "consume_reason": "defense", "unless_intent": [INTENT_ATTACK, INTENT_FINISHER]},
+		],
+		"result_template": "递剑：获得 {block} 格挡{combo_note}",
+		"protected_result_template": "递剑：获得 {block} 格挡；断水生效，连击保留",
+		"target": TARGET_NONE,
+		"name": "递剑", "type": "防御", "cost": 1, "rarity": RARITY_COMMON,
+		"block": 5,
+		"face": ["格挡 5", "她要攻击时：不清连击"],
+		"battle": "[递剑·防御]\n费1 格挡5 / 清空连击\n小墨本回合要攻击时，连击不清零",
+		"reward": "递剑\n费1 / 格挡5\n她要攻击时连击不清零",
+	},
+	YIELD_TURN: {
+		"effects": [
+			{"kind": EFFECT_DRAW, "amount_key": "draw", "mode": DRAW_EMPTY_SLOTS},
+			{"kind": EFFECT_ENERGY, "amount_key": "energy", "requires_intent": [INTENT_INVEST]},
+		],
+		"result_template": "承让：抽取 {drawn} 张牌{energy_note}",
+		"target": TARGET_NONE,
+		"name": "承让", "type": "技巧", "cost": 1, "rarity": RARITY_UNCOMMON,
+		"draw": 2, "energy": 1,
+		"face": ["抽牌 2", "她要让给你时：精力+1"],
+		"battle": "[承让·技巧]\n费1 抽2张\n小墨本回合要把机会让给你时，再恢复1精力",
+		"reward": "承让\n费1 / 抽2张\n她让给你时精力+1",
+	},
+	CLOSE_FORM: {
+		"effects": [
+			{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scale_key": "combo_scale"},
+			{"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount_key": "finisher_combo", "requires_intent": [INTENT_FINISHER]},
+		],
+		"result_template": "收势：攻击敌人{target}，造成 {damage} 伤害{combo_note}",
+		"target": TARGET_SELECTED_ENEMY,
+		"name": "收势", "type": "攻击", "cost": 2, "rarity": RARITY_RARE,
+		"damage": 10, "combo_scale": 3, "finisher_combo": 2,
+		"face": ["伤害 10+连击×3", "她要收尾时：连击+2留给她"],
+		"battle": "[收势·攻击]\n费2 伤害10+连击×3 / 不清连击\n小墨本回合要收尾时，再给连击+2留给她",
+		"reward": "收势\n费2 / 伤害10+连击×3\n她要收尾时连击+2",
+	},
+	SIDE_BY_SIDE: {
+		"combo_protection_candidate": true,
+		"effects": [
+			{"kind": EFFECT_BLOCK, "amount_key": "block", "intent_bonus_key": "together_bonus", "bonus_intent": [INTENT_GUARD]},
+			{"kind": EFFECT_COMPANION_BLOCK, "amount_key": "together_bonus", "requires_intent": [INTENT_GUARD]},
+			{"kind": EFFECT_COMBO, "mode": COMBO_CLEAR, "respect_combo_protection": true, "consume_protection": true, "consume_reason": "defense"},
+		],
+		"result_template": "并肩：获得 {block} 格挡，连击清零{companion}",
+		"protected_result_template": "并肩：获得 {block} 格挡；断水生效，连击保留{companion}",
+		"target": TARGET_NONE,
+		"name": "并肩", "type": "防御", "cost": 1, "rarity": RARITY_COMMON,
+		"block": 8, "together_bonus": 3,
+		"face": ["格挡 8·清连击", "她也守护时：两人护盾+3"],
+		"battle": "[并肩·防御]\n费1 格挡8 / 清空连击\n小墨本回合也守护时，你和她的护盾都+3",
+		"reward": "并肩\n费1 / 格挡8\n她也守护时两人护盾各+3",
+	},
+	INTENT_HOLD: {
+		"effects": [{"kind": EFFECT_BATTLE_STATE, "flag": "intent_hold_active"}],
+		"result_template": "蓄意：本场回合末连击只减半",
+		"active_flag": "intent_hold_active",
+		"target": TARGET_NONE,
+		"name": "蓄意", "type": "能力", "cost": 2, "rarity": RARITY_RARE,
+		"face": ["回合末连击只减半", "能力·主动连击核心"],
+		"battle": "[蓄意·能力]\n费2 本场生效，同名不叠加\n回合末连击不清零，只减半",
+		"reward": "蓄意\n费2 / 回合末连击只减半 / 能力",
+	},
+	UNMOVED: {
+		"effects": [{"kind": EFFECT_BATTLE_STATE, "flag": "unmoved_active"}],
+		"result_template": "不动：每回合开始获得格挡，她护你时再加",
+		"active_flag": "unmoved_active",
+		"target": TARGET_NONE,
+		"name": "不动", "type": "能力", "cost": 1, "rarity": RARITY_UNCOMMON,
+		"block": 3, "companion_block": 3,
+		"face": ["每回合开始格挡 3", "她每次护你再+3"],
+		"battle": "[不动·能力]\n费1 本场生效，同名不叠加\n每回合开始获得3格挡\n小墨每次给你护盾，额外+3",
+		"reward": "不动\n费1 / 每回合开始格挡3\n她护你时再+3 / 能力",
+	},
+	HEAR_WIND: {
+		"effects": [{"kind": EFFECT_BATTLE_STATE, "flag": "hear_wind_active"}],
+		"result_template": "听风：回锋多反击一次，反击给她蓄力",
+		"active_flag": "hear_wind_active",
+		"target": TARGET_NONE,
+		"name": "听风", "type": "能力", "cost": 1, "rarity": RARITY_UNCOMMON,
+		"reaction_bonus": 1, "companion_damage": 2,
+		"face": ["回锋反击上限+1", "每次反击：她下击+2"],
+		"battle": "[听风·能力]\n费1 本场生效，同名不叠加\n回锋反击上限+1\n每次反击让小墨下次出手伤害+2",
+		"reward": "听风\n费1 / 回锋反击上限+1\n反击让她下次伤害+2 / 能力",
+	},
+	ATTUNE: {
+		"effects": [{"kind": EFFECT_BATTLE_STATE, "flag": "attune_active"}],
+		"result_template": "同调：接住她留下的机会时抽牌回精力",
+		"active_flag": "attune_active",
+		"target": TARGET_NONE,
+		"name": "同调", "type": "能力", "cost": 2, "rarity": RARITY_RARE,
+		"draw": 1, "energy": 1,
+		"face": ["接住她的机会：抽1", "精力+1·能力"],
+		"battle": "[同调·能力]\n费2 本场生效，同名不叠加\n每当你用掉小墨留下的机会\n抽1张，恢复1精力",
+		"reward": "同调\n费2 / 用掉她留的机会时抽1张、精力+1 / 能力",
+	},
+	ALL_IN: {
+		"effects": [
+			{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scale_key": "combo_scale"},
+			{"kind": EFFECT_COMBO, "mode": COMBO_CLEAR, "consume_reason": "skill"},
+		],
+		"exhaust": true,
+		"result_template": "孤注：攻击敌人{target}，造成 {damage} 伤害，连击清零；本场移除",
+		"target": TARGET_SELECTED_ENEMY,
+		"name": "孤注", "type": "攻击", "cost": 0, "rarity": RARITY_UNCOMMON,
+		"damage": 0, "combo_scale": 5,
+		"face": ["伤害 连击×5", "连击清零·本场移除"],
+		"battle": "[孤注·攻击]\n费0 伤害=连击×5 / 连击清零\n打出后本场移除",
+		"reward": "孤注\n费0 / 伤害=连击×5 / 连击清零\n打出后本场移除",
+	},
+	LATE_STRIKE: {
+		"effects": [
+			{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scaled": true, "defense_scale_key": "per_defense"},
+			{"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount_key": "combo"},
+		],
+		"result_template": "后发：攻击敌人{target}，造成 {damage} 伤害，连击 +1",
+		"target": TARGET_SELECTED_ENEMY,
+		"name": "后发", "type": "攻击", "cost": 2, "rarity": RARITY_UNCOMMON,
+		"damage": 10, "per_defense": 5, "combo": 1,
+		"face": ["基础伤害 10·连击+1", "本回合每张防御+5"],
+		"battle": "[后发·攻击]\n费2 基础伤害10 / 连击+1\n本回合每打出过一张防御牌，伤害+5",
+		"reward": "后发\n费2 / 基础伤害10 / 连击+1\n本回合每张防御牌+5",
+	},
+	PICK_THREAD: {
+		"chapter": 2,
+		"effects": [
+			{"kind": EFFECT_THREAD_PIERCE},
+			{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scaled": true},
+			{"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount_key": "combo"},
+		],
+		"result_template": "挑丝：攻击敌人{target}，造成 {damage} 伤害，连击 +1",
+		"target": TARGET_SELECTED_ENEMY,
+		"name": "挑丝", "type": "攻击", "cost": 1, "rarity": RARITY_COMMON,
+		"damage": 4, "combo": 1,
+		"face": ["基础伤害 4·连击+1", "打持线者算两次命中"],
+		"battle": "[挑丝·攻击]\n费1 基础伤害4 / 连击+1\n打中持线者时算2次命中",
+		"reward": "挑丝\n费1 / 基础伤害4 / 连击+1\n打持线者算2次命中",
+	},
+	GUARD_HEART: {
+		"chapter": 2,
+		"combo_protection_candidate": true,
+		"effects": [
+			{"kind": EFFECT_BLOCK, "amount_key": "block", "thread_bonus_key": "thread_bonus"},
+			{"kind": EFFECT_COMBO, "mode": COMBO_CLEAR, "respect_combo_protection": true, "consume_protection": true, "consume_reason": "defense"},
+		],
+		"result_template": "护心：获得 {block} 格挡，连击清零",
+		"protected_result_template": "护心：获得 {block} 格挡；断水生效，连击保留",
+		"target": TARGET_NONE,
+		"name": "护心", "type": "防御", "cost": 1, "rarity": RARITY_COMMON,
+		"block": 6, "thread_bonus": 6,
+		"face": ["格挡 6·清连击", "她被线缠住时再+6"],
+		"battle": "[护心·防御]\n费1 格挡6 / 清空连击\n小墨被紫线缠住时，再+6格挡",
+		"reward": "护心\n费1 / 格挡6\n她被缠住时再+6",
+	},
+	BACK_TO_WATER: {
+		"effects": [
+			{"kind": EFFECT_DAMAGE, "amount_key": "damage", "combo_scaled": true},
+			{"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount_key": "combo"},
+			{"kind": EFFECT_COMPANION_BLOCK, "amount_key": "companion_block", "requires_intent": [INTENT_GUARD], "requires_no_defense": true},
+		],
+		"result_template": "背水：攻击敌人{target}，造成 {damage} 伤害，连击 +1{companion}",
+		"target": TARGET_SELECTED_ENEMY,
+		"name": "背水", "type": "攻击", "cost": 1, "rarity": RARITY_COMMON,
+		"damage": 7, "combo": 1, "companion_block": 4,
+		"face": ["基础伤害 7·连击+1", "无防御·她守护：盾+4"],
+		"battle": "[背水·攻击]\n费1 基础伤害7 / 连击+1\n本回合还没打过防御牌、小墨要守护时，她给你的护盾+4",
+		"reward": "背水\n费1 / 基础伤害7 / 连击+1\n没出防御、她守护时，她的护盾+4",
+	},
+	LEAN_ON_SWORD: {
+		"effects": [
+			{"kind": EFFECT_DAMAGE, "amount_key": "damage", "context_add_key": "last_companion_block", "combo_scaled": true},
+			{"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount_key": "combo"},
+		],
+		"result_template": "倚剑：攻击敌人{target}，造成 {damage} 伤害，连击 +1",
+		"target": TARGET_SELECTED_ENEMY,
+		"name": "倚剑", "type": "攻击", "cost": 2, "rarity": RARITY_UNCOMMON,
+		"damage": 8, "combo": 1,
+		"face": ["伤害 8+她上回合的盾", "连击+1"],
+		"battle": "[倚剑·攻击]\n费2 伤害8 + 小墨上回合给你的护盾\n连击+1",
+		"reward": "倚剑\n费2 / 伤害8+她上回合给你的护盾\n连击+1",
+	},
+	ENTRUST: {
+		"effects": [{"kind": EFFECT_BATTLE_STATE, "flag": "entrust_active"}],
+		"result_template": "托付：她给你的护盾，会变成你下一剑的力道",
+		"active_flag": "entrust_active",
+		"target": TARGET_NONE,
+		"name": "托付", "type": "能力", "cost": 2, "rarity": RARITY_RARE,
+		"face": ["她每次给你护盾", "下一剑+盾的一半·能力"],
+		"battle": "[托付·能力]\n费2 本场生效，同名不叠加\n小墨每次给你护盾，你下一张攻击牌伤害+该护盾的一半",
+		"reward": "托付\n费2 / 她给你护盾时，你下一剑+护盾一半 / 能力",
+	},
+	GO_WITH_FLOW: {
+		"effects": [
+			{"kind": EFFECT_DRAW, "amount_key": "draw", "mode": DRAW_EMPTY_SLOTS},
+			{"kind": EFFECT_DRAW, "amount_key": "draw", "mode": DRAW_EMPTY_SLOTS, "requires_intent": [INTENT_INVEST]},
+			{"kind": EFFECT_ENERGY, "amount_key": "energy", "requires_intent": [INTENT_INVEST]},
+		],
+		"result_template": "顺势：抽取 {drawn} 张牌{energy_note}",
+		"target": TARGET_NONE,
+		"name": "顺势", "type": "技巧", "cost": 0, "rarity": RARITY_COMMON,
+		"draw": 1, "energy": 1,
+		"face": ["抽牌 1", "她让给你：抽1·精力+1"],
+		"battle": "[顺势·技巧]\n费0 抽1张\n小墨本回合要让给你时，再抽1张、精力+1",
+		"reward": "顺势\n费0 / 抽1张\n她让给你时再抽1、精力+1",
+	},
+	BORROW_BLOSSOM: {
+		"effects": [
+			{"kind": EFFECT_DAMAGE, "amount_key": "damage", "per_context_key": "opportunities_used", "per_amount_key": "per_opportunity", "combo_scaled": true},
+			{"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount_key": "combo"},
+		],
+		"result_template": "借花：攻击敌人{target}，造成 {damage} 伤害，连击 +1",
+		"target": TARGET_SELECTED_ENEMY,
+		"name": "借花", "type": "攻击", "cost": 1, "rarity": RARITY_UNCOMMON,
+		"damage": 6, "combo": 1, "per_opportunity": 2,
+		"face": ["基础伤害 6·连击+1", "每接住一次机会+2"],
+		"battle": "[借花·攻击]\n费1 基础伤害6 / 连击+1\n本场你每用掉一次小墨留下的机会，伤害+2",
+		"reward": "借花\n费1 / 基础伤害6 / 连击+1\n本场每接住她一次机会+2",
+	},
+	HEART_SYNC: {
+		"effects": [{"kind": EFFECT_BATTLE_STATE, "flag": "heart_sync_active"}],
+		"result_template": "心照：接住她的机会时，你也站得更稳",
+		"active_flag": "heart_sync_active",
+		"target": TARGET_NONE,
+		"name": "心照", "type": "能力", "cost": 1, "rarity": RARITY_RARE,
+		"block": 4, "combo": 1,
+		"face": ["接住她的机会：格挡4", "连击+1·能力"],
+		"battle": "[心照·能力]\n费1 本场生效，同名不叠加\n每当你用掉小墨留下的机会，获得4格挡、连击+1\n她也会更愿意把机会让给你",
+		"reward": "心照\n费1 / 接住她的机会时格挡4、连击+1 / 能力",
+	},
+	STEP_PAD: {
+		"effects": [
+			{"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount_key": "combo"},
+			{"kind": EFFECT_COMBO, "mode": COMBO_ADD, "amount_key": "finisher_combo", "requires_intent": [INTENT_FINISHER]},
+		],
+		"result_template": "垫步：连击 +2{combo_note}",
+		"target": TARGET_NONE,
+		"name": "垫步", "type": "技巧", "cost": 1, "rarity": RARITY_COMMON,
+		"combo": 2, "finisher_combo": 1,
+		"face": ["连击+2", "她要收尾时：再+1"],
+		"battle": "[垫步·技巧]\n费1 连击+2，不造成伤害\n小墨本回合要收尾时，再+1",
+		"reward": "垫步\n费1 / 连击+2\n她要收尾时再+1",
+	},
+	FINAL_TOUCH: {
+		"effects": [
+			{"kind": EFFECT_COMPANION_DAMAGE, "combo_scale_key": "combo_scale", "intent_combo_scale_key": "finisher_scale", "bonus_intent": [INTENT_FINISHER]},
+		],
+		"result_template": "点睛：把剑势交给她{companion}",
+		"target": TARGET_NONE,
+		"name": "点睛", "type": "技巧", "cost": 1, "rarity": RARITY_UNCOMMON,
+		"combo_scale": 2, "finisher_scale": 3,
+		"face": ["她这一击+连击×2", "她要收尾时：+连击×3"],
+		"battle": "[点睛·技巧]\n费1 小墨本回合的攻击伤害+连击×2\n她要收尾时改为+连击×3",
+		"reward": "点睛\n费1 / 她这一击+连击×2\n她要收尾时改为×3",
+	},
+	LINKED_INTENT: {
+		"effects": [{"kind": EFFECT_BATTLE_STATE, "flag": "linked_intent_active"}],
+		"result_template": "剑意相连：她每击倒一个敌人，下回合你接着来",
+		"active_flag": "linked_intent_active",
+		"target": TARGET_NONE,
+		"name": "剑意相连", "type": "能力", "cost": 2, "rarity": RARITY_RARE,
+		"energy": 1, "draw": 1,
+		"face": ["她击杀：下回合精力+1", "抽1·连击保留·能力"],
+		"battle": "[剑意相连·能力]\n费2 本场生效，同名不叠加\n小墨每次击倒敌人：你下回合精力+1、多抽1张，且连击不清零",
+		"reward": "剑意相连\n费2 / 她击倒敌人时，你下回合精力+1、抽1、连击不清零 / 能力",
+	},
 	FLOWING_LIGHT: {
 		"target": TARGET_NONE,
 		"name": "流光",
@@ -318,8 +659,9 @@ const DEFINITIONS := {
 		"damage": 15,
 		"combo_required": 2,
 		"combo_cost": 2,
-		"bond_stage": 1,
-		"battle": "[特殊技·流光]\n费1 基础伤害15\n需2连击 / 消耗2连击 / 相识解锁",
+		"bond_stage": 0,
+		"bond_required": 15,
+		"battle": "[特殊技·流光]\n费1 基础伤害15\n需2连击 / 消耗2连击 / 羁绊15解锁",
 		"reward": "流光\n羁绊特殊技",
 	},
 	BRILLIANCE: {
@@ -330,8 +672,9 @@ const DEFINITIONS := {
 		"damage": 35,
 		"combo_required": 3,
 		"combo_cost": -1,
-		"bond_stage": 2,
-		"battle": "[终极技·华彩]\n费0 基础伤害35\n需3连击 / 连击清零 / 交心解锁",
+		"bond_stage": 1,
+		"bond_required": 30,
+		"battle": "[终极技·华彩]\n费0 基础伤害35\n需3连击 / 连击清零 / 羁绊30解锁",
 		"reward": "华彩\n羁绊终极技",
 	},
 }
@@ -340,7 +683,17 @@ const REWARD_CARD_IDS := [
 	HEAVY_ATTACK, HEAVY_DEFENSE, SWEEP, COMBO_BOOST,
 	TUNE_BREATH, SHADOW_STEP, BREAK_EDGE, UNLOAD_FORCE, HIDE_EDGE,
 	FLOWING_CLOUD, CHASE_WIND, SHIELD_STRIKE, RETAIN_SHIELD, PARRY,
+	BORROW_MOMENTUM, CLEAR_PATH, HAND_SWORD, YIELD_TURN, CLOSE_FORM, SIDE_BY_SIDE,
+	INTENT_HOLD, UNMOVED, HEAR_WIND, ATTUNE, ALL_IN, LATE_STRIKE, PICK_THREAD, GUARD_HEART,
+	BACK_TO_WATER, LEAN_ON_SWORD, ENTRUST, GO_WITH_FLOW, BORROW_BLOSSOM, HEART_SYNC, STEP_PAD, FINAL_TOUCH, LINKED_INTENT,
 ]
+# 旧牌的稀有度；新牌写在定义里。
+const LEGACY_RARITY := {
+	HEAVY_ATTACK: RARITY_COMMON, HEAVY_DEFENSE: RARITY_COMMON, SWEEP: RARITY_COMMON, COMBO_BOOST: RARITY_COMMON,
+	TUNE_BREATH: RARITY_COMMON, SHADOW_STEP: RARITY_COMMON, BREAK_EDGE: RARITY_UNCOMMON, UNLOAD_FORCE: RARITY_COMMON,
+	HIDE_EDGE: RARITY_UNCOMMON, FLOWING_CLOUD: RARITY_RARE, CHASE_WIND: RARITY_UNCOMMON, SHIELD_STRIKE: RARITY_UNCOMMON,
+	RETAIN_SHIELD: RARITY_RARE, PARRY: RARITY_UNCOMMON,
+}
 
 
 func get_definition(card_id: int) -> Dictionary:
@@ -367,10 +720,50 @@ func get_number(card_id: int, field: String, fallback := 0) -> int:
 	return int(get_definition(card_id).get(field, fallback))
 
 
-func get_reward_card_ids(owned_cards: Array[int] = []) -> Array[int]:
+func get_reward_card_ids(owned_cards: Array[int] = [], chapter: int = 1) -> Array[int]:
 	var candidates: Array[int] = []
-	candidates.assign(REWARD_CARD_IDS)
-	for ability_card in [FLOWING_CLOUD, RETAIN_SHIELD]:
-		if ability_card in owned_cards:
-			candidates.erase(ability_card)
+	for card_id in REWARD_CARD_IDS:
+		var definition := get_definition(card_id)
+		# 能力牌同名不叠加，拿过就不再出；第二章紫线牌只在第二章出现。
+		if definition.get("type", "") == "能力" and card_id in owned_cards:
+			continue
+		if int(definition.get("chapter", 1)) > chapter:
+			continue
+		candidates.append(card_id)
 	return candidates
+
+
+func get_rarity(card_id: int) -> String:
+	return str(get_definition(card_id).get("rarity", LEGACY_RARITY.get(card_id, RARITY_COMMON)))
+
+
+# 抽奖权重（整数，放大 2 倍以表示 ×1.5）：稀有度；拿到某条路线的引擎牌后，同路线的牌 ×1.5；
+# 剑境二起罕见、稀有各 +1。
+func reward_weight(card_id: int, owned_cards: Array[int], realm: int = 0) -> int:
+	var rarity := get_rarity(card_id)
+	var weight := int(RARITY_WEIGHTS[rarity]) * 2
+	if rarity != RARITY_COMMON and realm >= 2:
+		weight += 2
+	for engine in ROUTE_ENGINES:
+		if engine in owned_cards and card_id in ROUTE_ENGINES[engine]:
+			weight = int(weight * 1.5)
+			break
+	return weight
+
+
+# 按稀有度加权、不重复地抽奖励牌。
+func roll_reward_cards(owned_cards: Array[int], count: int, chapter: int, rng: RandomNumberGenerator = null, realm: int = 0) -> Array[int]:
+	var pool := get_reward_card_ids(owned_cards, chapter)
+	var result: Array[int] = []
+	while result.size() < count and not pool.is_empty():
+		var total := 0
+		for card_id in pool:
+			total += reward_weight(card_id, owned_cards, realm)
+		var roll := (randi() if rng == null else rng.randi()) % total
+		for card_id in pool:
+			roll -= reward_weight(card_id, owned_cards, realm)
+			if roll < 0:
+				result.append(card_id)
+				pool.erase(card_id)
+				break
+	return result

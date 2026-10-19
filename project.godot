@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="LittleSwordSpirit"
-run/main_scene="res://scenes/save_select.tscn"
+config/name="捡到一只小剑灵"
+run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://art/app_icon.png"
 
@@ -23,6 +23,8 @@ CardDatabase="*res://scripts/data/card_database.gd"
 SpecialEventManager="*res://scripts/autoload/special_event_manager.gd"
 RunState="*res://scripts/autoload/run_state.gd"
 WindowMode="*res://scripts/autoload/window_mode.gd"
+Music="*res://scripts/autoload/music.gd"
+Sfx="*res://scripts/autoload/sfx.gd"
 
 [display]
 
@@ -31,6 +33,8 @@ window/size/viewport_height=1080
 window/size/mode=2
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=4
+window/stretch/aspect.android="keep"
 
 [physics]
 
@@ -40,3 +44,6 @@ common/physics_interpolation=true
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+renderer/rendering_method.android="gl_compatibility"

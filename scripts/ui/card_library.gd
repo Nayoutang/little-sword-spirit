@@ -26,6 +26,7 @@ var entries: Array[Dictionary] = []
 var shown_entries: Array[Dictionary] = []
 var selected_key := ""
 var previous_focus: WeakRef
+var scroll_gallery: HBoxContainer
 
 func _ready() -> void:
 	layer = 20
@@ -102,6 +103,10 @@ func _build_ui() -> void:
 	subtitle.text = "翻阅全部招式与剑意；点选卡牌，查看完整效果与获得方式。"
 	subtitle.add_theme_font_size_override("font_size", 20)
 	column.add_child(subtitle)
+	scroll_gallery = HBoxContainer.new()
+	scroll_gallery.name = "ScrollGallery"
+	scroll_gallery.add_theme_constant_override("separation", 24)
+	column.add_child(scroll_gallery)
 	var filters := HBoxContainer.new()
 	filters.add_theme_constant_override("separation", 16)
 	column.add_child(filters)
@@ -294,6 +299,32 @@ func _refresh() -> void:
 	var viewing_deck := collection_filter.selected == OWNED_COLLECTION
 	heading.text = "本趟牌组" if viewing_deck else "剑谱 · 卡牌图鉴"
 	subtitle_label.text = "本趟持有的全部卡牌；同名合并显示数量，供选牌与删牌时参考。" if viewing_deck else "翻阅全部招式与剑意；点选卡牌，查看完整效果与获得方式。"
+	# 第二章剑谱残页不是卡，是对紫线的被动加成，列在标题下。
+	for child in scroll_gallery.get_children():
+		scroll_gallery.remove_child(child)
+		child.queue_free()
+	var pages: Array[String] = []
+	var scroll_story = preload("res://scripts/data/chapter_two_story.gd")
+	for page_id in RunState.scroll_pages:
+		pages.append("%s：%s" % [scroll_story.SCROLL_NAMES.get(page_id, page_id), scroll_story.SCROLL_RULES.get(page_id, "")])
+		if scroll_story.SCROLL_ART.has(page_id):
+			var item := HBoxContainer.new()
+			item.add_theme_constant_override("separation", 12)
+			scroll_gallery.add_child(item)
+			var picture := TextureRect.new()
+			picture.texture = scroll_story.SCROLL_ART[page_id]
+			picture.custom_minimum_size = Vector2(76, 84)
+			picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			item.add_child(picture)
+			var caption := Label.new()
+			caption.text = scroll_story.SCROLL_NAMES.get(page_id, page_id)
+			caption.tooltip_text = scroll_story.SCROLL_RULES.get(page_id, "")
+			caption.add_theme_font_size_override("font_size", 22)
+			item.add_child(caption)
+	scroll_gallery.visible = scroll_gallery.get_child_count() > 0
+	if not pages.is_empty():
+		subtitle_label.text += "\n" + "\n".join(pages)
 	result_count.text = "本趟共 %d 张 · 当前显示 %d 种" % [RunState.deck.size(), shown_entries.size()] if viewing_deck else "共 %d / %d 张 · 含尚未解锁的招式" % [shown_entries.size(), entries.size()]
 	empty_label.visible = shown_entries.is_empty()
 	if shown_entries.is_empty():
@@ -349,7 +380,9 @@ func _availability(entry: Dictionary) -> String:
 		if card_id == 7:
 			return "诅咒牌 · 无法打出。"
 		if card_id in CardDatabase.REWARD_CARD_IDS:
-			return "可从战斗奖励获得。"
+			var rarity: String = {"common": "普通", "uncommon": "罕见", "rare": "稀有"}.get(CardDatabase.get_rarity(card_id), "普通")
+			var chapter_note := "第二章起" if int(definition.get("chapter", 1)) >= 2 else ""
+			return "%s可从战斗奖励获得 · %s。" % [chapter_note, rarity]
 		return "初始牌组中的基础招式。"
 	if definition.has("poem"):
 		return "小墨剑意 · 在飞花令中对出对应诗句后领悟。"

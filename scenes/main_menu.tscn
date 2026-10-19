@@ -1,0 +1,178 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="script"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/main_menu_v2.png" id="background"]
+[ext_resource type="Font" path="res://ui/shared/comic_font.tres" id="font"]
+[ext_resource type="Texture2D" path="res://art/ui/home/history_page_v1.png" id="paper"]
+
+[sub_resource type="StyleBoxEmpty" id="Empty"]
+[sub_resource type="StyleBoxFlat" id="Focus"]
+bg_color = Color(0.8, 0.7, 0.4, 0.08)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.78, 0.5, 0.6)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_left = 18
+corner_radius_bottom_right = 18
+[sub_resource type="Theme" id="MenuTheme"]
+default_font = ExtResource("font")
+default_font_size = 36
+Button/colors/font_color = Color(1, 0.94, 0.78, 1)
+Button/colors/font_hover_color = Color(1, 0.99, 0.88, 1)
+Button/colors/font_focus_color = Color(1, 0.99, 0.88, 1)
+Button/colors/font_pressed_color = Color(0.86, 0.73, 0.47, 1)
+Button/colors/font_disabled_color = Color(0.64, 0.60, 0.50, 0.6)
+Button/styles/normal = SubResource("Empty")
+Button/styles/hover = SubResource("Empty")
+Button/styles/pressed = SubResource("Empty")
+Button/styles/disabled = SubResource("Empty")
+Button/styles/focus = SubResource("Focus")
+[sub_resource type="Theme" id="SettingsTheme"]
+default_font = ExtResource("font")
+default_font_size = 30
+Label/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+CheckButton/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+Button/colors/font_color = Color(0.12, 0.22, 0.19, 1)
+
+[sub_resource type="StyleBoxFlat" id="SliderTrack"]
+bg_color = Color(0.26, 0.36, 0.29, 0.35)
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="SliderFill"]
+bg_color = Color(0.12, 0.35, 0.30, 1)
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("script")
+
+[node name="Stage" type="Control" parent="."]
+offset_right = 1672.0
+offset_bottom = 941.0
+theme = SubResource("MenuTheme")
+mouse_filter = 2
+
+[node name="Background" type="TextureRect" parent="Stage"]
+offset_right = 1672.0
+offset_bottom = 941.0
+mouse_filter = 2
+texture = ExtResource("background")
+expand_mode = 1
+
+[node name="Start" type="Button" parent="Stage"]
+offset_left = 130.0
+offset_top = 350.0
+offset_right = 570.0
+offset_bottom = 435.0
+text = "开始游戏"
+theme_override_font_sizes/font_size = 42
+
+[node name="Continue" type="Button" parent="Stage"]
+offset_left = 220.0
+offset_top = 458.0
+offset_right = 480.0
+offset_bottom = 520.0
+text = "继续旅途"
+
+[node name="Settings" type="Button" parent="Stage"]
+offset_left = 220.0
+offset_top = 553.0
+offset_right = 480.0
+offset_bottom = 615.0
+text = "设置"
+
+[node name="Quit" type="Button" parent="Stage"]
+offset_left = 210.0
+offset_top = 649.0
+offset_right = 490.0
+offset_bottom = 711.0
+text = "退出游戏"
+
+[node name="SettingsPanel" type="Control" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = SubResource("SettingsTheme")
+
+[node name="Shade" type="ColorRect" parent="SettingsPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.025, 0.04, 0.035, 0.65)
+
+[node name="Card" type="Control" parent="SettingsPanel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -250.0
+offset_right = 420.0
+offset_bottom = 250.0
+
+[node name="Paper" type="TextureRect" parent="SettingsPanel/Card"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("paper")
+expand_mode = 1
+
+[node name="Title" type="Label" parent="SettingsPanel/Card"]
+offset_left = 90.0
+offset_top = 70.0
+offset_right = 750.0
+offset_bottom = 120.0
+text = "设置"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 40
+
+[node name="Fullscreen" type="CheckButton" parent="SettingsPanel/Card"]
+offset_left = 135.0
+offset_top = 155.0
+offset_right = 705.0
+offset_bottom = 215.0
+text = "全屏显示"
+
+[node name="VolumeLabel" type="Label" parent="SettingsPanel/Card"]
+offset_left = 135.0
+offset_top = 240.0
+offset_right = 325.0
+offset_bottom = 290.0
+text = "游戏音量"
+
+[node name="Volume" type="HSlider" parent="SettingsPanel/Card"]
+offset_left = 340.0
+offset_top = 250.0
+offset_right = 705.0
+offset_bottom = 280.0
+value = 100.0
+theme_override_styles/slider = SubResource("SliderTrack")
+theme_override_styles/grabber_area = SubResource("SliderFill")
+theme_override_styles/grabber_area_highlight = SubResource("SliderFill")
+
+[node name="Close" type="Button" parent="SettingsPanel/Card"]
+offset_left = 300.0
+offset_top = 350.0
+offset_right = 540.0
+offset_bottom = 415.0
+text = "返回"

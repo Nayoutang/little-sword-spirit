@@ -12,7 +12,7 @@ const Routes = preload("res://scripts/data/scene_routes.gd")
 const Navigator = preload("res://scripts/flow/scene_navigator.gd")
 const Checkpoint = preload("res://scripts/data/expedition_checkpoint.gd")
 const LEGACY_SAVE_PATH := "user://relationship_save.cfg"
-const SAVE_SLOT_COUNT := 3
+const SAVE_SLOT_COUNT := 12
 const BOND_MIN := BalanceConfig.BOND_MIN
 const BOND_MAX := BalanceConfig.BOND_MAX
 const BOND_STAGE_THRESHOLDS := BalanceConfig.BOND_STAGE_THRESHOLDS
@@ -32,7 +32,11 @@ var recent_adventures: Array[int] = []
 var bond_value := 0
 var bond_stage := 0
 var pending_bond_stage := -1
+# 暗线：信 / 执（见 BalanceConfig.HIDDEN_*）。跨趟保留，玩家看不到。
+var hidden_trust := 0
+var hidden_attachment := 0
 var current_save_slot := 1
+var save_selection_mode := "all"
 var active_promise := ""
 var promise_broken := false
 var run_won := false
@@ -61,6 +65,8 @@ var finale_state := "locked"
 var finale_mode := "arrival"
 var player_name := ""
 var intro_done := false
+# 飞花令开放进度，见 relationship_profile.gd。
+var feihualing_state := "locked"
 # 防止台词重复：跨场景记住她最近说过的话；每次说话随机给一点此刻的心情。
 const RECENT_LINES_LIMIT := 12
 const MOODS := [
@@ -80,6 +86,34 @@ const MOODS := [
 var recent_lines: Array[String] = []
 # 剑意：飞花令里对出特定诗句时，她领悟的剑招（进入她的战斗牌池）。
 var learned_sword_intents: Array[String] = []
+# 本趟拿到的信物（RelicDatabase 的 id），开新的一趟清空。
+var run_relics: Array[String] = []
+# 默契倾向（单趟）：你接住她哪种意向越多，她在两可的回合越常这样配合你。
+const LEAN_KINDS := ["guard", "invest", "finisher"]
+const LEAN_SPEAK_AT := 6
+var run_lean: Dictionary = {}
+# 剑境（第三章之后的自由历练）。realm_unlocked / realm_cleared 跨趟保存；sword_realm 是这一趟选的剑境（非自由历练为 0）。
+const REALM_MAX := 5
+const FREE_BOSSES := ["curse_guardian", "thread_blade_boss", "troupe_watcher", "bound_spirit", "puppeteer"]
+var realm_unlocked := 1
+var realm_cleared := 0
+var last_free_boss := ""
+var sword_realm := 0
+var free_boss := ""
+var run_lean_spoken: Array[String] = []
+# 第二、三章进度。chapter_trip：本章第几趟（3 = 本章剧情已走完）。
+const CHAPTER_TWO_TRIPS := 2
+const CHAPTER_THREE_TRIPS := 2
+var chapter := 1
+var chapter_trip := 1
+# 你替她斩断过的紫线（跨趟累计，倒下不清零），决定她挣线的本事。
+var threads_cut := 0
+var scroll_pages: Array[String] = []
+var story_seen: Array[String] = []
+# 回到家时要先播的章节剧情 id；播完清空。
+var pending_story := ""
+# 当前节点是否在紫线上（仅运行时；战斗检查点里另存一份）。
+var node_on_thread := false
 var run_active := false
 var map_seed := 0
 var map_layer := 0
@@ -143,6 +177,33 @@ func remove_run_card(index: int) -> int:
 	return card_id
 
 
+func gain_relic(id: String) -> bool:
+	if id.is_empty() or RelicDatabase.get_definition(id).is_empty() or run_relics.has(id):
+		return false
+	run_relics.append(id)
+	record_run_fact("relic", "获得信物%s" % RelicDatabase.describe(id), {"relic": id})
+	return true
+
+
+func has_relic(id: String) -> bool:
+	return run_relics.has(id)
+
+
+# 记一次倾向。第一次越过阈值时返回 true，战斗里让她说一句。
+func add_run_lean(kind: String, amount: int = 1) -> bool:
+	if kind not in LEAN_KINDS or amount <= 0:
+		return false
+	run_lean[kind] = int(run_lean.get(kind, 0)) + amount
+	if int(run_lean[kind]) >= LEAN_SPEAK_AT and not run_lean_spoken.has(kind):
+		run_lean_spoken.append(kind)
+		return true
+	return false
+
+
+func run_lean_value(kind: String) -> int:
+	return int(run_lean.get(kind, 0))
+
+
 func set_player_hp(value: int) -> void:
 	player_hp = clampi(value, 0, player_max_hp)
 
@@ -166,17 +227,26 @@ func set_post_battle_route(route: String) -> void:
 		pending_act_bond_gain = -1
 
 
-func start_new_run() -> void:
+func start_new_run(realm: int = 1) -> void:
 	var next_run_id := run_id + 1
 	_reset_expedition_runtime()
 	run_active = true
 	run_id = next_run_id
+	if is_free_play():
+		sword_realm = clampi(realm, 1, realm_unlocked)
+		free_boss = _roll_free_boss()
+		last_free_boss = free_boss
+		# 剑境四：出发就带一件信物；剑境五：起始牌组多一张心魔。
+		if sword_realm >= 4:
+			gain_relic(RelicDatabase.roll(run_relics))
+		if sword_realm >= 5:
+			deck.append(CardType.CURSE)
 	record_run_fact("departure", "从家中出发时生命为 %d/%d，羁绊为 %d/100（%s）。" % [
 		player_hp,
 		player_max_hp,
 		bond_value,
 		get_bond_stage_name(),
-	])
+	], {"opportunities_used": _cooperation_count("opportunities_used"), "sword_intents": learned_sword_intents.size()})
 	checkpoint("promise")
 
 
@@ -267,6 +337,8 @@ func get_save_slot_summary(slot: int) -> Dictionary:
 		"stage": BOND_STAGE_NAMES[profile.bond_stage],
 		"expedition": valid_checkpoint,
 		"layer": int(saved_checkpoint.state.map_layer) if valid_checkpoint else 0,
+		"finale_state": profile.finale_state,
+		"chapter": profile.chapter,
 	}
 
 
@@ -293,7 +365,87 @@ func _stage_index_for_value(value: int) -> int:
 
 
 func get_relationship_prompt() -> String:
-	return Narrative.relationship(bond_stage, player_name)
+	return Narrative.relationship(bond_stage, player_name) + "\n" + Narrative.hidden_lean(hidden_trust, hidden_attachment)
+
+
+# ---- 暗线 · 信 / 执 ----
+
+func adjust_hidden(trust_delta: int, attachment_delta: int) -> void:
+	if trust_delta == 0 and attachment_delta == 0:
+		return
+	hidden_trust = clampi(hidden_trust + trust_delta, BalanceConfig.HIDDEN_MIN, BalanceConfig.HIDDEN_MAX)
+	hidden_attachment = clampi(hidden_attachment + attachment_delta, BalanceConfig.HIDDEN_MIN, BalanceConfig.HIDDEN_MAX)
+	_save_relationship()
+
+
+func _cooperation_count(kind: String) -> int:
+	var stats: Dictionary = relationship_facts.get("cooperation", {})
+	return int(stats.get(kind, 0))
+
+
+# 本趟接住她留的机会的次数：用出发时记下的累计值做差，断点续玩也不丢。
+func _run_has_mark(mark: String) -> bool:
+	for moment: Dictionary in run_moments:
+		if str(moment.get("mark", "")) == mark:
+			return true
+	return false
+
+
+func _departure_detail(key: String, fallback: int) -> int:
+	for fact: Dictionary in current_run_journal:
+		if str(fact.get("category", "")) == "departure":
+			var details: Dictionary = fact.get("details", {})
+			return int(details.get(key, fallback))
+	return fallback
+
+
+func run_opportunities_used() -> int:
+	for fact: Dictionary in current_run_journal:
+		if str(fact.get("category", "")) == "departure":
+			var details: Dictionary = fact.get("details", {})
+			if details.has("opportunities_used"):
+				return maxi(_cooperation_count("opportunities_used") - int(details.opportunities_used), 0)
+	return 0
+
+
+# 每趟结算一次（apply_settlement 已防重复）。只读本趟真实发生的事。
+func _settle_hidden(promise_result: String) -> void:
+	var kept := promise_result == "kept" or (promise_result == "act_based" and pending_act_bond_gain > 0)
+	var broken := promise_result == "broken" or (promise_result == "act_based" and pending_act_bond_gain == 0)
+	var trust := 0
+	var attachment := 0
+	if kept:
+		trust += BalanceConfig.HIDDEN_PROMISE_KEPT_TRUST
+	elif broken:
+		trust += BalanceConfig.HIDDEN_PROMISE_BROKEN_TRUST
+	var used := run_opportunities_used()
+	trust += mini(used, BalanceConfig.HIDDEN_OPPORTUNITY_TRUST_CAP)
+	if not run_won:
+		attachment += BalanceConfig.HIDDEN_FELL_ATTACHMENT
+	elif run_min_hp <= int(player_max_hp * 0.25):
+		attachment += BalanceConfig.HIDDEN_RECKLESS_ATTACHMENT
+	elif run_min_hp * 2 > player_max_hp:
+		attachment += BalanceConfig.HIDDEN_SAFE_ATTACHMENT
+	adjust_hidden(trust, attachment)
+	# 回家心事：一次性事件，谈过就不再出现。
+	if not run_won:
+		SpecialEventManager.enqueue("first_fall", {"battle": run_battle_index})
+	if broken and int(relationship_facts.get("promise_broken", 0)) >= 2:
+		SpecialEventManager.enqueue("promise_broken_again", {"times": int(relationship_facts.get("promise_broken", 0))})
+	if used >= 3:
+		SpecialEventManager.enqueue("caught_her_opening", {"used": used})
+	if _run_has_mark("companion_save"):
+		SpecialEventManager.enqueue("she_saved_you", {})
+	if run_won:
+		SpecialEventManager.enqueue("first_full_run", {})
+	if int(relationship_facts.get("promise_kept", 0)) >= 3:
+		SpecialEventManager.enqueue("promise_kept_three", {})
+	if learned_sword_intents.size() > _departure_detail("sword_intents", learned_sword_intents.size()):
+		SpecialEventManager.enqueue("first_intent", {})
+	if _run_has_mark("elite_win"):
+		SpecialEventManager.enqueue("first_elite", {})
+	if expedition_count >= 5:
+		SpecialEventManager.enqueue("fifth_trip", {})
 
 
 func record_spoken_line(text: String) -> void:
@@ -333,6 +485,22 @@ func learn_sword_intent(card_id: String, player_line: String) -> bool:
 	})
 	_save_relationship()
 	return true
+
+
+func is_feihualing_unlocked() -> bool:
+	return feihualing_state == "unlocked"
+
+
+# 历练中第一次走到对诗处时调用；由随后的检查点一并保存。
+func note_feihualing_met() -> void:
+	if feihualing_state == "locked":
+		feihualing_state = "pending"
+
+
+func unlock_feihualing() -> void:
+	if feihualing_state != "unlocked":
+		feihualing_state = "unlocked"
+		_save_relationship()
 
 
 func needs_intro() -> bool:
@@ -411,11 +579,15 @@ func begin_battle() -> int:
 
 
 # 记录本趟一个具体、可被引用的瞬间。weight 越高越可能被挑进共同经历。
-func record_moment(summary: String, weight: int) -> void:
+# mark 是给本地回家心事用的机器标签（如 companion_save / elite_win），不进对话。
+func record_moment(summary: String, weight: int, mark: String = "") -> void:
 	var clean := summary.replace("\n", " ").strip_edges().left(160)
 	if clean.is_empty():
 		return
-	run_moments.append({"summary": clean, "weight": weight, "order": run_moments.size()})
+	var moment := {"summary": clean, "weight": weight, "order": run_moments.size()}
+	if not mark.is_empty():
+		moment["mark"] = mark
+	run_moments.append(moment)
 	record_run_fact("moment", "值得记住的瞬间：%s" % clean)
 
 
@@ -596,6 +768,7 @@ func apply_settlement() -> Dictionary:
 			record_moment(_promise_prefix() + "会保护好自己，这一趟还是让自己掉进了危险的血线。", 3)
 		else:
 			result = "act_based"
+	_settle_hidden(result)
 	_evaluate_next_concern()
 	_commit_run_moments()
 	homecoming_pending = true
@@ -665,10 +838,13 @@ func save_persistent_state() -> void:
 func _apply_profile(profile: Dictionary) -> void:
 	bond_value = profile.bond_value
 	bond_stage = profile.bond_stage
+	hidden_trust = profile.hidden_trust
+	hidden_attachment = profile.hidden_attachment
 	pending_bond_stage = profile.pending_bond_stage
 	consecutive_run_failures = profile.consecutive_run_failures
 	expedition_count = profile.expedition_count
 	intro_done = profile.intro_done
+	feihualing_state = profile.feihualing_state
 	player_name = profile.player_name
 	finale_state = profile.finale_state
 	finale_mode = profile.finale_mode
@@ -676,12 +852,30 @@ func _apply_profile(profile: Dictionary) -> void:
 	recent_adventures.assign(profile.recent_adventures)
 	recent_lines.assign(profile.recent_lines)
 	learned_sword_intents.assign(profile.learned_sword_intents)
+	chapter = profile.chapter
+	chapter_trip = profile.chapter_trip
+	threads_cut = profile.threads_cut
+	scroll_pages.assign(profile.scroll_pages)
+	story_seen.assign(profile.story_seen)
+	pending_story = profile.pending_story
+	realm_unlocked = profile.get("realm_unlocked", 1)
+	realm_cleared = profile.get("realm_cleared", 0)
+	last_free_boss = profile.get("last_free_boss", "")
 	shared_history.assign(profile.shared_history)
 	last_run_journal.assign(profile.last_run_journal)
 	relationship_facts = profile.relationship_facts
 
 
 func _reset_relationship_facts() -> void:
+	chapter = 1
+	chapter_trip = 1
+	threads_cut = 0
+	scroll_pages.clear()
+	story_seen.clear()
+	pending_story = ""
+	realm_unlocked = 1
+	realm_cleared = 0
+	last_free_boss = ""
 	run_adventures.clear()
 	recent_adventures.clear()
 	shared_history.clear()
@@ -691,6 +885,7 @@ func _reset_relationship_facts() -> void:
 	finale_state = "locked"
 	finale_mode = "arrival"
 	intro_done = false
+	feihualing_state = "locked"
 	recent_lines.clear()
 	learned_sword_intents.clear()
 	run_moments.clear()
@@ -704,6 +899,8 @@ func _reset_slot_state() -> void:
 	bond_value = 0
 	bond_stage = 0
 	pending_bond_stage = -1
+	hidden_trust = 0
+	hidden_attachment = 0
 	consecutive_run_failures = 0
 	last_run_journal.clear()
 	SpecialEventManager.reset()
@@ -731,14 +928,208 @@ func _migrate_legacy_save() -> void:
 
 
 func set_finale_state(next_state: String, mode := "arrival") -> void:
-	assert(next_state in ["locked", "invited", "accepted", "story", "battle", "ended"])
+	assert(next_state in ["locked", "invited", "accepted", "story", "battle", "ended", "completed"])
 	assert(mode in ["arrival", "refusal", "victory", "sacrifice"])
-	if next_state in ["story", "ended"]:
+	if next_state in ["story", "ended", "completed"]:
 		run_active = false
 		expedition_checkpoint.clear()
 	finale_state = next_state
 	finale_mode = mode
 	save_persistent_state()
+
+# Revisit only the chapter invitation; keep the deck, bond and learned sword intents.
+func rewind_finale_choice() -> void:
+	assert(finale_state == "ended" and finale_mode in ["refusal", "sacrifice"])
+	run_active = false
+	expedition_checkpoint.clear()
+	battle_seed = 0
+	player_hp = player_max_hp
+	homecoming_pending = false
+	set_finale_state("invited")
+
+
+func return_home_after_finale() -> void:
+	assert(finale_state == "ended" and finale_mode == "victory")
+	homecoming_pending = false
+	set_finale_state("completed", "victory")
+
+
+# ---- 第二章 · 线头 ----
+
+func is_chapter_two() -> bool:
+	return chapter == 2
+
+
+# 紫线规则从第二章起一直生效（第三章与之后的自由历练都沿用）。
+func uses_thread_rules() -> bool:
+	return chapter >= 2
+
+
+func is_chapter_three() -> bool:
+	return chapter == 3
+
+
+# 第二章章末播完后第一次回到家：进入第三章，并排上章首剧情。
+func maybe_begin_chapter_three() -> bool:
+	if chapter != 2 or chapter_trip <= CHAPTER_TWO_TRIPS or not pending_story.is_empty() or not story_seen.has("ch2_ending"):
+		return false
+	chapter = 3
+	chapter_trip = 1
+	pending_story = "ch3_opening"
+	_save_relationship()
+	return true
+
+
+# 第一章同归后第一次回到家：进入第二章，并排上章首剧情。
+func maybe_begin_chapter_two() -> bool:
+	if chapter != 1 or finale_state != "completed" or finale_mode != "victory":
+		return false
+	chapter = 2
+	chapter_trip = 1
+	pending_story = "ch2_opening"
+	_save_relationship()
+	return true
+
+
+# 本趟第 5 层的剧情奇遇；没有则走普通漫画奇遇。
+func chapter_layer_story() -> String:
+	if chapter == 3:
+		return "ch3_sword_tomb" if chapter_trip == 1 else ""
+	if chapter != 2:
+		return ""
+	match chapter_trip:
+		1: return "ch2_blacksmith"
+		2: return "ch2_troupe"
+	return ""
+
+
+# 第二章正式剧情趟的首领（3 = 本章已走完，之后自由历练沿用第一趟首领）。
+func chapter_boss() -> String:
+	if is_free_play():
+		return free_boss if not free_boss.is_empty() else "bound_spirit"
+	if chapter == 3:
+		return "puppeteer" if chapter_trip == 2 else "bound_spirit"
+	if chapter != 2:
+		return ""
+	return "troupe_watcher" if chapter_trip == 2 else "thread_blade_boss"
+
+
+# 首领战胜利后推进本章；倒下不推进。
+func complete_chapter_trip() -> void:
+	if chapter == 3:
+		if chapter_trip > CHAPTER_THREE_TRIPS:
+			clear_realm()
+			return
+		pending_story = "ch3_trip1_return" if chapter_trip == 1 else "ch3_ending"
+		chapter_trip += 1
+		return
+	if chapter != 2 or chapter_trip > CHAPTER_TWO_TRIPS:
+		return
+	if chapter_trip == 1:
+		pending_story = "ch2_trip1_return"
+	else:
+		pending_story = "ch2_ending"
+	chapter_trip += 1
+
+
+func consume_pending_story() -> String:
+	var story := pending_story
+	pending_story = ""
+	if not story.is_empty():
+		_save_relationship()
+	return story
+
+
+func mark_story_seen(story_id: String) -> void:
+	if not story_seen.has(story_id):
+		story_seen.append(story_id)
+
+
+func grant_scroll_page(page_id: String) -> bool:
+	if page_id.is_empty() or scroll_pages.has(page_id):
+		return false
+	scroll_pages.append(page_id)
+	var page_name := str(load("res://scripts/data/chapter_two_story.gd").SCROLL_NAMES.get(page_id, page_id))
+	shared_history.append({"expedition": expedition_count, "label": "剑谱",
+		"summary": "你们找回了他留下的%s。" % page_name})
+	return true
+
+
+func has_scroll_page(page_id: String) -> bool:
+	return scroll_pages.has(page_id)
+
+
+func record_thread_cut() -> void:
+	threads_cut += 1
+
+
+# 默契：斩过的线越多，她在线里挣得越用力。
+func thread_hits_required() -> int:
+	return BalanceConfig.THREAD_HITS_TRAINED if threads_cut >= BalanceConfig.THREAD_TRAINED_AT else BalanceConfig.THREAD_HITS_BASE
+
+
+func xiaomo_breaks_first_thread() -> bool:
+	return threads_cut >= BalanceConfig.THREAD_SELF_BREAK_AT
+
+
+func chapter_label() -> String:
+	if chapter == 3:
+		if chapter_trip <= CHAPTER_THREE_TRIPS:
+			return "第三章 · 提线  %d/%d" % [chapter_trip, CHAPTER_THREE_TRIPS]
+		if realm_cleared >= REALM_MAX:
+			return "剑境 · 五  已破"
+		return "自由历练 · 剑境 %s" % realm_name(realm_unlocked)
+	if chapter != 2:
+		return ""
+	if chapter_trip <= CHAPTER_TWO_TRIPS:
+		return "第二章 · 线头  %d/%d" % [chapter_trip, CHAPTER_TWO_TRIPS]
+	return "第二章 · 线头  已完"
+
+
+# ---- 剑境 / 自由历练 ----
+
+func is_free_play() -> bool:
+	return chapter == 3 and chapter_trip > CHAPTER_THREE_TRIPS
+
+
+static func realm_name(level: int) -> String:
+	return ["", "一", "二", "三", "四", "五"][clampi(level, 0, REALM_MAX)]
+
+
+# 这一级比上一级多了什么（选剑境时显示）。
+static func realm_rules(level: int) -> String:
+	match level:
+		1: return "就是现在的自由历练。"
+		2: return "敌人生命 +10%。罕见、稀有牌更常出现。"
+		3: return "宝箱、奇遇、路遇的回复减半。宝箱取信物时一次给两件。"
+		4: return "首领生命 +20%，到 2/3 血就狂暴。出发时带一件信物。"
+		5: return "敌人每次攻击 +2，起始牌组多一张心魔。"
+	return ""
+
+
+func _roll_free_boss() -> String:
+	var pool: Array = FREE_BOSSES.filter(func(id): return id != last_free_boss)
+	return str(pool[randi() % pool.size()])
+
+
+# 以当前最高剑境打通一趟自由历练，解锁下一级。
+func clear_realm() -> void:
+	if not is_free_play() or sword_realm <= 0:
+		return
+	if sword_realm > realm_cleared:
+		realm_cleared = sword_realm
+		if sword_realm >= REALM_MAX and pending_story.is_empty():
+			pending_story = "realm5_clear"
+	if sword_realm >= realm_unlocked and realm_unlocked < REALM_MAX:
+		realm_unlocked += 1
+
+
+# 剑境三：回复减半（只管战斗外的回复）。
+func rest_heal(amount: int) -> int:
+	if amount > 0 and sword_realm >= 3:
+		return maxi(int(amount / 2), 1)
+	return amount
+
 
 func prepare_finale_battle() -> void:
 	pending_encounter = EncounterType.BOSS
@@ -777,6 +1168,11 @@ func _reset_expedition_runtime() -> void:
 	homecoming_pending = false
 	promise_sincere = true
 	run_min_hp = player_hp
+	run_relics.clear()
+	sword_realm = 0
+	free_boss = ""
+	run_lean.clear()
+	run_lean_spoken.clear()
 	_reset_deck()
 
 

@@ -1,0 +1,12 @@
+离线诗库
+数据来源：chinese-poetry/chinese-poetry（MIT，见 LICENSE.txt）
+https://github.com/chinese-poetry/chinese-poetry
+导入：全唐诗/唐诗三百首.json、蒙学/qianjiashi.json。
+构建时筛选完整双句、逐字转简、去重，并补入游戏已编写的八条剑意原句。
+生成数据：couplets.json（2178 联）。未收录诗句不能据此断言伪造。
+
+繁简字映射来源：BYVoid/OpenCC，TSCharacters.txt。
+https://github.com/BYVoid/OpenCC
+许可见 OpenCC-LICENSE.txt。
+采用逐字映射，未实现完整的上下文词组转换；异文仍以收录文本为准。
+游戏运行时只读取内置 JSON，绝不下载数据。

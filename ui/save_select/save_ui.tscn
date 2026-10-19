@@ -37,55 +37,25 @@ offset_top = 220.0
 offset_right = 1410.0
 offset_bottom = 270.0
 theme_override_font_sizes/font_size = 22
-text = "远征自动保存 · 选择存档继续 · 各存档进度独立"
+text = "历练自动保存 · 选择存档继续 · 各存档进度独立"
 horizontal_alignment = 1
 
 theme = SubResource("UnifiedTheme")
-[node name="Slots" type="VBoxContainer" parent="."]
+[node name="Scroll" type="ScrollContainer" parent="."]
 offset_left = 550.0
 offset_top = 335.0
 offset_right = 1370.0
 offset_bottom = 825.0
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Slots" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 28
-
-[node name="Slot1" type="HBoxContainer" parent="Slots"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="Open" type="Button" parent="Slots/Slot1"]
-custom_minimum_size = Vector2(620, 120)
-layout_mode = 2
-text = "存档 1\n新游戏"
-
-[node name="Delete" type="Button" parent="Slots/Slot1"]
-custom_minimum_size = Vector2(180, 120)
-layout_mode = 2
-text = "删除存档"
-
-[node name="Slot2" type="HBoxContainer" parent="Slots"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="Open" type="Button" parent="Slots/Slot2"]
-custom_minimum_size = Vector2(620, 120)
-layout_mode = 2
-text = "存档 2\n新游戏"
-
-[node name="Delete" type="Button" parent="Slots/Slot2"]
-custom_minimum_size = Vector2(180, 120)
-layout_mode = 2
-text = "删除存档"
-
-[node name="Slot3" type="HBoxContainer" parent="Slots"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="Open" type="Button" parent="Slots/Slot3"]
-custom_minimum_size = Vector2(620, 120)
-layout_mode = 2
-text = "存档 3\n新游戏"
-
-[node name="Delete" type="Button" parent="Slots/Slot3"]
-custom_minimum_size = Vector2(180, 120)
-layout_mode = 2
-text = "删除存档"
+[node name="Back" type="Button" parent="."]
+offset_left = 55.0
+offset_top = 45.0
+offset_right = 355.0
+offset_bottom = 103.0
+text = "返回主界面"

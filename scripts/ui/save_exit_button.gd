@@ -5,7 +5,7 @@ static func install(host: Node, ui: Node, position: Vector2) -> void:
 	button.name = "SaveExitButton"
 	button.text = "保存并退出"
 	button.position = position
-	button.size = Vector2(220, 48)
+	button.size = Vector2(220, 80) if WindowMode.is_mobile() else Vector2(220, 48)
 	preload("res://scripts/ui/ink_ui_skin.gd").style_button(button)
 	ui.add_child(button)
 	button.pressed.connect(func():

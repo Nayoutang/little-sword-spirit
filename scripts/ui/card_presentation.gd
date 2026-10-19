@@ -8,6 +8,9 @@ const PLAYER_MOTIFS := {
 	5: "leaves", 6: "waves", 7: "curse", 8: "breath", 9: "shadow",
 	10: "break", 11: "deflect", 12: "sheath", 13: "beam", 14: "lotus",
 	15: "wind", 16: "slash", 17: "shield", 18: "gate", 19: "deflect",
+	20: "slash", 21: "slash", 22: "shield", 23: "eye", 24: "cleave", 25: "shield",
+	26: "waves", 27: "gate", 28: "deflect", 29: "wind", 30: "break", 31: "cleave",
+	32: "slash", 33: "shield",
 }
 const COMPANION_MOTIFS := {
 	"quick_slash": "slash", "guard_echo": "echo", "follow_up": "crossed",
@@ -26,7 +29,7 @@ static func describe(player_card_id: int, companion_card_id: String, effective_c
 		match card_type:
 			"防御": player_accent = Color("#74c7bd")
 			"技巧": player_accent = Color("#d9c47f")
-			"能力": player_accent = Color("#d9c47f")
+			"能力": player_accent = Color("#9fc86a")
 			"诅咒": player_accent = Color("#ac83bd")
 			"特殊技": player_accent = Color("#75d8df")
 			"终极技": player_accent = Color("#f1bc75")
@@ -51,6 +54,8 @@ static func describe(player_card_id: int, companion_card_id: String, effective_c
 
 
 static func _player_stats(card_id: int, definition: Dictionary) -> Array[String]:
+	if definition.has("face"):
+		return [str(definition["face"][0]), str(definition["face"][1])]
 	match card_id:
 		CardDatabase.PARRY: return ["格挡5·反击4伤至多2次", "清空连击·反击积势至下回合"]
 		CardDatabase.RETAIN_SHIELD: return ["剩余护盾跨回合保留", "能力·包括小墨护盾"]

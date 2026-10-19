@@ -19,15 +19,21 @@ func _ready() -> void:
 		"victory": pages.assign(["victory"])
 		"sacrifice": pages.assign(["sacrifice", "journey"])
 		_: pages.assign(["memory", "arrival"])
-	$FinaleUI/Continue.pressed.connect(_advance)
-	page.sequence_completed.connect(func(): $FinaleUI/Caption.show())
+	$FinaleUI/Continue.pressed.connect(_on_continue_pressed)
+	$FinaleUI/Rewind.pressed.connect(_rewind_choice)
 	_show_page()
 func _show_page() -> void:
 	$FinaleUI/Caption.hide()
-	page.begin(load("res://art/story/finale/" + pages[page_index] + "_v2.png"))
 	$FinaleUI/Caption.text = TEXT[pages[page_index]]
 	if pages[page_index] == "memory" and RunState.finale_mode == "refusal":
 		$FinaleUI/Caption.text = "她把地图收好，点了点头，没有责怪你。\n小墨：我知道了。你留在家里吧，别替我担心。\n临走前，她把第二只茶杯放回你身旁，像平常那样。"
+	var lines: PackedStringArray = $FinaleUI/Caption.text.split("\n")
+	var entries: Array = [
+		{"panel": 0, "rect": [0.03, 0.03, 0.53, 0.16], "text": lines[0]},
+		{"panel": 1, "rect": [0.67, 0.025, 0.30, 0.19], "text": lines[1]},
+		{"panel": 2, "rect": [0.04, 0.81, 0.72, 0.17], "text": "\n".join(lines.slice(2))},
+	]
+	page.begin(load("res://art/story/finale/" + pages[page_index] + "_v2.png"), entries)
 	$FinaleUI/Continue.text = "继续"
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_accept") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
@@ -35,8 +41,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_advance()
 func _advance() -> void:
 	if finishing:
-		if RunState.finale_state == "ended":
-			RunState.navigate("save_select", self)
 		return
 	if page.reveal_next(): return
 	if page_index + 1 < pages.size():
@@ -49,5 +53,43 @@ func _advance() -> void:
 		RunState.navigate("battle", self)
 	else:
 		RunState.set_finale_state("ended", RunState.finale_mode)
-		$FinaleUI/Continue.text = "返回存档"
+		$FinaleUI/Continue.grab_focus()
+		_show_ending_choices()
 		$FinaleUI/Caption.text += "\n" + str(ENDING_TITLES.get(RunState.finale_mode, "故事终"))
+		page.add_ending_title(str(ENDING_TITLES.get(RunState.finale_mode, "故事终")))
+
+
+func _show_ending_choices() -> void:
+	$FinaleUI/Rewind.hide()
+	match RunState.finale_mode:
+		"refusal":
+			$FinaleUI/Continue.text = "离开游戏"
+			$FinaleUI/Continue.tooltip_text = "返回主界面，不关闭程序。"
+			$FinaleUI/Rewind.show()
+		"victory":
+			$FinaleUI/Continue.text = "回家"
+		"sacrifice":
+			$FinaleUI/Continue.text = "回到过去"
+
+
+func _on_continue_pressed() -> void:
+	if not finishing:
+		_advance()
+		return
+	if RunState.is_scene_transition_pending():
+		return
+	match RunState.finale_mode:
+		"refusal": RunState.navigate("save_select", self)
+		"victory":
+			RunState.return_home_after_finale()
+			RunState.navigate("home", self)
+		"sacrifice": _rewind_choice()
+
+
+func _rewind_choice() -> void:
+	if not finishing or RunState.is_scene_transition_pending():
+		return
+	if RunState.finale_mode not in ["refusal", "sacrifice"]:
+		return
+	RunState.rewind_finale_choice()
+	RunState.navigate("home", self)

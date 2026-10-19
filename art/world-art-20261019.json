@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-19",
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "37018760-d161-454b-8a3e-0050fd4e23fa",
+      "path": "art/relics/sources/relic_atlas_source_v1.png",
+      "prompt": "Use case: stylized-concept. Game inventory icon atlas, square 2048x2048 transparent PNG. Precisely 4 columns x 4 rows, equal 512 square cells, no visible grid. One separate centered object per cell with generous empty margins, every object confined to central 360x360 of its cell. Chinese fantasy handpainted ink illustration, delicate dark brown outlines, aged ivory, jade teal and restrained gold, readable small silhouettes. Row1 left to right: worn black and gold straight sword scabbard WITHOUT sword; chipped flat whetstone; teal silk sword tassel; red Chinese lovers knot. Row2: half broken jade pendant; cracked round bronze chest mirror; small engraved narrow metal inscription plaque with abstract illegible marks; brown wine gourd with red cord. Row3: folded ivory peace amulet with abstract illegible ink seal; single small bronze bell; closed worn oil-paper umbrella; empty aged ivory envelope. Row4: a short curved broken purple instrument string with frayed ends in FIRST cell only; remaining three cells completely empty transparent. No people, no labels, no text, no UI frames, no shadows outside own cell. All 13 different objects present exactly once, exact regular layout."
+    },
+    {
+      "id": "6142667f-d3d9-4fcf-9b69-4f8f6164894e",
+      "path": "art/backgrounds/sources/ch3_sword_tomb_battle_source_v1.png",
+      "prompt": "Use case: stylized-concept. Production 16:9 1920x1080 background for Chinese fantasy 2D turn based battle, match reference painterly scene and sword tomb location. Remove all characters. Camera is at standing eye height viewing a broad flat ancient stone clearing in the mountain sword tomb. Low-contrast unobstructed floor fills bottom 60 percent, distant planted straight swords flank far left and right only; misty blue jade karst mountains, thin few violet puppet threads high across far background, small distant theatre upper right. Cool subdued dawn lighting with faint warm sky. Enemy sprites and large UI are composited separately: keep middle clear and darker low detail, horizon around upper third, no large foreground swords, no figures, no UI, no text or watermark.",
+      "references": [
+        "art/backgrounds/ch2_theatre_battle_v1.png",
+        "art/story/chapter_three/ch3_sword_tomb_v1.png"
+      ]
+    }
+  ],
+  "normalization": "13 equal-grid icons sliced, alpha-bounds cropped and fit into 224x224 with 16px padding in 256x256 RGBA. Background resized to 1920x1080. No repainting.",
+  "provenance": "AI generated assets using existing project art references; original source PNG metadata retained."
+}

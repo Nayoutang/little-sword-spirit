@@ -160,7 +160,6 @@ func process_reply(action: String, player_text: String, intent_hint: String, rep
 	var winner := _predicted_winner(action, player_text, intent, reply, my_line)
 	if not skip_closure_check and not winner.is_empty() and not _has_clear_closure(reply, winner):
 		return {"retry_closure": true}
-	var outcome := {"retry_line": false, "speech": "", "finished": false, "player_won": false, "reason": ""}
 	if action == "opening":
 		if reply["give_up"] or my_line.is_empty():
 			return _finish_reply(reply, "", true, "gave_up")
@@ -205,7 +204,6 @@ func process_reply(action: String, player_text: String, intent_hint: String, rep
 			return _continue_reply(reply, "", "")
 		_:
 			return _continue_reply(reply, "", "")
-	return outcome
 
 
 func _predicted_winner(action: String, player_text: String, intent: String, reply: Dictionary, my_line: String) -> String:

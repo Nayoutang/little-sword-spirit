@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://250kjmp02ff5"]
 
-[ext_resource type="Texture2D" path="res://art/character/sword_spirit_home_cutout_v1.png" id="1_portrait"]
+[ext_resource type="Texture2D" path="res://art/character/sword_spirit_home_cutout_v2.png" id="1_portrait"]
 [ext_resource type="Script" uid="uid://ci1j3x1e1d0fv" path="res://scripts/home/home_chat.gd" id="2_chat"]
 [ext_resource type="Texture2D" path="res://art/backgrounds/home_room_v2.png" id="4_room"]
 [ext_resource type="PackedScene" path="res://ui/home/chat_ui.tscn" id="ui_ChatUI"]
@@ -23,7 +23,7 @@ stretch_mode = 6
 [node name="Portrait" type="TextureRect" parent="." unique_id=1140179135]
 offset_left = -105.0
 offset_top = 35.0
-offset_right = 760.0
+offset_right = 1192.5
 offset_bottom = 1332.5
 mouse_filter = 2
 texture = ExtResource("1_portrait")

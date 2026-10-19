@@ -12,11 +12,11 @@ script = ExtResource("skin")
 [node name="Page" type="TextureRect" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_bottom = -265.0
 expand_mode = 1
 script = ExtResource("panels")
 fill_frame = true
 [node name="Paper" type="TextureRect" parent="."]
+visible = false
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -25,6 +25,8 @@ texture = ExtResource("paper")
 expand_mode = 1
 mouse_filter = 2
 [node name="Caption" type="RichTextLabel" parent="."]
+visible = false
+mouse_filter = 2
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -40,7 +42,20 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -320.0
+offset_top = -175.0
+offset_right = -60.0
+offset_bottom = -110.0
+text = "继续"
+
+[node name="Rewind" type="Button" parent="."]
+visible = false
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -320.0
 offset_top = -100.0
 offset_right = -60.0
 offset_bottom = -35.0
-text = "继续"
+text = "回到过去"
+tooltip_text = "回到小墨询问你是否陪她前往旧祠的时刻。"

@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-17",
+  "tool": "built-in imagegen",
+  "reference": "art/character/sword_spirit_dialogue_portrait.png",
+  "generation_id": "20724eb2-b208-4ddf-84a8-058892c12b10",
+  "source": "art/ui/liar_dice/tea_table_source_v1.png",
+  "runtime": "art/ui/liar_dice/tea_table_v1.png",
+  "size": [
+    1920,
+    1080
+  ],
+  "alpha": false,
+  "prompt": "ONE wide 16:9 Chinese fantasy painterly anime dice minigame background. Preserve Xiaomo brown hair, amber eyes, white flowers gold ornaments, teal ribbons and white teal gold hanfu from reference. Warm evening wooden tea room, plum blossom window and amber lantern. Girl on left 30 percent, subtly challenging amused smile toward viewer, hand beside ONE closed dark lacquer dice cup with brass rim. No visible dice/pips. Right 65 percent quiet dark jade and wood for opaque controls. Bottom left quiet wood for dialogue. No sword, text, labels, UI, frames, watermark or additional characters.",
+  "normalization": "Center crop to 16:9 and Lanczos resize; no repainting.",
+  "provenance": "AI generated using project-owned reference; no external stock source.",
+  "sha256": "e236b7d8dfac5a92d0081ed549631cf3c137b8ad7dd64ca377672835a6ed85ca",
+  "validation": {
+    "engine": "Godot 4.7.2",
+    "screenshots": [
+      "opening",
+      "thinking",
+      "response",
+      "reveal",
+      "rules",
+      "compact"
+    ],
+    "compact_window": [
+      1280,
+      720
+    ],
+    "tests": [
+      "liar_dice_smoke",
+      "home_ui_smoke",
+      "mobile_adaptation_smoke"
+    ],
+    "result": "3/3 passed",
+    "physical_mobile_review": false
+  }
+}

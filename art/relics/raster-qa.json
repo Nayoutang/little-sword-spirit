@@ -1,0 +1,210 @@
+[
+  {
+    "id": "old_scabbard",
+    "name": "旧剑鞘",
+    "path": "art/relics/old_scabbard_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      33,
+      33,
+      306,
+      308
+    ],
+    "sha256": "e8c69f344aefc774d1a8aa076889c9ea89d1b9997057861813d00c959768f125"
+  },
+  {
+    "id": "whetstone_chip",
+    "name": "磨剑石片",
+    "path": "art/relics/whetstone_chip_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      23,
+      35,
+      307,
+      306
+    ],
+    "sha256": "fd00cef227136c5c64886b5ecf94327c285e571fd352d3dbcc5abed698535b6c"
+  },
+  {
+    "id": "green_tassel",
+    "name": "青色剑穗",
+    "path": "art/relics/green_tassel_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      7,
+      29,
+      302,
+      314
+    ],
+    "sha256": "a52e3108f1b222d5f0a66a2df2ab0306667a4fe53aaa6042285efbdede097393"
+  },
+  {
+    "id": "lovers_knot",
+    "name": "同心结",
+    "path": "art/relics/lovers_knot_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      5,
+      29,
+      290,
+      314
+    ],
+    "sha256": "7759db510b0da8a3689f851b54ecdbc03de1f1eb39bd29e16053000c58051c93"
+  },
+  {
+    "id": "half_jade",
+    "name": "半块玉佩",
+    "path": "art/relics/half_jade_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      0,
+      0,
+      312,
+      313
+    ],
+    "sha256": "4ba019705fe06d3ce9f124103429d6b3326f7e37be66a36441026caaa56e6322"
+  },
+  {
+    "id": "heart_mirror",
+    "name": "护心镜",
+    "path": "art/relics/heart_mirror_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      8,
+      21,
+      313,
+      307
+    ],
+    "sha256": "75bafe9664f85470e48a0bd231b010dcff3886bc8ad6d7a2ba5067dea5c89ec0"
+  },
+  {
+    "id": "blade_inscription",
+    "name": "剑铭",
+    "path": "art/relics/blade_inscription_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      1,
+      0,
+      312,
+      313
+    ],
+    "sha256": "de489cec3ebfb2ac1a4c08f56a499396f72fdec06d53173ab86df7100f657c3c"
+  },
+  {
+    "id": "wine_gourd",
+    "name": "酒葫芦",
+    "path": "art/relics/wine_gourd_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      17,
+      0,
+      300,
+      313
+    ],
+    "sha256": "a5823430400bec5a1972708867453cff3deb42ed5958502110065813e4842131"
+  },
+  {
+    "id": "peace_charm",
+    "name": "平安符",
+    "path": "art/relics/peace_charm_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      23,
+      0,
+      309,
+      308
+    ],
+    "sha256": "0841e31039c0738ee1da1719cd254d5d1d90c0788ad1fbd4eb69b335c665cc27"
+  },
+  {
+    "id": "bronze_bell",
+    "name": "铜铃",
+    "path": "art/relics/bronze_bell_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      2,
+      5,
+      275,
+      304
+    ],
+    "sha256": "d86f143f164d56cbdf08213c012d4907d1161e69b3a8bedad627f558a07d430c"
+  },
+  {
+    "id": "old_umbrella",
+    "name": "旧伞",
+    "path": "art/relics/old_umbrella_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      15,
+      0,
+      289,
+      308
+    ],
+    "sha256": "9ca71e77c39918b660ba039dd32dfe16a384812fb917028758b862f3b3b365c5"
+  },
+  {
+    "id": "letter_envelope",
+    "name": "信笺",
+    "path": "art/relics/letter_envelope_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      7,
+      0,
+      300,
+      275
+    ],
+    "sha256": "ff3ada027ed8b573e23088a64166f0256e971bfb6fba422ec5a6896f8160af9d"
+  },
+  {
+    "id": "broken_string",
+    "name": "断弦",
+    "path": "art/relics/broken_string_v1.png",
+    "size": [
+      256,
+      256
+    ],
+    "atlas_bbox": [
+      31,
+      9,
+      314,
+      278
+    ],
+    "sha256": "266cbaefe754163d023f3aa3386edac78693104d76c83365221b2967ce128b0b"
+  }
+]

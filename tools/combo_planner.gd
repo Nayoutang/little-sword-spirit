@@ -29,7 +29,7 @@ func snapshot(battle) -> Dictionary:
 		"hand": held, "deck": battle.draw_pile.duplicate(), "discard": battle.discard_pile.duplicate(),
 		"enemy_hp": battle.enemy_hps.duplicate(), "guard": battle.enemy_guards.duplicate(), "vulnerable": battle.enemy_vulnerabilities.duplicate(),
 		"intents": battle.enemy_intents.duplicate(true), "roles": battle.enemy_roles.duplicate(), "step": battle.enemy_action_step,
-		"layer": state.route_layer, "stage": state.get_bond_stage_index(), "allowed": battle._allowed_companion_cards(),
+		"layer": state.route_layer, "stage": state.get_bond_stage_index(), "bond": state.bond_value, "allowed": battle._allowed_companion_cards(),
 		"locked": str(battle.locked_companion_choice.get("card_id", "")), "boon": battle.pending_boon.duplicate(true),
 		"cooperation": state.relationship_facts.get("cooperation", {}).duplicate(true), "promise": state.active_promise,
 		"reductions": battle.enemy_attack_reductions.duplicate(),
@@ -139,7 +139,7 @@ func legal_actions(s: Dictionary) -> Array:
 			result.append({"kind": "card", "id": id, "target": -1})
 	for id in [13, 14]:
 		var d: Dictionary = cards.get_definition(id)
-		if s["stage"] >= d["bond_stage"] and s["combo"] >= d["combo_required"] and s["energy"] >= d["cost"]:
+		if s["stage"] >= d["bond_stage"] and s["bond"] >= int(d.get("bond_required", 0)) and s["combo"] >= d["combo_required"] and s["energy"] >= d["cost"]:
 			for target in range(s["enemy_hp"].size()):
 				if s["enemy_hp"][target] > 0: result.append({"kind": "skill", "id": id, "target": target})
 	return result

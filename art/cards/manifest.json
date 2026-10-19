@@ -1,8 +1,9 @@
 {
-  "version": 1,
+  "version": 2,
+  "expansion_manifest": "art/cards/expansion-20261015.json",
   "date": "2026-10-06",
   "engine": "Godot 4.7.2",
-  "purpose": "Distinct card covers for 20 player and 18 companion definitions; ancient ink-style layered Huacai finishing animation",
+  "purpose": "Distinct card covers for 34 player and 18 companion definitions; legacy covers below plus 14 new covers in expansion_manifest; ancient ink-style layered Huacai finishing animation",
   "normalization": "Generated covers fit with transparent padding in 512x442 RGBA; original generated sources retained in Codex generated_images; no repainting in normalization",
   "references": {
     "ordinary": [
@@ -355,5 +356,6 @@
     "raster": "art/cards/raster-qa.json",
     "engine": "tools/card_library_smoke.gd --check-all-art",
     "visual": "art/previews/all-card-faces-v1.png and card-library / brilliance previews"
-  }
+  },
+  "build_routes_manifest": "art/cards/build-routes-20261019.json"
 }

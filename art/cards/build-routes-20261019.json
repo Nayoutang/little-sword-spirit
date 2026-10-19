@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-19",
+  "tool": "built-in image_gen",
+  "provenance": "AI generated; references are existing project card artwork; original PNG metadata retained in sources",
+  "references": [
+    "art/cards/player/25_side_by_side_v1.png",
+    "art/cards/player/33_guard_heart_v1.png"
+  ],
+  "runtime_size": [
+    512,
+    442
+  ],
+  "assets": [
+    {
+      "id": 34,
+      "slug": "backwater",
+      "generation_id": "568b44b4-f9f8-4d7d-a5ee-adcf633e46cc",
+      "name": "背水",
+      "prompt": "Use case: stylized-concept. Production card cover for Chinese fantasy 2D Godot game. Match reference images' detailed chibi ink-wash illustration exactly: ragged ivory rice-paper vignette, black ink mountains and splashes, turquoise jade sword energy, restrained gold highlights. Xiaomo has long flowing dark brown hair, amber eyes, tiny white plum hair ornaments, ivory and teal robes with gold trim, black boots. Compact readable silhouette, generous transparent margins, nearly square 512:442 composition; all artwork contained within frame, no rectangular background, no lettering, no UI/card border, no watermark. Preserve character identity and existing brush texture. One illustration only. Subject: A determined anonymous swordsman lunges forward at the edge of black ink water, while Xiaomo behind him projects a broad turquoise protective arc over his exposed back. Attack first, trusted protection.",
+      "source": "art/cards/sources/build_routes_20261019/34_backwater_source_v1.png",
+      "runtime": "art/cards/player/34_backwater_v1.png"
+    },
+    {
+      "id": 35,
+      "slug": "lean_sword",
+      "generation_id": "6de70c95-3fae-49db-b755-ae5a0a0fda8f",
+      "name": "倚剑",
+      "prompt": "Use case: stylized-concept. Production card cover for Chinese fantasy 2D Godot game. Match reference images' detailed chibi ink-wash illustration exactly: ragged ivory rice-paper vignette, black ink mountains and splashes, turquoise jade sword energy, restrained gold highlights. Xiaomo has long flowing dark brown hair, amber eyes, tiny white plum hair ornaments, ivory and teal robes with gold trim, black boots. Compact readable silhouette, generous transparent margins, nearly square 512:442 composition; all artwork contained within frame, no rectangular background, no lettering, no UI/card border, no watermark. Preserve character identity and existing brush texture. One illustration only. Subject: A straight sword thrust emerges from a solid turquoise shield arc; Xiaomo braces behind the glowing guard, gold energy from the shield flows into the blade. Shield becomes attack.",
+      "source": "art/cards/sources/build_routes_20261019/35_lean_sword_source_v1.png",
+      "runtime": "art/cards/player/35_lean_sword_v1.png"
+    },
+    {
+      "id": 36,
+      "slug": "entrust",
+      "generation_id": "6759bd1a-ef43-41d7-923d-e15613780fe7",
+      "name": "托付",
+      "prompt": "Use case: stylized-concept. Production card cover for Chinese fantasy 2D Godot game. Match reference images' detailed chibi ink-wash illustration exactly: ragged ivory rice-paper vignette, black ink mountains and splashes, turquoise jade sword energy, restrained gold highlights. Xiaomo has long flowing dark brown hair, amber eyes, tiny white plum hair ornaments, ivory and teal robes with gold trim, black boots. Compact readable silhouette, generous transparent margins, nearly square 512:442 composition; all artwork contained within frame, no rectangular background, no lettering, no UI/card border, no watermark. Preserve character identity and existing brush texture. One illustration only. Subject: Close symbolic composition: Xiaomo's small open hand releases a translucent turquoise shield into an anonymous companion's sword-holding hand, gold energy connects shield and blade. Trust and sustained protection.",
+      "source": "art/cards/sources/build_routes_20261019/36_entrust_source_v1.png",
+      "runtime": "art/cards/player/36_entrust_v1.png"
+    },
+    {
+      "id": 37,
+      "slug": "follow_flow",
+      "generation_id": "5827bf95-c0f6-45bc-b0b0-2731f2d89cb7",
+      "name": "顺势",
+      "prompt": "Use case: stylized-concept. Production card cover for Chinese fantasy 2D Godot game. Match reference images' detailed chibi ink-wash illustration exactly: ragged ivory rice-paper vignette, black ink mountains and splashes, turquoise jade sword energy, restrained gold highlights. Xiaomo has long flowing dark brown hair, amber eyes, tiny white plum hair ornaments, ivory and teal robes with gold trim, black boots. Compact readable silhouette, generous transparent margins, nearly square 512:442 composition; all artwork contained within frame, no rectangular background, no lettering, no UI/card border, no watermark. Preserve character identity and existing brush texture. One illustration only. Subject: Xiaomo steps aside gracefully with an inviting open hand, turquoise wind carries two blank ancient paper slips forward along a curved flowing path. Yielded opportunity, effortless flowing movement.",
+      "source": "art/cards/sources/build_routes_20261019/37_follow_flow_source_v1.png",
+      "runtime": "art/cards/player/37_follow_flow_v1.png"
+    },
+    {
+      "id": 38,
+      "slug": "borrow_blossom",
+      "generation_id": "8cb9aaf6-bf7c-4d19-b563-c27a00d8277e",
+      "name": "借花",
+      "prompt": "Use case: stylized-concept. Production card cover for Chinese fantasy 2D Godot game. Match reference images' detailed chibi ink-wash illustration exactly: ragged ivory rice-paper vignette, black ink mountains and splashes, turquoise jade sword energy, restrained gold highlights. Xiaomo has long flowing dark brown hair, amber eyes, tiny white plum hair ornaments, ivory and teal robes with gold trim, black boots. Compact readable silhouette, generous transparent margins, nearly square 512:442 composition; all artwork contained within frame, no rectangular background, no lettering, no UI/card border, no watermark. Preserve character identity and existing brush texture. One illustration only. Subject: Xiaomo sends a single white plum blossom forward on turquoise wind; a straight sword catches its golden light and turns into a sweeping strike, trailing petals symbolize accumulated opportunities.",
+      "source": "art/cards/sources/build_routes_20261019/38_borrow_blossom_source_v1.png",
+      "runtime": "art/cards/player/38_borrow_blossom_v1.png"
+    },
+    {
+      "id": 39,
+      "slug": "understanding",
+      "generation_id": "1043d8b5-c0d0-4e66-aec9-3e4b6d6aa59a",
+      "name": "心照",
+      "prompt": "Use case: stylized-concept. Production card cover for Chinese fantasy 2D Godot game. Match reference images' detailed chibi ink-wash illustration exactly: ragged ivory rice-paper vignette, black ink mountains and splashes, turquoise jade sword energy, restrained gold highlights. Xiaomo has long flowing dark brown hair, amber eyes, tiny white plum hair ornaments, ivory and teal robes with gold trim, black boots. Compact readable silhouette, generous transparent margins, nearly square 512:442 composition; all artwork contained within frame, no rectangular background, no lettering, no UI/card border, no watermark. Preserve character identity and existing brush texture. One illustration only. Subject: Xiaomo and an anonymous companion face the same direction, their hands almost meet around a warm golden heart-light; an unbroken turquoise ring circles both, small shield-shaped light at its base. Quiet mutual understanding.",
+      "source": "art/cards/sources/build_routes_20261019/39_understanding_source_v1.png",
+      "runtime": "art/cards/player/39_understanding_v1.png"
+    },
+    {
+      "id": 40,
+      "slug": "setup_step",
+      "generation_id": "9606c3ad-96ca-4e51-8094-aa61f758b311",
+      "name": "垫步",
+      "prompt": "Use case: stylized-concept. Production card cover for Chinese fantasy 2D Godot game. Match reference images' detailed chibi ink-wash illustration exactly: ragged ivory rice-paper vignette, black ink mountains and splashes, turquoise jade sword energy, restrained gold highlights. Xiaomo has long flowing dark brown hair, amber eyes, tiny white plum hair ornaments, ivory and teal robes with gold trim, black boots. Compact readable silhouette, generous transparent margins, nearly square 512:442 composition; all artwork contained within frame, no rectangular background, no lettering, no UI/card border, no watermark. Preserve character identity and existing brush texture. One illustration only. Subject: Low dynamic framing: cloth boots take three light stepping-stone steps over black ink ripples, a turquoise rising spiral leads toward Xiaomo poised with her straight sword in the upper background. Setup footwork, no impact.",
+      "source": "art/cards/sources/build_routes_20261019/40_setup_step_source_v1.png",
+      "runtime": "art/cards/player/40_setup_step_v1.png"
+    },
+    {
+      "id": 41,
+      "slug": "finishing_touch",
+      "generation_id": "2af96ffa-09f1-494e-93ab-44204ebf86f7",
+      "name": "点睛",
+      "prompt": "Use case: stylized-concept. Production card cover for Chinese fantasy 2D Godot game. Match reference images' detailed chibi ink-wash illustration exactly: ragged ivory rice-paper vignette, black ink mountains and splashes, turquoise jade sword energy, restrained gold highlights. Xiaomo has long flowing dark brown hair, amber eyes, tiny white plum hair ornaments, ivory and teal robes with gold trim, black boots. Compact readable silhouette, generous transparent margins, nearly square 512:442 composition; all artwork contained within frame, no rectangular background, no lettering, no UI/card border, no watermark. Preserve character identity and existing brush texture. One illustration only. Subject: An anonymous hand passes a concentrated golden point of sword energy into Xiaomo's poised straight blade; she focuses amber eyes along the edge as a clean turquoise arc gathers for one precise finishing cut.",
+      "source": "art/cards/sources/build_routes_20261019/41_finishing_touch_source_v1.png",
+      "runtime": "art/cards/player/41_finishing_touch_v1.png"
+    },
+    {
+      "id": 42,
+      "slug": "linked_intent",
+      "generation_id": "03c50954-0eb9-43b7-8416-f267120294db",
+      "name": "剑意相连",
+      "prompt": "Use case: stylized-concept. Production card cover for Chinese fantasy 2D Godot game. Match reference images' detailed chibi ink-wash illustration exactly: ragged ivory rice-paper vignette, black ink mountains and splashes, turquoise jade sword energy, restrained gold highlights. Xiaomo has long flowing dark brown hair, amber eyes, tiny white plum hair ornaments, ivory and teal robes with gold trim, black boots. Compact readable silhouette, generous transparent margins, nearly square 512:442 composition; all artwork contained within frame, no rectangular background, no lettering, no UI/card border, no watermark. Preserve character identity and existing brush texture. One illustration only. Subject: Xiaomo and an anonymous companion stand back to back with two straight swords tracing an unbroken turquoise infinity loop, gold sparks transfer from her finishing slash into his next raised blade. Continuous paired sword intent.",
+      "source": "art/cards/sources/build_routes_20261019/42_linked_intent_source_v1.png",
+      "runtime": "art/cards/player/42_linked_intent_v1.png"
+    }
+  ]
+}

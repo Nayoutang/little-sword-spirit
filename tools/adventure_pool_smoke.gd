@@ -44,7 +44,10 @@ func run() -> void:
 	scene.force_offline = true
 	root.add_child(scene)
 	current_scene = scene
-	assert(scene.send.disabled and not scene.input.editable)
+	assert(not scene.send.disabled and scene.input.editable)
+	scene.input.text = "两个字"
+	scene._submit()
+	assert(not scene.started and scene.controller.game == null)
 	assert(scene.get_node("FeihualingLayer/GameScreen/ExitButton").text == "继续赶路")
 	assert(scene.get_node("FeihualingLayer/GameScreen/GameLog").text.contains("剑意"))
 	if "--poetry-screenshot" in OS.get_cmdline_user_args():

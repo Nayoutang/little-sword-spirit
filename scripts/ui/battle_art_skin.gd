@@ -13,7 +13,7 @@ static func texture_box(asset: String) -> StyleBoxTexture:
 # 固定布局与装饰纹理保存在 ui/battle/，此处只更新运行时文案。
 static func apply(battle: Node) -> void:
 	var ui := battle.get_node("BattleUI")
-	ui.get_node("RouteCaption").text = "山门试炼 · 第 %d 层" % RunState.route_layer
+	ui.get_node("RouteCaption").text = "旧祠决战" if RunState.finale_state == "battle" else "山门试炼 · 第 %d 层" % RunState.route_layer
 	var actions: Control = ui.get_node("ActionArea")
 	for pair in [["Special", "流光"], ["Ultimate", "华彩"], ["EndTurn", "结束回合"]]:
 		var button: Button = actions.get_node(pair[0])

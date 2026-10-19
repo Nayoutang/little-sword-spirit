@@ -2,13 +2,14 @@ class_name LLMConfig
 extends RefCounted
 
 # 公开客户端仅访问代理；上游密钥由 Cloudflare Secret 持有。
-const API_URL := "https://little-sword-spirit-api.nayoutang3.workers.dev/v1/chat/completions"
-const MODEL_NAME := "deepseek-chat"
+const API_URL := ""
+const MODEL_NAME := ""
 const SYSTEM_PROMPT_PATH := "res://prompts/system_prompt.txt"
 
 
 static func is_available() -> bool:
-	return "--offline-tests" not in OS.get_cmdline_user_args() and not API_URL.is_empty() and not MODEL_NAME.is_empty()
+	# 比赛版禁止一切联网，命令行参数也不能启用。
+	return false
 
 
 static func request_headers() -> PackedStringArray:

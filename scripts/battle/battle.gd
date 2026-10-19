@@ -27,6 +27,11 @@ const OpportunityRules = preload("res://scripts/battle/companion_opportunity_rul
 const CompanionEffects = preload("res://scripts/battle/companion_effect_resolver.gd")
 const CompanionTactics = preload("res://scripts/battle/companion_tactics.gd")
 const CompanionDirector = preload("res://scripts/battle/companion_card_director.gd")
+const Relics = preload("res://scripts/data/relic_database.gd")
+const RELIC_TINT := Color("#e6c27a")
+const BattleTutorial = preload("res://scripts/ui/battle_tutorial.gd")
+var tutorial: BattleTutorial
+var tutorial_intro_pending := false
 const NORMAL_ENEMY_ART := preload("res://art/enemies/ink_puppet.png")
 const ELITE_ENEMY_ART := preload("res://art/enemies/ink_duelist.png")
 const BOSS_ENEMY_ART := preload("res://art/enemies/cursed_guardian.png")
@@ -47,10 +52,17 @@ const COMPANION_POSE_ART := {
 }
 
 const EnemyActionEffect = preload("res://scripts/ui/enemy_action_effect.gd")
+const ThreadArt = preload("res://scripts/ui/thread_art.gd")
+var thread_art: Node2D
 const ROLE_ENEMY_ART := {
 	"swordsman": preload("res://art/enemies/ink_swordsman_sprite_v1.png"),
 	"guardian": preload("res://art/enemies/ink_guardian_sprite_v1.png"),
 	"hexer": preload("res://art/enemies/ink_hexer_sprite_v1.png"),
+	"thread_puppet": preload("res://art/enemies/chapter_two/thread_puppet_sprite_v1.png"),
+	"puppet_blade": preload("res://art/enemies/chapter_two/puppet_blade_sprite_v1.png"),
+	"thread_master": preload("res://art/enemies/chapter_two/thread_master_sprite_v1.png"),
+	"stand_in_box": preload("res://art/enemies/chapter_two/stand_in_box_sprite_v1.png"),
+	"troupe_watcher": preload("res://art/enemies/chapter_two/troupe_watcher_sprite_v1.png"),
 }
 
 # -----------------------------------------------------------------------------
@@ -65,11 +77,13 @@ var attack_combo_bonus := BalanceConfig.ATTACK_COMBO_BONUS
 
 var special_combo_required := CardDatabase.get_number(CardDatabase.FLOWING_LIGHT, "combo_required")
 var special_bond_stage_required := CardDatabase.get_number(CardDatabase.FLOWING_LIGHT, "bond_stage")
+var special_bond_required := CardDatabase.get_number(CardDatabase.FLOWING_LIGHT, "bond_required")
 var special_energy_cost := CardDatabase.get_cost(CardDatabase.FLOWING_LIGHT)
 var special_damage := CardDatabase.get_number(CardDatabase.FLOWING_LIGHT, "damage")
 var special_combo_cost := CardDatabase.get_number(CardDatabase.FLOWING_LIGHT, "combo_cost")
 var ultimate_combo_required := CardDatabase.get_number(CardDatabase.BRILLIANCE, "combo_required")
 var ultimate_bond_stage_required := CardDatabase.get_number(CardDatabase.BRILLIANCE, "bond_stage")
+var ultimate_bond_required := CardDatabase.get_number(CardDatabase.BRILLIANCE, "bond_required")
 var ultimate_energy_cost := CardDatabase.get_cost(CardDatabase.BRILLIANCE)
 var ultimate_damage := CardDatabase.get_number(CardDatabase.BRILLIANCE, "damage")
 
@@ -159,6 +173,7 @@ var companion_damage_multiplier := 1
 var companion_bonus_action := false
 var few_return_active := false
 var few_return_used := false
+var peace_charm_used := false
 var few_return_immune := false
 var bond_skill_comeback := false
 var companion_turn_pending := false
@@ -183,11 +198,49 @@ var battle_companion_card_counts: Dictionary = {}
 # 共同经历素材：本场序号、本回合小墨给的格挡、本回合玩家出牌。
 var battle_index := 0
 var companion_block_this_turn := 0
+# 构筑路线新牌的战斗状态
+var last_companion_block := 0
+var entrust_active := false
+var entrust_bonus := 0
+var heart_sync_active := false
+var linked_intent_active := false
+var linked_pending := false
+var opportunities_used_this_battle := 0
+var last_lean_line := ""
+const LEAN_LINES := {
+	"guard": "你冲吧，后面有我。",
+	"invest": "我留给你的，你都接住了。那我就多留一些。",
+	"finisher": "你把路铺好，最后一剑交给我。",
+}
 var turn_player_cards: Array[String] = []
 var boon_moment_recorded := false
 var companion_save_recorded := false
 # 剑意「断水」「长风」留给玩家下回合的资源。
 var cut_water_active := false
+# 2026-10-15 扩充牌：流派引擎与读意向的配合牌。
+var intent_hold_active := false
+var unmoved_active := false
+var hear_wind_active := false
+var attune_active := false
+var defenses_this_turn := 0
+var companion_turn_damage_bonus := 0
+var companion_stored_damage_bonus := 0
+var companion_turn_block_bonus := 0
+var thread_pierce_pending := false
+# 第二章 · 紫线。xiaomo_threads 每项是持线敌人的下标。
+var chapter_two := false
+var on_thread := false
+var troupe_boss := false
+var xiaomo_threads: Array[int] = []
+var thread_hits: Array[int] = []
+var thread_last_hit := -1
+var thread_self_break_used := false
+var threads_cut_this_battle := 0
+# 本回合是否打出过攻击牌（剑谱·收剑看这个）。
+var attacked_this_turn := false
+var shoujian_turn := false
+var pending_thread_tips: Array[String] = []
+const THREAD_TINT := Color(0.86, 0.72, 1.0)
 var long_wind_bonus := 0
 
 @onready var enemy_row: HBoxContainer = $BattleUI/EnemyArea/EnemyRow
@@ -227,6 +280,7 @@ var enemy_idle_tweens: Array[Tween] = []
 @onready var player_status: Control = $BattleUI/InfoArea/PlayerStatus
 @onready var companion_rest_position: Vector2 = $BattleUI/CompanionPanel/Portrait.position
 var displayed_player_block := -1
+var displayed_combo := 0
 var enemy_intent_labels: Array[Label] = []
 var enemy_blocks: Array[ColorRect] = []
 var enemy_sprites: Array[TextureRect] = []
@@ -254,6 +308,7 @@ func _ready() -> void:
 	$BattleUI.add_child(library_button)
 	library_button.pressed.connect(card_library.open)
 	preload("res://scripts/ui/save_exit_button.gd").install(self, $BattleUI, Vector2(1370, 30))
+	preload("res://scripts/ui/relic_view.gd").install(self, $BattleUI, Vector2(1150, 30))
 	if RunState.has_expedition() and RunState.expedition_checkpoint.phase == "battle" and not fixed_cooperation_test and not offline_experiment:
 		fixed_random_seed = RunState.battle_seed
 	random_call_counts = {"deck": 0, "enemy": 0}
@@ -286,7 +341,16 @@ func _ready() -> void:
 	companion_flash = $CompanionFlashLayer/CompanionFlash
 	fixed_cooperation_test = fixed_cooperation_test or "--cooperation-test" in OS.get_cmdline_user_args()
 	force_offline_companion = force_offline_companion or fixed_cooperation_test or "--offline-companion" in OS.get_cmdline_user_args()
+	_install_tutorial()
 	start_battle()
+	if chapter_two:
+		$Background.texture = preload("res://art/backgrounds/ch2_theatre_battle_v1.png")
+		if RunState.chapter == 3 and RunState.chapter_boss() == EnemyDatabase.BOUND_SPIRIT:
+			$Background.texture = preload("res://art/backgrounds/ch3_sword_tomb_battle_v1.png")
+		thread_art = ThreadArt.new()
+		thread_art.battle = self
+		$BattleUI.add_child(thread_art)
+		$BattleUI.move_child(thread_art, 0)
 
 
 # 统一战斗初始化入口；以后也可以在这里接收角色、敌人或关卡数据。
@@ -300,6 +364,7 @@ func start_battle() -> void:
 		deck_rng.randomize()
 		enemy_rng.randomize()
 	displayed_player_block = -1
+	displayed_combo = 0
 	enemy_roles.clear()
 	enemy_action_step = 0
 	boss_action_step = 0
@@ -309,7 +374,18 @@ func start_battle() -> void:
 	enemy_strengths.clear()
 	enemy_vulnerabilities.clear()
 	enemy_attack_reductions.clear()
+	xiaomo_threads.clear()
+	thread_hits.clear()
+	thread_last_hit = -1
+	thread_self_break_used = false
+	threads_cut_this_battle = 0
+	attacked_this_turn = false
+	shoujian_turn = false
+	pending_thread_tips.clear()
+	troupe_boss = false
+	peace_charm_used = false
 	_configure_encounter()
+	_apply_realm_to_enemies()
 	if fixed_cooperation_test:
 		enemy_hps.assign([36, 48])
 		enemy_count = 2
@@ -318,6 +394,8 @@ func start_battle() -> void:
 		enemy_strengths.assign([0, 0])
 		enemy_vulnerabilities.assign([0, 0])
 		enemy_attack_reductions.assign([0, 0])
+	thread_hits.resize(enemy_hps.size())
+	thread_hits.fill(0)
 	enemy_max_hps = enemy_hps.duplicate()
 	player_max_hp = RunState.player_max_hp
 	player_hp = RunState.player_hp
@@ -325,7 +403,23 @@ func start_battle() -> void:
 	battle_index = RunState.begin_battle()
 	cut_water_active = false
 	long_wind_bonus = 0
+	intent_hold_active = false
+	unmoved_active = false
+	hear_wind_active = false
+	attune_active = false
+	defenses_this_turn = 0
+	companion_turn_damage_bonus = 0
+	companion_stored_damage_bonus = 0
+	companion_turn_block_bonus = 0
+	thread_pierce_pending = false
 	companion_block_this_turn = 0
+	last_companion_block = 0
+	entrust_active = false
+	entrust_bonus = 0
+	heart_sync_active = false
+	linked_intent_active = false
+	linked_pending = false
+	opportunities_used_this_battle = 0
 	turn_player_cards.clear()
 	boon_moment_recorded = false
 	companion_save_recorded = false
@@ -371,16 +465,46 @@ func start_battle() -> void:
 	_roll_enemy_intents()
 	_initialize_deck()
 	_draw_new_hand()
-	combo_telemetry.begin_round(1, combo, flowing_cloud_active, RunState.get_bond_stage_index() >= ultimate_bond_stage_required, _visible_wind_count())
+	combo_telemetry.begin_round(1, combo, flowing_cloud_active, _ultimate_unlocked(), _visible_wind_count())
 	combo_telemetry.current["cloud_in_hand"] = _visible_cloud_count()
 	message_label.text = "战斗开始"
+	_apply_battle_start_relics()
 	companion_status_label.text = "小墨在观察战局"
 	companion_reason_label.text = "回合结束时，她会从自己的牌池中选择一张牌。"
 	_refresh_ui()
 	_prepare_companion_intent()
 
 
+# 剑境：二起敌人生命 +10%，四起首领再 +20%。
+func _apply_realm_to_enemies() -> void:
+	var realm := RunState.sword_realm
+	if realm < 2 or fixed_cooperation_test or RunState.finale_state == "battle":
+		return
+	var boss := RunState.pending_encounter == RunState.EncounterType.BOSS
+	for index in range(enemy_hps.size()):
+		var scale := 1.1
+		if boss and realm >= 4:
+			scale *= 1.2
+		enemy_hps[index] = int(round(enemy_hps[index] * scale))
+
+
 func _configure_encounter() -> void:
+	chapter_two = RunState.uses_thread_rules() and not fixed_cooperation_test and RunState.finale_state != "battle"
+	on_thread = false
+	if chapter_two:
+		on_thread = RunState.pending_encounter == RunState.EncounterType.BOSS or bool(RunState.room_checkpoint("battle").get("on_thread", RunState.node_on_thread))
+		if has_node("BattleUI/RouteCaption"):
+			$BattleUI/RouteCaption.text = "%s · 第 %d 层" % ["追线 · 线上" if on_thread else "追线 · 线外", RunState.route_layer]
+		if RunState.pending_encounter == RunState.EncounterType.BOSS and RunState.chapter_boss() == EnemyDatabase.WATCHER:
+			_configure_troupe_boss()
+			return
+		if RunState.pending_encounter == RunState.EncounterType.ELITE and on_thread:
+			var trio := EnemyDatabase.get_elite_config(RunState.route_layer)
+			enemy_count = 3
+			for index in range(enemy_count):
+				enemy_hps.append(_enemy_roll(int(trio["hp_min"]) - 10, int(trio["hp_max"]) - 10))
+			_assign_roles_and_slots()
+			return
 	match RunState.pending_encounter:
 		RunState.EncounterType.ELITE:
 			var elite_config := EnemyDatabase.get_elite_config(RunState.route_layer)
@@ -395,10 +519,36 @@ func _configure_encounter() -> void:
 			enemy_count = _enemy_roll(normal_config["count_min"], normal_config["count_max"])
 			for index in range(enemy_count):
 				enemy_hps.append(_enemy_roll(normal_config["hp_min"], normal_config["hp_max"]))
+	_assign_roles_and_slots()
+
+
+func _assign_roles_and_slots() -> void:
 	if RunState.pending_encounter != RunState.EncounterType.BOSS:
-		enemy_roles = EnemyDatabase.get_encounter_roles(RunState.route_layer, enemy_count, RunState.pending_encounter == RunState.EncounterType.ELITE, enemy_rng if RunState.has_expedition() else null)
+		var elite := RunState.pending_encounter == RunState.EncounterType.ELITE
+		var role_rng: RandomNumberGenerator = enemy_rng if RunState.has_expedition() else null
+		if chapter_two and RunState.is_free_play() and not on_thread:
+			# 自由历练：线外换成第一章的敌人。
+			enemy_roles = EnemyDatabase.get_encounter_roles(RunState.route_layer, enemy_count, elite, role_rng)
+		elif chapter_two:
+			enemy_roles = EnemyDatabase.get_chapter_two_roles(RunState.route_layer, enemy_count, elite, on_thread, role_rng)
+		else:
+			enemy_roles = EnemyDatabase.get_encounter_roles(RunState.route_layer, enemy_count, elite, role_rng)
 		for index in range(enemy_count):
 			enemy_hps[index] += int(EnemyDatabase.ROLES[enemy_roles[index]]["hp_offset"])
+	for index in range(enemy_count):
+		enemy_guards.append(0)
+		enemy_strengths.append(0)
+		enemy_vulnerabilities.append(0)
+		enemy_attack_reductions.append(0)
+
+
+# 第二章第二趟首领：看台人不出手，两个刀手借她的劲。
+func _configure_troupe_boss() -> void:
+	troupe_boss = true
+	var boss_hp := int(EnemyDatabase.get_boss_config(RunState.route_layer)["hp"])
+	enemy_count = 3
+	enemy_roles.assign([EnemyDatabase.BLADE, EnemyDatabase.WATCHER, EnemyDatabase.BLADE])
+	enemy_hps.assign([int(boss_hp * 0.28), int(boss_hp * 0.44), int(boss_hp * 0.28)])
 	for index in range(enemy_count):
 		enemy_guards.append(0)
 		enemy_strengths.append(0)
@@ -479,6 +629,15 @@ func _player_floating_text(caption: String, tint: Color, slot: int = 0) -> void:
 func _enemy_art(index: int = -1) -> Texture2D:
 	if RunState.finale_state == "battle":
 		return load("res://art/story/finale/former_master_v1.png")
+	if chapter_two and _is_boss_battle():
+		match RunState.chapter_boss():
+			EnemyDatabase.CURSE_GUARDIAN:
+				return BOSS_ENEMY_ART
+			EnemyDatabase.BOUND_SPIRIT:
+				return preload("res://art/enemies/chapter_three/bound_spirit_sprite_v1.png")
+			EnemyDatabase.PUPPETEER:
+				return preload("res://art/enemies/chapter_three/puppeteer_sprite_v1.png")
+		return preload("res://art/enemies/chapter_two/thread_blade_boss_sprite_v1.png")
 	if not fixed_cooperation_test and index >= 0 and index < enemy_roles.size():
 		return ROLE_ENEMY_ART[enemy_roles[index]]
 	match RunState.pending_encounter:
@@ -493,6 +652,10 @@ func _enemy_art(index: int = -1) -> Texture2D:
 func _enemy_name(index: int) -> String:
 	if RunState.finale_state == "battle":
 		return "故人 · 缚魂剑主"
+	if chapter_two and _is_boss_battle():
+		return str(EnemyDatabase.CHAPTER_BOSS_NAMES.get(RunState.chapter_boss(), EnemyDatabase.THREAD_BOSS_NAME))
+	if troupe_boss and index < enemy_roles.size():
+		return str(EnemyDatabase.ROLES[enemy_roles[index]]["name"]) if enemy_roles[index] == EnemyDatabase.WATCHER else "看台护卫 · 木偶刀手 %d" % (index + 1)
 	if not fixed_cooperation_test and index < enemy_roles.size():
 		return "%s%s %d" % ["精英·" if RunState.pending_encounter == RunState.EncounterType.ELITE else "", EnemyDatabase.ROLES[enemy_roles[index]]["name"], index + 1]
 	match RunState.pending_encounter:
@@ -542,10 +705,15 @@ func _play_hand_card(index: int) -> void:
 
 
 func _commit_hand_card(index: int) -> void:
+	Sfx.play("card")
 	_record_player_card(int(hand[index]))
 	resolving_hand_card = int(hand[index])
 	hand_buttons[index].hide()
-	if CardDatabase.get_definition(int(hand[index])).get("type", "") != "能力":
+	var committed: Dictionary = CardDatabase.get_definition(int(hand[index]))
+	if committed.get("type", "") == "防御":
+		defenses_this_turn += 1
+	# 能力牌与「本场移除」的牌不进弃牌堆。
+	if committed.get("type", "") != "能力" and not bool(committed.get("exhaust", false)):
 		discard_pile.append(hand[index])
 
 
@@ -604,6 +772,7 @@ func _resolve_targeted_skill(enemy_index: int) -> void:
 
 
 func _show_flowing_light() -> void:
+	Sfx.play("skill")
 	ink_event.stop()
 	if flowing_light_tween != null and flowing_light_tween.is_running():
 		flowing_light_tween.kill()
@@ -700,16 +869,26 @@ func _record_bond_skill_use(skill_name: String) -> void:
 # 调用前手牌已提交；所有效果完成后只触发一次连续攻击与回合内钩子。
 func _execute_player_card(definition: Dictionary, cost: int, hand_index: int, target_index: int = -1) -> void:
 	energy -= cost
+	var shown_intent := _companion_intent_kind()
+	if _card_reads_intent(definition, shown_intent):
+		_note_lean(shown_intent)
 	var once_flag := str(definition.get("once_per_turn_flag", ""))
 	if not once_flag.is_empty():
 		set(once_flag, true)
-	var result := {"target": target_index + 1, "damage": 0, "block": 0, "drawn": 0, "shield": block}
+	var result := {"target": target_index + 1, "damage": 0, "block": 0, "drawn": 0, "shield": block,
+		"companion": "", "combo_note": "，连击清零" if definition.get("type", "") == "防御" else "", "energy_note": ""}
 	var protected := false
 	for authored in definition["effects"]:
-		var effect := PlayerEffects.resolve(authored, definition, {"combo": combo, "attack_combo_bonus": attack_combo_bonus, "block": block})
+		var effect := PlayerEffects.resolve(authored, definition, _player_effect_context())
+		if bool(effect.get("skip", false)):
+			continue
 		match str(effect["kind"]):
 			CardDatabase.EFFECT_DAMAGE:
 				var damage := _apply_pending_boon_to_player_attack(int(effect["amount"]))
+				if entrust_bonus > 0 and definition.get("type", "") == "攻击":
+					damage += entrust_bonus
+					_player_floating_text("托付 · +%d" % entrust_bonus, Color("#74c7bd"), 2)
+					entrust_bonus = 0
 				if str(definition["target"]) == CardDatabase.TARGET_ALL_ENEMIES:
 					for index in range(enemy_hps.size()):
 						if enemy_hps[index] > 0:
@@ -724,6 +903,8 @@ func _execute_player_card(definition: Dictionary, cost: int, hand_index: int, ta
 			CardDatabase.EFFECT_COMBO:
 				if str(effect["mode"]) == CardDatabase.COMBO_ADD:
 					combo += int(effect["amount"])
+					if authored.has("requires_intent"):
+						result["combo_note"] = "；连击 +%d 留给小墨" % int(effect["amount"])
 				elif str(effect["mode"]) == CardDatabase.COMBO_PRESERVE:
 					preserve_combo_this_turn = true
 				else:
@@ -734,6 +915,7 @@ func _execute_player_card(definition: Dictionary, cost: int, hand_index: int, ta
 					else:
 						_consume_parry_combo(parry_injected_remaining, str(effect.get("consume_reason", "other")))
 						combo = 0
+						result["combo_note"] = "，连击清零"
 			CardDatabase.EFFECT_DRAW:
 				if str(effect["mode"]) == CardDatabase.DRAW_REPLACE_SLOT:
 					_draw_card_into_slot(hand_index)
@@ -746,7 +928,7 @@ func _execute_player_card(definition: Dictionary, cost: int, hand_index: int, ta
 			CardDatabase.EFFECT_REACTION:
 				if not parry_active:
 					parry_reaction_damage = int(effect["amount"])
-					parry_reaction_limit = int(definition[effect["reaction_limit_key"]])
+					parry_reaction_limit = int(definition[effect["reaction_limit_key"]]) + (CardDatabase.get_number(CardDatabase.HEAR_WIND, "reaction_bonus") if hear_wind_active else 0)
 					parry_combo_limit = int(definition[effect["combo_limit_key"]])
 				parry_active = true
 				result["reaction_limit"] = parry_reaction_limit
@@ -754,12 +936,26 @@ func _execute_player_card(definition: Dictionary, cost: int, hand_index: int, ta
 				enemy_vulnerabilities[target_index] += int(effect["amount"])
 				_enemy_floating_text(target_index, "+%d层易伤" % int(effect["amount"]), Color("#e89584"), 2)
 				result["vulnerable"] = int(effect["amount"])
+			CardDatabase.EFFECT_ENERGY:
+				energy += int(effect["amount"])
+				result["energy_note"] = "；她把机会让给你，精力 +%d" % int(effect["amount"])
+			CardDatabase.EFFECT_COMPANION_DAMAGE:
+				companion_turn_damage_bonus += int(effect["amount"])
+				result["companion"] = "；小墨这一击 +%d" % int(effect["amount"])
+			CardDatabase.EFFECT_COMPANION_BLOCK:
+				companion_turn_block_bonus += int(effect["amount"])
+				result["companion"] = "；小墨这次护盾 +%d" % int(effect["amount"])
+			CardDatabase.EFFECT_THREAD_PIERCE:
+				thread_pierce_pending = true
 			CardDatabase.EFFECT_REDUCE_ATTACK:
 				if enemy_intents[target_index]["type"] == EnemyIntent.ATTACK:
 					AttackSegments.reduce_next(enemy_intents[target_index], int(effect["amount"]))
 				else:
 					enemy_attack_reductions[target_index] += int(effect["amount"])
 				result["reduction"] = int(effect["amount"])
+	thread_pierce_pending = false
+	if result["combo_note"] == "，连击清零" and definition.get("type", "") == "防御" and combo > 0:
+		result["combo_note"] = "，小墨要出手，连击保留"
 	var template := str(definition["protected_result_template"]) if protected else str(definition["result_template"])
 	message_label.text = template.format(result)
 	_finish_action()
@@ -792,7 +988,7 @@ func _play_status_card(hand_index: int, cost: int) -> void:
 
 
 func _use_special() -> void:
-	if battle_finished or combo < special_combo_required or RunState.get_bond_stage_index() < special_bond_stage_required:
+	if battle_finished or combo < special_combo_required or not _special_unlocked():
 		return
 	if not _can_pay(special_energy_cost):
 		return
@@ -803,8 +999,16 @@ func _use_special() -> void:
 	_refresh_ui()
 
 
+func _special_unlocked() -> bool:
+	return RunState.get_bond_stage_index() >= special_bond_stage_required and RunState.bond_value >= special_bond_required
+
+
+func _ultimate_unlocked() -> bool:
+	return RunState.get_bond_stage_index() >= ultimate_bond_stage_required and RunState.bond_value >= ultimate_bond_required
+
+
 func _use_ultimate() -> void:
-	if battle_finished or combo < ultimate_combo_required or RunState.get_bond_stage_index() < ultimate_bond_stage_required:
+	if battle_finished or combo < ultimate_combo_required or not _ultimate_unlocked():
 		return
 	if not _can_pay(ultimate_energy_cost):
 		return
@@ -828,7 +1032,20 @@ func _end_turn() -> void:
 	companion_turn_pending = true
 	message_label.text = "小墨执行已展示的意向……"
 	_refresh_ui()
-	await _run_companion_turn()
+	if chapter_two and not xiaomo_threads.is_empty():
+		_companion_bound_turn()
+	else:
+		if RunState.has_relic(Relics.BLADE_INSCRIPTION):
+			companion_turn_damage_bonus += Relics.get_number(Relics.BLADE_INSCRIPTION, "damage")
+		# 剑谱·收剑：你收住手，她替你出这一剑。
+		shoujian_turn = RunState.has_scroll_page("shoujian") and not attacked_this_turn
+		if shoujian_turn:
+			companion_turn_block_bonus += BalanceConfig.SHOUJIAN_BLOCK
+			_player_floating_text("收剑 · 你收手，她出剑", Color("#f1ce82"), 1)
+		await _run_companion_turn()
+		shoujian_turn = false
+	companion_turn_damage_bonus = 0
+	companion_turn_block_bonus = 0
 	companion_turn_pending = false
 	if battle_finished:
 		return
@@ -849,9 +1066,18 @@ func _prepare_companion_intent() -> void:
 	companion_status_label.text = "小墨正在确定本回合意向"
 	_refresh_ui()
 	var context := _build_companion_context()
+	context["decision_phase"] = "preview"
 	var options := CompanionTactics.candidates(context, _allowed_companion_cards())
 	if options.is_empty():
 		options.assign([CompanionCards.GUARD_ECHO])
+	# 信笺：每场第一回合她先让给你。
+	if battle_turn_count == 0 and RunState.has_relic(Relics.LETTER_ENVELOPE):
+		var investing: Array[String] = []
+		for id in _allowed_companion_cards():
+			if CompanionCards.is_investment(id):
+				investing.append(id)
+		if not investing.is_empty():
+			options.assign(investing)
 	var choice: Dictionary = {}
 	if not force_offline_companion:
 		choice = await _request_companion_choice(context, options)
@@ -864,8 +1090,11 @@ func _prepare_companion_intent() -> void:
 	locked_companion_choice["plan"] = CompanionTactics.cooperation_plan(context, str(choice["card_id"]))
 	companion_turn_pending = false
 	_refresh_locked_companion_intent()
+	_apply_intent_relics()
 	companion_reason_label.tooltip_text = companion_intent_notice
 	_refresh_ui()
+	Sfx.voice(str(choice.get("reason", "")), -2.0)
+	_on_player_turn_ready()
 
 
 func _process(_delta: float) -> void:
@@ -898,16 +1127,20 @@ func _show_companion_dialogue() -> void:
 
 
 func _refresh_locked_companion_intent() -> void:
+	$BattleUI/CompanionPanel/Portrait.self_modulate = THREAD_TINT if chapter_two and not xiaomo_threads.is_empty() else Color.WHITE
 	if locked_companion_choice.is_empty():
 		return
 	var choice := locked_companion_choice
 	var definition := CompanionCards.get_definition(str(choice["card_id"]))
+	if chapter_two and not xiaomo_threads.is_empty():
+		_show_bound_intent(definition)
+		return
 	companion_status_label.text = "本回合意向：%s" % definition["name"]
 	var condition := ""
 	var plan: Dictionary = choice.get("plan", {})
 	if plan.get("kind", "") == "boss_interrupt":
 		if not bool(enemy_intents[0].get("charging", false)):
-			condition = "\n重斩已打断，我仍执行原定招式。"
+			condition = "\n重斩已打断，回合结束时重新确认招式。"
 		else:
 			var needed := maxi(int(plan["required_total"]) - boss_charge_hits - int(plan["companion_hits"]), 0)
 			condition = "\n配合：你还需命中%d次，我补最后一击（格挡也计次）。" % needed if needed > 0 else "\n配合条件已达成：我这一击可打断重斩。"
@@ -920,7 +1153,7 @@ func _refresh_locked_companion_intent() -> void:
 
 
 func _run_companion_turn() -> void:
-	var choice := locked_companion_choice.duplicate(true)
+	var preview_id := str(locked_companion_choice.get("card_id", ""))
 	locked_companion_choice.clear()
 	companion_intent_notice = ""
 	while not battle_finished and _living_enemy_count() > 0:
@@ -929,25 +1162,29 @@ func _run_companion_turn() -> void:
 		context["bonus_action"] = companion_bonus_action
 		context["affordable_attack_hits"] = 0
 		context["hand_cards"] = "玩家已结束行动，不能继续出牌"
+		context["preview_card_id"] = preview_id
+		context["decision_phase"] = "followup" if companion_bonus_action else "execute"
+		if turn_player_cards.is_empty():
+			context["turn_player_cards"] = "玩家已结束行动，本回合未出牌；不代表放弃后续回合"
+		var choice: Dictionary = {}
 		var options := CompanionTactics.candidates(context, _allowed_companion_cards())
 		if options.is_empty():
 			options.assign([CompanionCards.GUARD_ECHO])
+		companion_status_label.text = "小墨正在按当前战况确认出牌"
+		if not force_offline_companion:
+			choice = await _request_companion_choice(context, options)
+		if battle_finished or not is_inside_tree():
+			return
 		if choice.is_empty():
-			if not force_offline_companion:
-				choice = await _request_companion_choice(context, options)
-			if battle_finished or not is_inside_tree():
-				return
-			if choice.is_empty():
-				choice = CompanionDirector.choose_fallback(context, options)
-		elif str(choice.get("card_id", "")) not in options:
 			choice = CompanionDirector.choose_fallback(context, options)
-			choice["reason"] = "原定配合已失效或无法挡住致命伤害，我改用「%s」。" % CompanionCards.get_definition(str(choice["card_id"]))["name"]
-			companion_intent_notice = str(choice["reason"])
+		if not preview_id.is_empty() and str(choice["card_id"]) != preview_id:
+			companion_intent_notice = "战况已变化，小墨重新确认后改用「%s」。" % CompanionCards.get_definition(str(choice["card_id"]))["name"]
+		$BattleUI/CompanionPanel/Effect.tooltip_text = companion_intent_notice
 		_record_companion_selection("execute", context, options, choice)
 		_apply_companion_card(choice)
 		if not companion_bonus_action or battle_finished:
 			break
-		choice = {}
+		preview_id = ""
 		message_label.text = "十步击杀，小墨继续出招……"
 		if not fixed_cooperation_test:
 			await get_tree().create_timer(0.55).timeout
@@ -1039,6 +1276,7 @@ func _build_companion_context() -> Dictionary:
 		"can_build_combo": can_build,
 		"lowest_enemy_effective_hp": lowest_effective,
 		"cooperation": RunState.relationship_facts.get("cooperation", {}),
+		"run_lean": RunState.run_lean.duplicate(),
 		"player_hp": player_hp,
 		"player_max_hp": player_max_hp,
 		"block": block,
@@ -1047,6 +1285,9 @@ func _build_companion_context() -> Dictionary:
 		"lowest_enemy_hp": lowest_enemy_hp,
 		"incoming_damage": _enemy_intent_damage_total(),
 		"bond_stage": RunState.get_bond_stage_index(),
+		# 暗线：只影响她在战术合格的牌之间的偏好，不解锁、不改数值。
+		"hidden_trust": RunState.hidden_trust,
+		"hidden_attachment": RunState.hidden_attachment,
 		"turn_player_cards": "、".join(turn_player_cards) if not turn_player_cards.is_empty() else "玩家尚未行动，不要把待行动当成放弃出牌",
 		"shared_history": RunState.get_shared_history_prompt(6),
 		"recent_lines": RunState.get_recent_lines_block(6),
@@ -1073,12 +1314,19 @@ func _apply_companion_card(choice: Dictionary) -> void:
 	if int(definition.get("damage", 0)) > 0 and grind_sword_ready:
 		companion_damage_multiplier = 2
 		grind_sword_ready = false
+	if shoujian_turn:
+		companion_damage_multiplier = 2
 	var result_text := ""
 	var combo_before := combo
 	var incoming_before := _enemy_intent_damage_total()
 	var block_before := block
 	_show_companion_flash(card_id)
+	Sfx.play("xiaomo_guard" if CompanionCards.TAG_GUARD in definition.get("tags", []) else "xiaomo_strike")
 	result_text = _execute_companion_effects(definition)
+	if CompanionCards.TAG_GUARD in definition.get("tags", []) and RunState.has_relic(Relics.HEART_MIRROR):
+		var mirror := Relics.get_number(Relics.HEART_MIRROR, "block")
+		_gain_block(mirror, "relic")
+		result_text += "；护心镜 +%d 格挡" % mirror
 	_record_companion_effect_tags(card_id, definition, combo_before, incoming_before, block_before)
 	companion_last_card_id = card_id
 	if str(choice.get("source", "")) == "llm":
@@ -1090,6 +1338,7 @@ func _apply_companion_card(choice: Dictionary) -> void:
 	battle_companion_card_counts[companion_name] = int(battle_companion_card_counts.get(companion_name, 0)) + 1
 	companion_status_label.text = "小墨出牌：%s" % str(definition["name"])
 	companion_reason_label.text = "“%s”" % companion_last_reason
+	Sfx.voice(companion_last_reason)
 	$BattleUI/CompanionPanel/Effect.text = result_text
 	message_label.text = "小墨打出「%s」：%s" % [definition["name"], result_text]
 	companion_damage_multiplier = 1
@@ -1132,15 +1381,24 @@ func _execute_companion_effects(definition: Dictionary) -> String:
 		})
 		match str(effect["kind"]):
 			CompanionCards.EFFECT_DAMAGE:
-				var damage := int(effect["amount"])
+				var damage := int(effect["amount"]) + companion_turn_damage_bonus + companion_stored_damage_bonus
+				companion_turn_damage_bonus = 0
+				companion_stored_damage_bonus = 0
+				var living_before := _living_enemy_count()
 				for index in target_indices:
 					_damage_enemy_at(index, damage, bool(effect.get("ignore_guard", false)))
+				if linked_intent_active and _living_enemy_count() < living_before:
+					linked_pending = true
+					_player_floating_text("剑意相连 · 下回合接着来", Color("#f1ce82"), 2)
 				last_target_index = -1 if target_mode == CompanionCards.TARGET_ALL_ENEMIES else target_index
 				result["damage"] = damage
 			CompanionCards.EFFECT_BLOCK:
-				var gained_block := int(effect["amount"])
+				var gained_block := int(effect["amount"]) + companion_turn_block_bonus + (CardDatabase.get_number(CardDatabase.UNMOVED, "companion_block") if unmoved_active else 0)
+				companion_turn_block_bonus = 0
 				_gain_block(gained_block, "companion")
 				companion_block_this_turn += gained_block
+				if entrust_active and gained_block > 0:
+					entrust_bonus += int(gained_block / 2)
 				result["block"] = gained_block
 			CompanionCards.EFFECT_COMBO:
 				match str(effect["mode"]):
@@ -1248,7 +1506,7 @@ func _resolve_enemy_turn() -> void:
 	var damage_without_companion := maxi(expected_damage - maxi(block_at_start - companion_block_this_turn, 0), 0)
 	if not companion_save_recorded and companion_block_this_turn > 0 and damage_without_companion >= player_hp and maxi(expected_damage - block_at_start, 0) < player_hp:
 		companion_save_recorded = true
-		RunState.record_moment("第%d场，敌人那一轮本来足以击倒只剩 %d 血的你，是小墨的格挡替你接住了。" % [battle_index, player_hp], 4)
+		RunState.record_moment("第%d场，敌人那一轮本来足以击倒只剩 %d 血的你，是小墨的格挡替你接住了。" % [battle_index, player_hp], 4, "companion_save")
 	var few_return_before := few_return_used
 	# 敌人上一轮获得的格挡在玩家回合结束时消失；本轮防御行动生成的新格挡
 	# 会保留到下一个玩家回合。
@@ -1268,6 +1526,10 @@ func _resolve_enemy_turn() -> void:
 		match intent["type"]:
 			EnemyIntent.ATTACK:
 				var parts := AttackSegments.values(intent)
+				if chapter_two and bool(intent.get("borrow", false)) and not xiaomo_threads.is_empty():
+					for part_index in range(parts.size()):
+						parts[part_index] += BalanceConfig.THREAD_BLADE_BONUS
+					_enemy_floating_text(index, "借她的劲 +%d" % BalanceConfig.THREAD_BLADE_BONUS, THREAD_TINT, 2)
 				if bool(intent.get("intercepted", false)):
 					_record_enemy_action({"enemy": index, "type": "attack", "executed": false, "reason": "intercepted"})
 				for part_index in range(parts.size()):
@@ -1277,10 +1539,12 @@ func _resolve_enemy_turn() -> void:
 					_animate_enemy_action(index, "attack")
 					_resolve_enemy_attack_segment(index, part_index, damage)
 					action_messages.append("敌人%d攻击%d" % [index + 1, damage] if parts.size() == 1 else "敌人%d第%d段攻击%d" % [index + 1, part_index + 1, damage])
+				if chapter_two and bool(intent.get("reel", false)) and bool(intent.get("charging", false)) and player_hp > 0 and enemy_hps[index] > 0:
+					action_messages.append(_reel_in_xiaomo(index))
 			EnemyIntent.DEFEND:
 				_record_enemy_action({"enemy": index, "type": "defend", "executed": true})
 				var guard_target := index
-				if bool(intent.get("support", false)):
+				if bool(intent.get("support", false)) and not _holds_thread(index):
 					guard_target = _guard_target(index)
 				enemy_guards[guard_target] += intent["value"]
 				_animate_enemy_action(index, "guard")
@@ -1299,8 +1563,24 @@ func _resolve_enemy_turn() -> void:
 				discard_pile.append(CardType.CURSE)
 				action_messages.append("敌人%d往你牌组里塞了一张心魔" % (index + 1))
 			EnemyIntent.OTHER:
+				if bool(intent.get("thread", false)):
+					var thread_message := _resolve_thread_intent(index, intent)
+					action_messages.append(thread_message)
+					if player_hp <= 0:
+						break
+					continue
 				_record_enemy_action({"enemy": index, "type": "other", "executed": true})
-				action_messages.append("敌人%d观望" % (index + 1))
+				action_messages.append("敌人%d%s" % [index + 1, "的行动被回线作废" if bool(intent.get("cancelled", false)) else "观望"])
+	if chapter_two and xiaomo_threads.size() >= BalanceConfig.THREAD_MAX_ON_XIAOMO and player_hp > 0:
+		# 被牵：她这回合本该给你的，变成了持线者的护甲。
+		var holders: Array[int] = []
+		for holder in xiaomo_threads:
+			if not holders.has(holder) and enemy_hps[holder] > 0:
+				holders.append(holder)
+				enemy_guards[holder] += BalanceConfig.THREAD_DRAGGED_GUARD
+				_enemy_floating_text(holder, "+%d 护盾（被牵）" % BalanceConfig.THREAD_DRAGGED_GUARD, THREAD_TINT, 1)
+		if not holders.is_empty():
+			action_messages.append("两根线把小墨牵了过去，持线者获得护盾")
 	# 玩家与小墨均使用本轮易伤，敌方行动结算后统一衰减。
 	for index in range(enemy_vulnerabilities.size()):
 		enemy_vulnerabilities[index] = maxi(enemy_vulnerabilities[index] - 1, 0)
@@ -1323,6 +1603,7 @@ func _resolve_enemy_turn() -> void:
 		combo_telemetry.current["parry_award_not_injected"] = parry_pending_combo
 	combo_telemetry.finish_round(_visible_wind_count(), "end_turn")
 	if not retain_shield_active: block = 0
+	last_companion_block = companion_block_this_turn
 	companion_block_this_turn = 0
 	var few_return_triggered := few_return_used and not few_return_before
 	if damage_taken > 0:
@@ -1338,11 +1619,28 @@ func _resolve_enemy_turn() -> void:
 		return
 	few_return_active = false
 	few_return_immune = false
+	if not peace_charm_used and RunState.has_relic(Relics.PEACE_CHARM) and player_hp * 4 <= player_max_hp:
+		peace_charm_used = true
+		var charm := Relics.get_number(Relics.PEACE_CHARM, "block")
+		_gain_block(charm, "relic")
+		_player_floating_text("平安符 · 格挡 +%d" % charm, RELIC_TINT, 2)
 	energy = max_energy + long_wind_bonus
 	long_wind_bonus = 0
-	var combo_was_preserved := preserve_combo_this_turn
-	if not preserve_combo_this_turn:
-		combo = 0
+	var linked_now := linked_pending
+	linked_pending = false
+	if linked_now:
+		energy += CardDatabase.get_number(CardDatabase.LINKED_INTENT, "energy")
+	var combo_was_preserved := preserve_combo_this_turn or linked_now
+	var combo_halved := false
+	if not preserve_combo_this_turn and not linked_now:
+		if intent_hold_active and combo > 1:
+			combo = int(combo / 2)
+			combo_halved = true
+		else:
+			combo = 0
+	defenses_this_turn = 0
+	if unmoved_active:
+		_gain_block(CardDatabase.get_number(CardDatabase.UNMOVED, "block"), "player")
 	var injected := parry_pending_combo
 	combo += injected
 	parry_injected_remaining = injected
@@ -1353,19 +1651,24 @@ func _resolve_enemy_turn() -> void:
 	preserve_combo_this_turn = false
 	tune_breath_used_this_turn = false
 	consecutive_attacks = 0
+	attacked_this_turn = false
 	flowing_cloud_triggered = false
+	thread_hits.fill(0)
+	thread_last_hit = -1
 	turn_player_cards.clear()
 	_discard_remaining_hand()
 	_draw_new_hand()
+	if linked_now and _draw_cards_into_empty_slots(CardDatabase.get_number(CardDatabase.LINKED_INTENT, "draw")) > 0:
+		_player_floating_text("剑意相连 · 精力+1 抽1", Color("#f1ce82"), 2)
 	if player_hp > 0:
-		combo_telemetry.begin_round(battle_turn_count + 1, combo, flowing_cloud_active, RunState.get_bond_stage_index() >= ultimate_bond_stage_required, _visible_wind_count())
+		combo_telemetry.begin_round(battle_turn_count + 1, combo, flowing_cloud_active, _ultimate_unlocked(), _visible_wind_count())
 		combo_telemetry.current["cloud_in_hand"] = _visible_cloud_count()
 		if injected > 0: combo_telemetry.current["parry_injected"] = injected
 		if retain_shield_active:
 			combo_telemetry.current["starting_block"] = block
 			combo_telemetry.current["retain_active"] = true
 	_assess_cooperation_window()
-	var combo_result := "藏锋生效，保留连击" if combo_was_preserved else "连击清零"
+	var combo_result := "藏锋生效，保留连击" if combo_was_preserved else ("蓄意：连击减半为 %d" % combo if combo_halved else "连击清零")
 	if injected > 0: combo_result += "；回锋注入%d连击" % injected
 	var guard_result := "；几人回救险，保留1点生命" if few_return_triggered else ""
 	message_label.text = "敌方行动：%s。受到 %d 伤害，%s%s" % [
@@ -1393,9 +1696,13 @@ func _resolve_enemy_attack_segment(enemy_index: int, segment_index: int, damage:
 		few_return_used = true
 		few_return_immune = true
 		few_return_active = false
-		RunState.record_moment("第%d场，本该倒下的那一击，小墨用「几人回」替你留住了最后一口气。" % battle_index, 4)
+		RunState.record_moment("第%d场，本该倒下的那一击，小墨用「几人回」替你留住了最后一口气。" % battle_index, 4, "companion_save")
 	life_lost = mini(life_lost, player_hp)
 	player_hp -= life_lost
+	if life_lost > 0:
+		Sfx.play("player_hurt")
+	elif absorbed > 0:
+		Sfx.play("guard_hit")
 	battle_damage_taken += life_lost
 	_record_enemy_action({"enemy": enemy_index, "type": "attack", "segment": segment_index, "executed": true, "damage": damage, "absorbed": absorbed, "life_lost": life_lost, "survived": player_hp > 0})
 	if player_hp > 0:
@@ -1406,6 +1713,8 @@ func _on_parry_attack_segment(enemy_index: int, _damage: int, _absorbed: int, _l
 	if not parry_active or player_hp <= 0 or enemy_hps[enemy_index] <= 0 or parry_reactions >= parry_reaction_limit:
 		return
 	parry_reactions += 1
+	if hear_wind_active:
+		companion_stored_damage_bonus += CardDatabase.get_number(CardDatabase.HEAR_WIND, "companion_damage")
 	var hp_before := enemy_hps[enemy_index]
 	_damage_enemy_at(enemy_index, parry_reaction_damage)
 	battle_parry_damage += hp_before - enemy_hps[enemy_index]
@@ -1445,6 +1754,8 @@ func _record_enemy_action(event: Dictionary) -> void:
 
 func _gain_block(amount: int, source: String) -> void:
 	block += amount
+	if amount > 0 and source == "player":
+		Sfx.play("shield_up")
 	if combo_telemetry.current.is_empty(): return
 	var field := "block_gained_" + source
 	combo_telemetry.current[field] = int(combo_telemetry.current.get(field, 0)) + amount
@@ -1471,7 +1782,60 @@ func _can_pay(cost: int) -> bool:
 
 
 func _card_cost(card_type: CardType) -> int:
-	return PlayerEffects.cost(CardDatabase.get_definition(int(card_type)), {"consecutive_attacks": consecutive_attacks})
+	var definition := CardDatabase.get_definition(int(card_type))
+	var amount := PlayerEffects.cost(definition, {"consecutive_attacks": consecutive_attacks, "companion_intent": _companion_intent_kind()})
+	# 旧伞：她守护的回合，你的第一张攻击牌费用 -1。
+	if RunState.has_relic(Relics.OLD_UMBRELLA) and not attacked_this_turn and definition.get("type", "") == "攻击" and _companion_intent_kind() == CardDatabase.INTENT_GUARD:
+		amount = maxi(amount - Relics.get_number(Relics.OLD_UMBRELLA, "discount"), 0)
+	return amount
+
+
+func _player_effect_context() -> Dictionary:
+	return {"combo": combo, "attack_combo_bonus": attack_combo_bonus, "block": block,
+		"companion_intent": _companion_intent_kind(), "defenses_this_turn": defenses_this_turn,
+		"xiaomo_bound": chapter_two and not xiaomo_threads.is_empty(),
+		"last_companion_block": last_companion_block, "opportunities_used": opportunities_used_this_battle}
+
+
+# 这张牌是否在读她此刻亮出的意向（牌面写着「她要守护时……」那类）。
+func _card_reads_intent(definition: Dictionary, intent: String) -> bool:
+	if intent.is_empty():
+		return false
+	if intent in definition.get("cost_rule", {}).get("free_when_intent", []):
+		return true
+	for effect in definition.get("effects", []):
+		for key in ["requires_intent", "unless_intent", "bonus_intent"]:
+			if intent in effect.get(key, []):
+				return true
+	return false
+
+
+# 默契倾向 +1；第一次够了，她说一句。
+func _note_lean(kind: String) -> void:
+	if RunState.add_run_lean(kind) and LEAN_LINES.has(kind):
+		last_lean_line = LEAN_LINES[kind]
+		_player_floating_text("小墨：%s" % last_lean_line, Color("#f1ce82"), 1)
+		Sfx.voice(last_lean_line)
+
+
+# 小墨本回合亮出的意向类别；被紫线缠住、还没亮意向时为空。
+func _companion_intent_kind() -> String:
+	if locked_companion_choice.is_empty() or (chapter_two and not xiaomo_threads.is_empty()):
+		return ""
+	var definition := CompanionCards.get_definition(str(locked_companion_choice.get("card_id", "")))
+	if definition.is_empty():
+		return ""
+	var tags: Array = definition.get("tags", [])
+	if CompanionCards.TAG_FINISHER in tags:
+		return CardDatabase.INTENT_FINISHER
+	if definition.get("stance", "") == CompanionCards.STANCE_INVEST:
+		return CardDatabase.INTENT_INVEST
+	if CompanionCards.TAG_GUARD in tags:
+		return CardDatabase.INTENT_GUARD
+	for effect in definition.get("effects", []):
+		if str(effect.get("kind", "")) == CompanionCards.EFFECT_DAMAGE:
+			return CardDatabase.INTENT_ATTACK
+	return CardDatabase.INTENT_GUARD
 
 
 func _damage_enemy_at(target_index: int, damage: int, ignore_guard: bool = false) -> void:
@@ -1486,23 +1850,28 @@ func _damage_enemy_at(target_index: int, damage: int, ignore_guard: bool = false
 		battle_damage_dealt += hp_before - enemy_hps[target_index]
 		if damage > 0 and hp_before > 0:
 			_animate_enemy_hit(target_index)
+			var life_dealt := hp_before - enemy_hps[target_index]
+			Sfx.play("guard_hit" if life_dealt <= 0 else ("hit_heavy" if damage >= 14 else "hit_light"))
 			if absorbed > 0:
 				_enemy_floating_text(target_index, "护盾吸收 %d" % absorbed, Color("#74c7bd"))
 			if hp_before > enemy_hps[target_index]:
 				_enemy_floating_text(target_index, "-%d 生命" % (hp_before - enemy_hps[target_index]), Color("#f1a292"), 1 if absorbed > 0 else 0)
 			if enemy_hps[target_index] == 0:
 				_animate_enemy_death(target_index)
+				Sfx.play("kill")
+		if chapter_two and hp_before > 0 and damage > 0:
+			_count_thread_hit(target_index)
 		if _is_boss_battle() and hp_before > 0 and damage > 0 and bool(enemy_intents[target_index].get("charging", false)):
 			boss_charge_hits += 1
 			if boss_charge_hits >= EnemyDatabase.BOSS_INTERRUPT_HITS:
 				enemy_intents[target_index]["charging"] = false
 				enemy_intents[target_index]["interrupted"] = true
 				enemy_intents[target_index]["value"] = mini(int(enemy_intents[target_index]["value"]), int(EnemyDatabase.get_boss_config(RunState.route_layer)["attack"]))
-				_enemy_floating_text(target_index, "破势！重斩打断", Color("#f1ce82"), 2)
+				_enemy_floating_text(target_index, "破势！收线打断" if bool(enemy_intents[target_index].get("reel", false)) else "破势！重斩打断", Color("#f1ce82"), 2)
 
 
 func _is_boss_battle() -> bool:
-	return not fixed_cooperation_test and RunState.pending_encounter == RunState.EncounterType.BOSS
+	return not fixed_cooperation_test and not troupe_boss and RunState.pending_encounter == RunState.EncounterType.BOSS
 
 
 func _guard_target(guardian_index: int) -> int:
@@ -1521,8 +1890,16 @@ func _roll_enemy_intents() -> void:
 		"layer": RunState.route_layer, "hps": enemy_hps, "max_hps": enemy_max_hps,
 		"roles": enemy_roles, "strengths": enemy_strengths, "reductions": enemy_attack_reductions,
 		"boss_step": boss_action_step, "boss_hits": boss_charge_hits, "role_step": enemy_action_step,
+		"thread_boss": chapter_two and _is_boss_battle() and RunState.chapter_boss() != EnemyDatabase.CURSE_GUARDIAN,
+		"puppeteer": chapter_two and _is_boss_battle() and RunState.chapter_boss() == EnemyDatabase.PUPPETEER,
+		"early_enrage": RunState.sword_realm >= 4 and not fixed_cooperation_test,
 	}, _enemy_roll)
 	enemy_intents.assign(planned.intents)
+	# 剑境五：敌人每次攻击 +2。
+	if RunState.sword_realm >= 5 and not fixed_cooperation_test:
+		for intent in enemy_intents:
+			if int(intent.get("type", -1)) == EnemyIntent.ATTACK:
+				AttackSegments.reduce_next(intent, -2)
 	enemy_attack_reductions.assign(planned.reductions)
 	boss_action_step = planned.boss_step
 	boss_charge_hits = planned.boss_hits
@@ -1556,6 +1933,7 @@ func _register_hand_button(button: Button) -> void:
 	var index := hand_buttons.size()
 	hand_buttons.append(button)
 	button.pressed.connect(_play_hand_card.bind(index))
+	button.set_meta("sfx_silent", true)
 	preload("res://scripts/ui/battle_art_skin.gd").prepare_card(button)
 
 
@@ -1661,6 +2039,7 @@ func _resolve_consecutive_attack() -> void:
 	if CardDatabase.get_definition(card_id).get("type", "") != "攻击":
 		consecutive_attacks = 0
 		return
+	attacked_this_turn = true
 	consecutive_attacks += 1
 	if not flowing_cloud_active or flowing_cloud_triggered or consecutive_attacks != int(flowing_cloud_rule["trigger_count"]):
 		return
@@ -1684,6 +2063,8 @@ func _end_battle(player_won: bool) -> void:
 	if battle_finished:
 		return
 	battle_finished = true
+	Sfx.stop_voice()
+	Sfx.play("victory" if player_won else "defeat")
 	_consume_parry_combo(parry_injected_remaining, "battle_end")
 	combo_telemetry.observe_combo(combo, "companion_or_last_action")
 	combo_telemetry.finish_battle(_visible_wind_count())
@@ -1739,12 +2120,26 @@ func _end_battle(player_won: bool) -> void:
 				RunState.consecutive_run_failures
 			)
 			RunState.settle_act_promise()
+			if chapter_two:
+				RunState.complete_chapter_trip()
 			print("远征通关")
 			RunState.finish_run(true)
 			RunState.set_post_battle_route("settlement")
 		else:
 			RunState.set_post_battle_route("map")
-		RunState.checkpoint("reward")
+			if RunState.has_relic(Relics.WINE_GOURD):
+				var drank := RunState.adjust_player_hp(Relics.get_number(Relics.WINE_GOURD, "heal"))
+				if drank > 0:
+					_player_floating_text("酒葫芦 · 回复 %d" % drank, RELIC_TINT, 2)
+			if chapter_two and on_thread:
+				var healed := RunState.adjust_player_hp(BalanceConfig.THREAD_ROUTE_HEAL)
+				if healed > 0:
+					_player_floating_text("追线 · 回复 %d" % healed, THREAD_TINT, 1)
+		var relic_reward := ""
+		if RunState.pending_encounter == RunState.EncounterType.ELITE:
+			relic_reward = Relics.roll(RunState.run_relics)
+			RunState.gain_relic(relic_reward)
+		RunState.checkpoint("reward", {"relic": relic_reward} if not relic_reward.is_empty() else {})
 		_return_to_reward_after_delay(victory_delay)
 	else:
 		message_label.text = "失败"
@@ -1764,6 +2159,43 @@ func _return_to_reward_after_delay(delay: float) -> void:
 func _return_to_settlement_after_delay() -> void:
 	await get_tree().create_timer(1.0).timeout
 	RunState.navigate("settlement", self)
+
+
+# ---- 信物 ----
+
+func _apply_battle_start_relics() -> void:
+	var slot := 0
+	if RunState.has_relic(Relics.OLD_SCABBARD):
+		var amount := Relics.get_number(Relics.OLD_SCABBARD, "block")
+		_gain_block(amount, "relic")
+		_player_floating_text("旧剑鞘 · 格挡 +%d" % amount, RELIC_TINT, slot)
+		slot += 1
+	if RunState.has_relic(Relics.WHETSTONE_CHIP):
+		energy += Relics.get_number(Relics.WHETSTONE_CHIP, "energy")
+		_player_floating_text("磨剑石片 · 精力 +1", RELIC_TINT, slot)
+
+
+# 她亮出意向后，读意向的信物生效（每个玩家回合一次）。
+func _apply_intent_relics() -> void:
+	match _companion_intent_kind():
+		CardDatabase.INTENT_GUARD:
+			if RunState.has_relic(Relics.GREEN_TASSEL):
+				if _draw_cards_into_empty_slots(Relics.get_number(Relics.GREEN_TASSEL, "draw")) > 0:
+					_player_floating_text("青色剑穗 · 抽 1 张", RELIC_TINT, 2)
+		CardDatabase.INTENT_INVEST:
+			if RunState.has_relic(Relics.LOVERS_KNOT):
+				combo += Relics.get_number(Relics.LOVERS_KNOT, "combo")
+				_player_floating_text("同心结 · 连击 +1", RELIC_TINT, 2)
+		CardDatabase.INTENT_FINISHER:
+			if RunState.has_relic(Relics.BROKEN_STRING):
+				for index in range(enemy_hps.size()):
+					if enemy_hps[index] > 0:
+						enemy_vulnerabilities[index] += Relics.get_number(Relics.BROKEN_STRING, "vulnerable")
+				_player_floating_text("断弦 · 敌人易伤+1", RELIC_TINT, 1)
+			if RunState.has_relic(Relics.BRONZE_BELL):
+				energy += Relics.get_number(Relics.BRONZE_BELL, "energy")
+				_player_floating_text("铜铃 · 精力 +1", RELIC_TINT, 2)
+	_refresh_ui()
 
 
 func _refresh_ui() -> void:
@@ -1788,6 +2220,12 @@ func _refresh_ui() -> void:
 			if bool(enemy_intents[index].get("charging", false)):
 				status_parts.append("破势 %d / %d" % [boss_charge_hits, EnemyDatabase.BOSS_INTERRUPT_HITS])
 				enemy_status_labels[index].tooltip_text = "重斩回合命中三次即可打断，护盾吸收也计次，小墨攻击也计次。"
+		var thread_count := xiaomo_threads.count(index)
+		if chapter_two and thread_count > 0 and enemy_hps[index] > 0:
+			status_parts.append("持线 ×%d · 斩线 %d / %d" % [thread_count, thread_hits[index], RunState.thread_hits_required()])
+			enemy_status_labels[index].tooltip_text = "本回合打中它 %d 次，就能斩断它牵着小墨的线。" % RunState.thread_hits_required()
+		if index < enemy_sprites.size() and enemy_hps[index] > 0:
+			enemy_sprites[index].self_modulate = THREAD_TINT if thread_count > 0 else Color.WHITE
 		enemy_status_labels[index].text = "   ·   ".join(status_parts)
 		var frame_color := Color.TRANSPARENT
 		if enemy_hps[index] <= 0:
@@ -1818,7 +2256,11 @@ func _refresh_ui() -> void:
 						enemy_intent_labels[index].text = "⚔  攻击 " + " + ".join(parts)
 					if bool(intent.get("heavy", false)):
 						enemy_intent_labels[index].text = "蓄力重击 %d" % intent["value"]
-					if bool(intent.get("charging", false)):
+					if chapter_two and bool(intent.get("borrow", false)) and not xiaomo_threads.is_empty():
+						enemy_intent_labels[index].text += "（借力 +%d）" % BalanceConfig.THREAD_BLADE_BONUS
+					if bool(intent.get("charging", false)) and bool(intent.get("reel", false)):
+						enemy_intent_labels[index].text = "收线 %d · 三次命中可打断，否则牵走小墨" % intent["value"]
+					elif bool(intent.get("charging", false)):
 						enemy_intent_labels[index].text = "重斩 %d · 三次命中可打断" % intent["value"]
 					elif bool(intent.get("interrupted", false)):
 						enemy_intent_labels[index].text = "已破势 · 攻击 %d" % intent["value"]
@@ -1826,13 +2268,27 @@ func _refresh_ui() -> void:
 					enemy_intent_labels[index].text = "◆  防御 %d" % intent["value"]
 					if bool(intent.get("support", false)):
 						enemy_intent_labels[index].text = "护卫敌人%d · 格挡%d" % [_guard_target(index) + 1, intent["value"]]
+						if _holds_thread(index):
+							enemy_intent_labels[index].text = "◆  护住线 · 格挡%d" % intent["value"]
 				EnemyIntent.ENHANCE:
 					enemy_intent_labels[index].text = "✦  攻击 +%d" % intent["value"]
 				EnemyIntent.CURSE:
 					enemy_intent_labels[index].text = "☷  塞入心魔"
 				EnemyIntent.OTHER:
 					enemy_intent_labels[index].text = "·  观望"
+					if bool(intent.get("cancelled", false)):
+						enemy_intent_labels[index].text = "·  被回线缠住"
+					elif bool(intent.get("thread", false)):
+						if xiaomo_threads.size() < BalanceConfig.THREAD_MAX_ON_XIAOMO:
+							enemy_intent_labels[index].text = "〰  抛线 · 缠住小墨"
+						elif _role_of(index) == EnemyDatabase.WATCHER:
+							enemy_intent_labels[index].text = "〰  线满 · 给刀手护盾 %d" % BalanceConfig.THREAD_DRAGGED_GUARD
+						else:
+							enemy_intent_labels[index].text = "⚔  线满 · 攻击 %d" % int(intent.get("fallback", 0))
 	combo_label.text = "连击  %d · 连续攻击 %d" % [combo, consecutive_attacks]
+	if combo > displayed_combo and not battle_finished:
+		Sfx.play("combo", 1.0 + 0.06 * mini(combo, 10))
+	displayed_combo = combo
 	player_hp_label.text = "生命  %d / %d" % [player_hp, player_max_hp]
 	energy_label.text = "精力: %d/%d" % [energy, max_energy]
 	block_label.text = "格挡: %d%s" % [block, _pending_boon_ui_text()]
@@ -1863,24 +2319,26 @@ func _refresh_ui() -> void:
 	special_button.disabled = (
 		battle_finished
 		or companion_turn_pending
-		or RunState.get_bond_stage_index() < special_bond_stage_required
+		or not _special_unlocked()
 		or combo < special_combo_required
 		or energy < special_energy_cost
 	)
 	ultimate_button.disabled = (
 		battle_finished
 		or companion_turn_pending
-		or RunState.get_bond_stage_index() < ultimate_bond_stage_required
+		or not _ultimate_unlocked()
 		or combo < ultimate_combo_required
 		or energy < ultimate_energy_cost
 	)
 	special_button.text = "流光%s\n基础伤害 %d · 精力 %d" % [" · 已选中" if pending_skill_target == 1 else "", special_damage, special_energy_cost]
 	ultimate_button.text = "华彩%s\n基础伤害 %d · 精力 %d" % [" · 已选中" if pending_skill_target == 2 else "", ultimate_damage, ultimate_energy_cost]
-	special_button.tooltip_text = "流光：基础伤害 %d；消耗 %d 精力、%d 层连击。需 %d 层连击，羁绊阶段 %d 解锁。" % [special_damage, special_energy_cost, special_combo_cost, special_combo_required, special_bond_stage_required]
-	ultimate_button.tooltip_text = "华彩：基础伤害 %d；消耗 %d 精力，连击清零。需 %d 层连击，羁绊阶段 %d 解锁。" % [ultimate_damage, ultimate_energy_cost, ultimate_combo_required, ultimate_bond_stage_required]
+	special_button.tooltip_text = "流光：基础伤害 %d；消耗 %d 精力、%d 层连击。需 %d 层连击，羁绊 %d 解锁。" % [special_damage, special_energy_cost, special_combo_cost, special_combo_required, special_bond_required]
+	ultimate_button.tooltip_text = "华彩：基础伤害 %d；消耗 %d 精力，连击清零。需 %d 层连击，羁绊 %d 解锁。" % [ultimate_damage, ultimate_energy_cost, ultimate_combo_required, ultimate_bond_required]
 	preload("res://scripts/ui/battle_art_skin.gd").select_skill(special_button, pending_skill_target == 1)
 	preload("res://scripts/ui/battle_art_skin.gd").select_skill(ultimate_button, pending_skill_target == 2)
 	end_turn_button.disabled = battle_finished or companion_turn_pending
+	if tutorial != null and not special_button.disabled:
+		_try_skill_tip.call_deferred()
 
 
 func _encounter_label() -> String:
@@ -1905,7 +2363,7 @@ func _record_battle_moments(player_won: bool) -> void:
 	if label == "Boss战":
 		RunState.record_moment("第%d场，你们一起打倒了这一趟的 Boss。" % battle_index, 2)
 	elif label == "精英战":
-		RunState.record_moment("第%d场，你们赢下了一场精英战。" % battle_index, 1)
+		RunState.record_moment("第%d场，你们赢下了一场精英战。" % battle_index, 1, "elite_win")
 
 
 func _record_player_card(card_id: int) -> void:
@@ -2044,6 +2502,22 @@ func _use_cooperation_window() -> void:
 		return
 	cooperation_windows["resource"]["used"] = true
 	RunState.record_cooperation("opportunities_used")
+	opportunities_used_this_battle += 1
+	_note_lean(CompanionCards.intent_kind(str(cooperation_windows["resource"].get("source", ""))))
+	if heart_sync_active and not battle_finished:
+		_gain_block(CardDatabase.get_number(CardDatabase.HEART_SYNC, "block"), "player")
+		combo += CardDatabase.get_number(CardDatabase.HEART_SYNC, "combo")
+		RunState.add_run_lean("invest")
+		_player_floating_text("心照 · 格挡+4 连击+1", Color("#e9cb83"), 2)
+	if RunState.has_relic(Relics.HALF_JADE) and not battle_finished:
+		var before := player_hp
+		player_hp = mini(player_hp + Relics.get_number(Relics.HALF_JADE, "heal"), player_max_hp)
+		if player_hp > before:
+			_player_floating_text("半块玉佩 · 回复 %d" % (player_hp - before), RELIC_TINT, 2)
+	if attune_active and not battle_finished:
+		energy += CardDatabase.get_number(CardDatabase.ATTUNE, "energy")
+		_draw_cards_into_empty_slots(CardDatabase.get_number(CardDatabase.ATTUNE, "draw"))
+		_player_floating_text("同调：抽1 · 精力+1", Color("#e9cb83"), 1)
 	RunState.record_moment("第%d场，你接住了小墨「%s」留下的机会。" % [battle_index, CompanionCards.get_definition(str(cooperation_windows["resource"]["source"]))["name"]], 2)
 
 
@@ -2076,3 +2550,250 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if fixed_cooperation_test and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R:
 		RunState.set_player_hp(RunState.player_max_hp)
 		start_battle()
+
+
+# ---- 新手引导（只做展示，不改战斗规则） ----
+
+func _tutorial_enabled() -> bool:
+	return not fixed_cooperation_test and not offline_experiment and not RunState.suppress_persistence
+
+
+func _install_tutorial() -> void:
+	if not _tutorial_enabled():
+		return
+	tutorial = BattleTutorial.new()
+	tutorial.name = "BattleTutorial"
+	add_child(tutorial)
+	var help_button := Button.new()
+	help_button.name = "TutorialButton"
+	help_button.text = "？"
+	help_button.tooltip_text = "重看战斗引导"
+	help_button.position = Vector2(1250, 30)
+	help_button.size = Vector2(100, 80) if WindowMode.is_mobile() else Vector2(100, 48)
+	InkUISkin.style_button(help_button)
+	$BattleUI.add_child(help_button)
+	help_button.pressed.connect(_start_tutorial_intro)
+	tutorial_intro_pending = not BattleTutorial.is_seen(BattleTutorial.INTRO_KEY)
+
+
+# 每个玩家回合、小墨意向锁定之后调用。
+func _on_player_turn_ready() -> void:
+	if tutorial == null or battle_finished:
+		return
+	if not pending_thread_tips.is_empty() and not tutorial.is_active():
+		_show_thread_tip(pending_thread_tips.pop_front())
+	if tutorial_intro_pending:
+		tutorial_intro_pending = false
+		_start_tutorial_intro()
+		return
+	var boon := _pending_boon_ui_text().replace("　", "；").strip_edges().trim_prefix("；")
+	if not boon.is_empty():
+		tutorial.try_tip("tip_boon", "小墨给你留了机会",
+			"上回合小墨出的牌给你留了好处：%s。\n只在这一回合有效，不用就没了。" % boon,
+			player_status)
+
+
+func _try_skill_tip() -> void:
+	if tutorial == null or tutorial.is_active() or battle_finished or companion_turn_pending:
+		return
+	tutorial.try_tip("tip_flowing_light", "可以打流光了",
+		"连击攒够了，右下的「流光 / 华彩」亮了。\n它们会消耗连击，打出一记重击。留着连击不用，回合结束也会清零。",
+		$BattleUI/ActionArea)
+
+
+func _start_tutorial_intro() -> void:
+	if tutorial == null or tutorial.is_active():
+		return
+	var steps: Array[Dictionary] = [
+		{"title": "看敌人要做什么", "target": enemy_row,
+			"body": "每个敌人身上都写着它下回合的行动。⚔ 是攻击，后面的数字是伤害；◆ 是防御。先看清楚再出牌。"},
+		{"title": "出牌", "target": $BattleUI/HandViewport,
+			"body": "点一张手牌就能打出。牌左上角是精力费用，每回合有 %d 点精力。\n攻击牌点完后，再点一下要打的敌人。" % max_energy},
+		{"title": "生命、精力、护盾、连击", "target": player_status,
+			"body": "连着打攻击牌会叠连击，每层让之后的攻击 +%d 伤害；中间打防御牌，连击就断了。\n护盾能挡敌人这一轮的伤害，下回合会清空。" % attack_combo_bonus},
+		{"title": "小墨会先告诉你", "target": $BattleUI/CompanionPanel,
+			"body": "你出牌之前，小墨就亮出了她这回合要出的牌。\n看她打算做什么——她来挡，你就放心进攻；她来打，你就补上。"},
+		{"title": "结束回合", "target": end_turn_button,
+			"body": "出完牌点这里。之后小墨按刚才说的出手，然后敌人行动，再进入下一回合。"},
+		{"title": "剩下的边打边学", "target": null,
+			"body": "和小墨越熟，她会的招越多，有的招会给你留下机会。\n想再看一遍，点右上角的「？」。"},
+	]
+	tutorial.start_intro(steps)
+
+
+func handle_mobile_back() -> bool:
+	if tutorial != null and tutorial.is_active():
+		tutorial.dismiss()
+		return true
+	return false
+
+
+# ---- 第二章 · 紫线 ----
+
+func _role_of(index: int) -> String:
+	return enemy_roles[index] if index >= 0 and index < enemy_roles.size() else "boss"
+
+
+func _holds_thread(index: int) -> bool:
+	return xiaomo_threads.has(index)
+
+
+func _living_box_index() -> int:
+	for index in range(enemy_roles.size()):
+		if enemy_roles[index] == EnemyDatabase.BOX and enemy_hps[index] > 0:
+			return index
+	return -1
+
+
+func _resolve_thread_intent(index: int, intent: Dictionary) -> String:
+	_record_enemy_action({"enemy": index, "type": "thread", "executed": true})
+	if xiaomo_threads.size() < BalanceConfig.THREAD_MAX_ON_XIAOMO:
+		_animate_enemy_action(index, "curse")
+		return _throw_thread(index)
+	if _role_of(index) == EnemyDatabase.WATCHER:
+		for ally in range(enemy_roles.size()):
+			if enemy_roles[ally] == EnemyDatabase.BLADE and enemy_hps[ally] > 0:
+				enemy_guards[ally] += BalanceConfig.THREAD_DRAGGED_GUARD
+				_enemy_floating_text(ally, "+%d 护盾" % BalanceConfig.THREAD_DRAGGED_GUARD, Color("#74c7bd"))
+		return "看台人收紧了线，给刀手护盾"
+	var damage := int(intent.get("fallback", 0))
+	if damage > 0:
+		_animate_enemy_action(index, "attack")
+		_resolve_enemy_attack_segment(index, 0, damage)
+	return "敌人%d线已满，改为攻击%d" % [index + 1, damage]
+
+
+func _throw_thread(thrower: int) -> String:
+	var holder := thrower
+	var box := _living_box_index()
+	if box >= 0 and box != thrower:
+		holder = box
+	if RunState.xiaomo_breaks_first_thread() and not thread_self_break_used:
+		thread_self_break_used = true
+		if is_instance_valid(thread_art):
+			thread_art.snap(holder, true)
+		_player_floating_text("小墨挣断了紫线", THREAD_TINT, 1)
+		companion_reason_label.text = "“这一根，我自己来。”"
+		_queue_thread_tip("tip_thread_selfbreak")
+		return "敌人%d抛来紫线，被小墨自己挣断了" % (thrower + 1)
+	xiaomo_threads.append(holder)
+	_enemy_floating_text(thrower, "抛线", THREAD_TINT, 1)
+	_player_floating_text("小墨被紫线缠住", THREAD_TINT, 1)
+	_queue_thread_tip("tip_thread" if xiaomo_threads.size() == 1 else "tip_thread_double")
+	if holder != thrower:
+		_enemy_floating_text(holder, "替线", THREAD_TINT, 2)
+		return "敌人%d抛线，线交到了敌人%d手里" % [thrower + 1, holder + 1]
+	return "敌人%d抛线缠住了小墨" % (thrower + 1)
+
+
+func _count_thread_hit(target: int) -> void:
+	if target < 0 or target >= enemy_hps.size():
+		return
+	if enemy_hps[target] <= 0:
+		if _holds_thread(target):
+			_cut_threads(target, true)
+		thread_last_hit = -1
+		return
+	if not _holds_thread(target):
+		thread_last_hit = target
+		return
+	var add := 2 if RunState.has_scroll_page("duansi") and thread_last_hit == target else 1
+	if thread_pierce_pending:
+		add += 1
+	thread_last_hit = target
+	thread_hits[target] += add
+	if add > 1:
+		_enemy_floating_text(target, "断丝 · 再记一击", THREAD_TINT, 2)
+	if thread_hits[target] >= RunState.thread_hits_required():
+		thread_hits[target] = 0
+		_cut_threads(target, false)
+
+
+# 戏先生「收线」没被打断：把线一根根缠满。她自己挣得动的那一根（默契够了）照样会挣断。
+func _reel_in_xiaomo(holder: int) -> String:
+	var before := xiaomo_threads.size()
+	for i in range(BalanceConfig.THREAD_MAX_ON_XIAOMO):
+		if xiaomo_threads.size() >= BalanceConfig.THREAD_MAX_ON_XIAOMO:
+			break
+		_throw_thread(holder)
+	_enemy_floating_text(holder, "收线", THREAD_TINT, 1)
+	if xiaomo_threads.size() > before:
+		companion_reason_label.text = "“……他在往回收。”"
+	return "戏先生收线，小墨身上的线 %d → %d" % [before, xiaomo_threads.size()]
+
+
+func _cut_threads(holder: int, all_of_them: bool) -> void:
+	var cut := 0
+	while xiaomo_threads.has(holder):
+		xiaomo_threads.erase(holder)
+		cut += 1
+		if not all_of_them:
+			break
+	if cut == 0:
+		return
+	if is_instance_valid(thread_art):
+		thread_art.snap(holder, false)
+	var trained_before := RunState.threads_cut >= BalanceConfig.THREAD_TRAINED_AT
+	for i in range(cut):
+		RunState.record_thread_cut()
+	threads_cut_this_battle += cut
+	Sfx.play("kill")
+	_enemy_floating_text(holder, "斩线！", Color("#f1ce82"), 0)
+	if xiaomo_threads.is_empty():
+		companion_reason_label.text = "“……谢了。”" if threads_cut_this_battle == cut else "“线断了，我接着来。”"
+		_player_floating_text("小墨挣脱了", Color("#f1ce82"), 1)
+	if RunState.has_scroll_page("jiesi") and _draw_cards_into_empty_slots(1) > 0:
+		_player_floating_text("借丝 · 抽 1 张", THREAD_TINT, 2)
+	if not all_of_them and RunState.has_scroll_page("huixian") and enemy_hps[holder] > 0:
+		enemy_intents[holder] = {"type": EnemyIntent.OTHER, "value": 0, "cancelled": true}
+		_enemy_floating_text(holder, "回线 · 行动作废", THREAD_TINT, 2)
+	if threads_cut_this_battle == cut:
+		RunState.record_moment("第%d场，你替小墨斩断了缠在她身上的紫线。" % battle_index, 2)
+	_queue_thread_tip("tip_thread_cut")
+	if not trained_before and RunState.threads_cut >= BalanceConfig.THREAD_TRAINED_AT:
+		_queue_thread_tip("tip_thread_trained")
+	_refresh_ui()
+
+
+# 她被缠时：亮出的意向染紫，原本要出的牌留在下面给你看。
+func _show_bound_intent(definition: Dictionary) -> void:
+	var dragged := xiaomo_threads.size() >= BalanceConfig.THREAD_MAX_ON_XIAOMO
+	companion_status_label.text = "被紫线缠住 · %s" % ("被牵" if dragged else "挣线")
+	var holders: Array[String] = []
+	for holder in xiaomo_threads:
+		var holder_name := "「%s」" % _enemy_name(holder)
+		if not holders.has(holder_name):
+			holders.append(holder_name)
+	companion_reason_label.text = "“线又缠上来了……你先帮我把它斩断。”" if dragged else "“线缠上来了，我挣不开。”"
+	$BattleUI/CompanionPanel/Effect.text = "本回合出不了手%s。原本要出「%s」——本回合打中%s %d 次就能斩断。" % [
+		"，她的力气会被持线者借走" if dragged else "",
+		definition["name"], "、".join(holders), RunState.thread_hits_required(),
+	]
+
+
+func _companion_bound_turn() -> void:
+	locked_companion_choice.clear()
+	companion_intent_notice = ""
+	companion_status_label.text = "小墨被线缠住"
+	companion_reason_label.text = "“……动不了。”"
+	$BattleUI/CompanionPanel/Effect.text = "这回合她没能出手。"
+	message_label.text = "小墨被紫线缠住，没能出手"
+
+
+func _queue_thread_tip(key: String) -> void:
+	if not pending_thread_tips.has(key):
+		pending_thread_tips.append(key)
+
+
+func _show_thread_tip(key: String) -> void:
+	var tips := {
+		"tip_thread": ["她被线缠住了", "紫线缠在小墨身上时，她出不了手。\n本回合打中持线的敌人 %d 次，线就断，她当场恢复原本的意向。打倒持线者也行。" % RunState.thread_hits_required()],
+		"tip_thread_double": ["两根线", "她身上同时有两根线时会「被牵」：不但出不了手，持线者还会拿到护盾。先斩掉一根。"],
+		"tip_thread_cut": ["线断了", "斩断的线会记着。你替她斩得越多，她在线里挣得越用力。"],
+		"tip_thread_trained": ["她开始自己挣了", "你们斩过的线够多了。从现在起，斩线只要打中 %d 次。" % BalanceConfig.THREAD_HITS_TRAINED],
+		"tip_thread_selfbreak": ["这一根她自己挣断了", "从现在起，每场战斗缠向她的第一根线，她会自己挣断。"],
+	}
+	if not tips.has(key):
+		return
+	var target: Control = $BattleUI/CompanionPanel
+	tutorial.try_tip(key, str(tips[key][0]), str(tips[key][1]), target)
